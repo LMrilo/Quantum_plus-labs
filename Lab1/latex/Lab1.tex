@@ -1,0 +1,236 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+
+% Geometria della pagina
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% Colori custom
+\definecolor{ibmblue}{RGB}{0, 45, 156}
+\definecolor{ibmred}{RGB}{250, 75, 76}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Setup per il codice Python
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Box personalizzati
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,title=Student Activity}
+\newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title=Important: Visualization Note}
+\newtcolorbox{composerbox}{colback=purple!5!white,colframe=purple!75!black,title=IBM Composer View (Q-Sphere)}
+
+\title{\textbf{Laboratory Guide 1: Introduction to Qiskit}\\
+\large From Theory to Practice: First Steps with Quantum Circuits}
+\author{Course: Quantum Computing Foundation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction and Objectives}
+This laboratory serves as the bridge between the theoretical concepts of single-qubit states and their practical implementation using the IBM Quantum Platform.
+
+\vspace{0.3cm}
+\noindent \textbf{Prerequisites:}
+\begin{itemize}
+    \item Lesson QC03: \textit{The Qubit and the Bloch Sphere}
+    \item Lesson QC04: \textit{Single-qubit Gates}
+    \item Lab 0: \textit{Environment Setup}
+\end{itemize}
+
+\noindent \textbf{Learning Objectives:}
+\begin{enumerate}
+    \item Visualize quantum states on the Bloch Sphere and Q-Sphere.
+    \item Implement basic gates ($X, H, Z$) and observe their effect on probability amplitudes.
+    \item Run a quantum circuit using Qiskit and interpret "Shot Noise" in measurement results.
+    \item Demonstrate quantum interference experimentally.
+\end{enumerate}
+
+\begin{warningbox}
+\textbf{Bloch Sphere vs. Q-Sphere}\\
+The lectures use the \textbf{Bloch Sphere} (a single vector arrow) to represent qubits. However, the IBM Composer uses the \textbf{Q-Sphere}, which represents states as \textbf{dots} on the surface.
+\begin{itemize}
+    \item \textbf{Dot Size:} Represents probability magnitude ($|\alpha|^2$).
+    \item \textbf{Dot Color:} Represents phase (Blue $= +$, Red $= -$).
+\end{itemize}
+Keep this difference in mind as you proceed.
+\end{warningbox}
+
+\newpage
+
+\section{Part A: Visual Intuition (IBM Quantum Composer)}
+\textit{Platform: IBM Quantum Composer (Drag-and-Drop Interface)}
+
+\subsection{Exercise 1: The Bit Flip (Pauli-X Gate)}
+\textbf{Context:} Imagine a light switch. To turn it from OFF (0) to ON (1), you apply a force. The X Gate is that force.
+In \textbf{QC04}, we defined: $X|0\rangle = |1\rangle$.
+
+\begin{studentbox}
+\textbf{Action:} Drag the \texttt{X} gate onto the qubit line ($q_0$) initialized at $|0\rangle$.
+\\
+\textbf{Expected Effect:}
+\begin{itemize}
+    \item \textbf{Theory (Bloch):} The vector rotates 180 degrees to the South Pole ($|1\rangle$).
+    \item \textbf{Probabilities:} The measurement probability for outcome "1" becomes 100\%.
+\end{itemize}
+\end{studentbox}
+
+\begin{composerbox}
+\textbf{What you see on screen:} A single dot at the \textbf{Bottom} (South Pole).
+\\
+\textbf{Color:} \textcolor{ibmblue}{\textbf{Blue}} (Phase 0).
+\end{composerbox}
+
+\subsection{Exercise 2: Creating Superposition (Hadamard Gate)}
+\textbf{Context:} Imagine spinning a coin. While spinning, it is a mix of Heads and Tails. The H Gate "spins" the qubit into superposition: $|+\rangle = \frac{|0\rangle + |1\rangle}{\sqrt{2}}$.
+
+\begin{studentbox}
+\textbf{Action:} Replace the X gate with an \texttt{H} gate.
+\\
+\textbf{Expected Effect:}
+\begin{itemize}
+    \item \textbf{Theory (Bloch):} The vector points to the Equator (X-axis).
+    \item \textbf{Probabilities:} 50\% for $|0\rangle$ and 50\% for $|1\rangle$.
+\end{itemize}
+\end{studentbox}
+
+\begin{composerbox}
+\textbf{What you see on screen:} \textbf{Two Dots} (one at Top, one at Bottom).
+\\
+\textbf{Color:} Both represent positive coefficients, so both are \textcolor{ibmblue}{\textbf{Blue}}.
+\end{composerbox}
+
+\subsection{Exercise 3: The "Invisible" Phase (Pauli-Z Gate)}
+\textbf{Context:} The Z gate creates the state $|-\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}}$. The minus sign is a phase change, invisible to standard probability measurement.
+
+\begin{studentbox}
+\textbf{Action:} Place a \texttt{Z} gate immediately after the \texttt{H} gate.
+\\
+\textbf{Expected Effect:}
+\begin{itemize}
+    \item \textbf{Theory (Bloch):} The vector rotates along the equator to the negative X-axis.
+    \item \textbf{Probabilities:} \textbf{Unchanged} (50/50).
+\end{itemize}
+\end{studentbox}
+
+\begin{composerbox}
+\textbf{What you see on screen:} Still two dots, but look at the colors!
+\\
+\textbf{Top Dot ($|0\rangle$):} \textcolor{ibmblue}{\textbf{Blue}}.
+\\
+\textbf{Bottom Dot ($|1\rangle$):} \textcolor{ibmred}{\textbf{Red}}.
+\\
+\textit{The Red color visualizes the negative sign (phase $\pi$) introduced by the Z gate.}
+\end{composerbox}
+
+\newpage
+
+\section{Part B: Coding \& Simulation (Qiskit)}
+
+\subsection{Exercise 4: Measurement and Shot Noise}
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=Coding Task]
+\begin{lstlisting}[language=Python]
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+
+qc = QuantumCircuit(1, 1)
+qc.h(0)            # Create superposition
+qc.measure(0, 0)   # Collapse and measure
+
+# Execute with limited shots
+backend = AerSimulator()
+job = backend.run(qc, shots=50)
+counts = job.result().get_counts()
+print(f"Results for 50 shots: {counts}")
+\end{lstlisting}
+\textbf{Analysis:} Notice that for 50 shots, you rarely get exactly 25/25. This variance is the "shot noise". Try increasing \texttt{shots} to 10000 in the notebook to see the distribution stabilize.
+\end{tcolorbox}
+
+\subsection{Exercise 5: Quantum Interference (The H-Z-H Sequence)}
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=Coding Task]
+\begin{lstlisting}[language=Python]
+qc = QuantumCircuit(1, 1)
+qc.h(0)   # Step 1: Superposition (|+>)
+qc.z(0)   # Step 2: Phase Flip (|->)
+qc.h(0)   # Step 3: Interference
+qc.measure(0, 0)
+
+job = AerSimulator().run(qc, shots=1000)
+print(job.result().get_counts())
+\end{lstlisting}
+\textbf{Expected Result:} 100\% state $|1\rangle$.
+\\
+\textbf{Why?} Even though Z was invisible in the probability chart of Exercise 3, the interference in Step 3 converts that phase difference into a measurable bit flip.
+\end{tcolorbox}
+
+\section{Part C: Assessment (Quiz)}
+\textit{Challenge yourself! Connect the visual results with the linear algebra from Lesson QC04.}
+
+\vspace{0.5cm}
+
+\textbf{Q1. Math Challenge: The Action of H on $|1\rangle$}\\
+In Exercise 2, we applied H to $|0\rangle$ and got $\frac{|0\rangle + |1\rangle}{\sqrt{2}}$.
+If we initialize the qubit to $|1\rangle$ (by adding an X gate first) and \textit{then} apply H, what is the resulting state vector?
+\begin{itemize}
+    \item[A)] $\frac{1}{\sqrt{2}} \begin{pmatrix} 1 \\ 1 \end{pmatrix}$ (Two Blue dots)
+    \item[B)] $\frac{1}{\sqrt{2}} \begin{pmatrix} 1 \\ -1 \end{pmatrix}$ (One Blue dot, One Red dot)
+    \item[C)] $\begin{pmatrix} 0 \\ 1 \end{pmatrix}$ (One Blue dot at South)
+\end{itemize}
+
+\vspace{0.4cm}
+
+\textbf{Q2. Physics Challenge: Explaining H-Z-H}\\
+In Exercise 5, the circuit $H \rightarrow Z \rightarrow H$ acting on $|0\rangle$ produced the deterministic output $|1\rangle$.
+Which physical principle explains why the output is not random (50/50)?
+\begin{itemize}
+    \item[A)] \textbf{Decoherence:} The Z gate destroyed the superposition.
+    \item[B)] \textbf{Constructive/Destructive Interference:} The Z gate introduced a phase shift that caused the $|0\rangle$ terms to cancel out and the $|1\rangle$ terms to sum up during the second H gate.
+    \item[C)] \textbf{Measurement Collapse:} The Z gate performed a hidden measurement.
+\end{itemize}
+
+\vspace{0.4cm}
+
+\textbf{Q3. Visualization Challenge}\\
+You are given a qubit in the state $|\Psi\rangle = \sqrt{0.3}|0\rangle - \sqrt{0.7}|1\rangle$. 
+If you visualize this on the IBM Composer Q-Sphere, what will you see?
+\begin{itemize}
+    \item[A)] A small Blue dot at North and a larger Red dot at South.
+    \item[B)] A large Blue dot at North and a small Blue dot at South.
+    \item[C)] Two equal-sized Red dots.
+\end{itemize}
+
+\vspace{1cm}
+\hrule
+\vspace{0.2cm}
+\footnotesize{\textbf{Solutions:} Q1: B (Recall $H|1\rangle = |-\rangle$); Q2: B (Interference is key); Q3: A (Square roots determine size, minus sign determines Red color).}
+
+\end{document}
