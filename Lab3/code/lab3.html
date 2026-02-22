@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Lab 3: Quantum Algorithms & Oracles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #000000 0%, #434343 100%);
+            color: white;
+            padding: 3.5rem 0;
+            border-bottom: 5px solid #00e676;
+        }
+
+        /* Informational Boxes */
+        .theory-box {
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 18px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .context-box {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 18px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .warning-box {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Specific Elements */
+        .qsphere-box {
+            background-color: #f3e5f5;
+            border-left: 5px solid #9c27b0;
+            padding: 18px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .deepdive-box {
+            background-color: #e0f2f1;
+            border-left: 5px solid #009688;
+            padding: 25px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .math-box {
+            background-color: #ffebee;
+            border-left: 5px solid #f44336;
+            padding: 25px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* Task Cards */
+        .task-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 35px;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .task-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+            font-size: 1.1rem;
+        }
+
+        .task-body {
+            padding: 30px;
+        }
+
+        /* UI Elements */
+        .gate-badge {
+            font-family: monospace;
+            font-size: 1em;
+            padding: 6px 12px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+            margin-left: 5px;
+        }
+
+        .gate-x {
+            background-color: #05d5fa;
+            color: #000;
+            border: 1px solid #03a9c4;
+        }
+
+        .gate-h {
+            background-color: #7057ff;
+            color: white;
+            border: 1px solid #5236ff;
+        }
+
+        .gate-cx {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #388E3C;
+        }
+
+        .colab-btn {
+            background-color: #f9ab00;
+            color: white;
+            font-weight: bold;
+            padding: 10px 25px;
+        }
+
+        .colab-btn:hover {
+            background-color: #e09b00;
+            color: white;
+        }
+
+        .feedback {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 5px;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Layout */
+        .visual-img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+
+        .visual-col {
+            border-left: 1px solid #eee;
+            text-align: center;
+            background-color: #fafafa;
+            border-radius: 0 0 8px 0;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .visual-col {
+                border-left: none;
+                border-top: 1px solid #eee;
+            }
+        }
+
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 1px solid #1a1a1a;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold"><i class="fa-solid fa-microchip"></i> Lab 3: Quantum Algorithms</h1>
+            <p class="lead mt-3">Oracles, Phase Kickback, and the dawn of Quantum Advantage</p>
+            <div class="mt-4">
+                <span class="badge bg-light text-dark fs-6 me-2"><i class="fa-regular fa-clock"></i> Time: 60 min</span>
+                <span class="badge bg-light text-dark fs-6"><i class="fa-solid fa-book"></i> Prerequisites: QC12, QC13,
+                    Lab 2</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+
+        <div class="row mb-5">
+            <div class="col-lg-10 mx-auto text-center">
+                <p class="fs-5 text-secondary">
+                    In the previous labs, we focused on the physics of computation: manipulating qubits and creating
+                    entanglement. Now, we elevate our perspective to computer science. We will implement
+                    <strong>Deutsch's Algorithm</strong>. While solving a highly abstract problem, it is mathematically
+                    profound: it is the simplest algorithm that unequivocally proves a quantum computer can solve a
+                    specific problem with fewer operational steps than any classical machine allowed by the laws of
+                    physics.
+                </p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-lg-10 mx-auto">
+                <div class="warning-box">
+                    <h4 class="text-warning text-dark mb-3"><i class="fa-solid fa-box-open"></i> The Concept of a
+                        Quantum Oracle</h4>
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <p>
+                                In computational complexity, an Oracle is a <strong>"Black Box"</strong>. Suppose we
+                                have a function $f(x)$. We can give the Oracle an input $x$, and it computes the output
+                                $f(x)$. Crucially, we <strong>cannot</strong> inspect its internal circuitry or
+                                reverse-engineer its code.
+                            </p>
+                            <p class="mb-0">
+                                In quantum computing, the oracle is an operation $U_f$ that acts on two registers (the
+                                input $|x\rangle$ and an ancilla workspace $|y\rangle$). To ensure the operation is
+                                reversible (a strict requirement for quantum gates), it is defined mathematically as:
+                            </p>
+                            <div class="text-center my-3">
+                                <span class="fs-5 fw-bold bg-white p-2 rounded border">$$ U_f |x\rangle |y\rangle =
+                                    |x\rangle |y \oplus f(x)\rangle $$</span>
+                            </div>
+                            <p class="mb-0 text-muted small"><em>(Where $\oplus$ represents addition modulo 2, or the
+                                    XOR operation).</em></p>
+                        </div>
+                        <div class="col-md-4 text-center">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-eye"></i> Part A: The Secret Mechanism
+            (Composer)</h2>
+        <div class="alert alert-info shadow-sm mb-4">
+            <i class="fa-solid fa-wrench"></i> <strong>Tool Required:</strong> Open <a
+                href="https://quantum.ibm.com/composer" target="_blank" class="alert-link">IBM Quantum Composer</a> in a
+            separate tab to visualize the states interactively.
+        </div>
+
+        <div class="task-box">
+            <div class="task-header d-flex justify-content-between align-items-center">
+                <span>Exercise 1: The Phase Kickback Phenomenon</span>
+                <div>
+                    <span class="badge gate-h">H</span> <span class="badge gate-cx">CNOT</span>
+                </div>
+            </div>
+            <div class="task-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="context-box">
+                            <strong>Why do we need this? [QC13]</strong><br>
+                            Quantum parallelism allows us to evaluate $f(0)$ and $f(1)$ simultaneously by feeding a
+                            superposition into the Oracle. However, if we measure the output directly, the wavefunction
+                            collapses, and we only retrieve one classical result, losing the advantage.
+                            <br><br>
+                            To extract the <em>relationship</em> between $f(0)$ and $f(1)$ without destroying the
+                            superposition, we rely on <strong>Phase Kickback</strong>.
+                        </div>
+
+                        <h5 class="mt-4"><i class="fa-solid fa-list-ol text-primary"></i> Interactive Instructions:</h5>
+                        <ol class="mb-4">
+                            <li class="mb-2">Add an <strong>H gate</strong> to $q_0$ (Control). It is now in the
+                                positive superposition state $|+\rangle$.</li>
+                            <li class="mb-2">Add an <strong>X gate</strong>, followed by an <strong>H gate</strong> to
+                                $q_1$ (Target). It is now in the negative superposition state $|-\rangle$.</li>
+                            <li class="mb-2">Apply a <strong>CNOT gate</strong> connecting Control $q_0$ to Target
+                                $q_1$.</li>
+                            <li><strong>Observe the Q-Sphere</strong> before and after you drop the CNOT gate.</li>
+                        </ol>
+
+                        <div class="qsphere-box">
+                            <strong><i class="fa-solid fa-circle-nodes"></i> Q-Sphere Analysis: The Physics of the "Red
+                                Dot"</strong>
+                            <p class="mt-2 mb-0">
+                                Normally, a CNOT flips the target. But observe $q_1$: it remains strictly $|-\rangle$.
+                                Why? Because applying an X gate to $|-\rangle$ yields $-|-\rangle$ (it is an eigenstate
+                                with eigenvalue -1).
+                                <br><br>
+                                This global minus sign is factored out and "absorbed" by the $|1\rangle$ component of
+                                the control qubit $q_0$. You will see the dot for $q_0$'s $|1\rangle$ state turn <span
+                                    class="text-danger fw-bold">Red</span>. <strong>The action of the target kicked back
+                                    to alter the phase of the control!</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 visual-col d-flex flex-column justify-content-center align-items-center">
+                        <h6 class="text-muted fw-bold mb-3">Phase Kickback Circuit</h6>
+
+                        <p class="small text-muted mt-3 text-start">
+                            <em>Notice how the target must be meticulously prepared in the $|-\rangle$ state for the
+                                kickback to occur.</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-calculator"></i> Part B: The
+            Algorithm Step-by-Step</h2>
+
+        <ol class="mt-4 ps-3">
+            <div class="task-box">
+                <div class="task-header bg-light">Exercise 2: Finding the Function Type</div>
+                <div class="task-body">
+                    <p class="lead">
+                        <strong>The Problem:</strong> We are given an unknown function $f(x) \in \{0,1\} \to
+                        \{0,1\}$.
+                    </p>
+                    <p>This function belongs to one of two rigid categories:</p>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-white h-100">
+                                <strong class="text-primary">Constant Functions:</strong><br>
+                                Return the exact same value for all inputs.<br>
+                                <em>Case A:</em> $f(0)=0, f(1)=0$<br>
+                                <em>Case B:</em> $f(0)=1, f(1)=1$
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-white h-100">
+                                <strong class="text-success">Balanced Functions:</strong><br>
+                                Return 0 for half the inputs, 1 for the other half.<br>
+                                <em>Case C:</em> $f(0)=0, f(1)=1$<br>
+                                <em>Case D:</em> $f(0)=1, f(1)=0$
+                            </div>
+                        </div>
+                    </div>
+                    <p>A classical computer <strong>must</strong> query the function twice ($x=0$ and $x=1$) to
+                        compare the
+                        outputs. Deutsch's Algorithm solves this with <strong>exactly 1 query</strong> to the
+                        quantum
+                        oracle.</p>
+
+                    <div class="math-box shadow-sm">
+                        <h5 class="text-danger mb-4"><i class="fa-solid fa-subscript"></i> Mathematical Evolution of the
+                            State</h5>
+
+                        <div class="text-center mb-4">
+                            <img src="deutsch_steps.png" alt="Deutsch Algorithm Step-by-Step Circuit"
+                                class="visual-img border-danger">
+                        </div>
+
+                        <ol class="mt-4 ps-3">
+                            <li class="mb-4"><strong>Initialization:</strong> We start with the input at $|0\rangle$
+                                and the
+                                ancilla (workspace) at $|1\rangle$.
+                                <div class="bg-white p-2 text-center rounded mt-2 border">$$|\psi_0\rangle =
+                                    |0\rangle
+                                    \otimes |1\rangle$$</div>
+                            </li>
+                            <li class="mb-4"><strong>Superposition (H gates):</strong> We prepare the input to query
+                                both
+                                values simultaneously, and the ancilla to absorb the phase kickback.
+                                <div class="bg-white p-2 text-center rounded mt-2 border">$$|\psi_1\rangle =
+                                    |+\rangle
+                                    \otimes |-\rangle = \left( \frac{|0\rangle + |1\rangle}{\sqrt{2}} \right) \left(
+                                    \frac{|0\rangle - |1\rangle}{\sqrt{2}} \right)$$</div>
+                            </li>
+                            <li class="mb-4"><strong>The Oracle Query ($U_f$):</strong> The oracle applies
+                                $|x\rangle|y\rangle \to |x\rangle|y \oplus f(x)\rangle$. Because the ancilla is
+                                $|-\rangle$,
+                                $f(x)$ is transferred directly into the phase of the input qubit!
+                                <div class="bg-white p-2 text-center rounded mt-2 border">$$|\psi_2\rangle = \left(
+                                    \frac{(-1)^{f(0)}|0\rangle + (-1)^{f(1)}|1\rangle}{\sqrt{2}} \right) |-\rangle$$
+                                </div>
+                            </li>
+                            <li class="mb-2"><strong>Interference (Final H gate):</strong> We apply a final H gate
+                                to the
+                                input qubit. This is where the magic happens:
+                                <ul class="mt-2">
+                                    <li>If $f(0) = f(1)$ (<strong>Constant</strong>), the phases are identical. They
+                                        interfere constructively back to $|0\rangle$.</li>
+                                    <li>If $f(0) \neq f(1)$ (<strong>Balanced</strong>), the phases are opposite.
+                                        They
+                                        interfere destructively on 0, and constructively on $|1\rangle$.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="p-3 bg-danger text-white rounded mt-4 text-center fw-bold fs-5 shadow-sm">
+                            Measurement Output: 0 = Constant | 1 = Balanced
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-box">
+                <div class="task-header d-flex justify-content-between align-items-center">
+                    <span>Exercise 3: Coding Deutsch's Algorithm in Qiskit</span>
+                    <a href="#" class="btn btn-sm colab-btn"><i class="fa-solid fa-terminal"></i> Launch Colab
+                        Notebook</a>
+                </div>
+                <div class="task-body">
+                    <p>We will now construct the circuit. We will use a simple <strong>CNOT gate</strong> as our
+                        simulated
+                        Oracle. A CNOT acts as $f(x) = x$. Since $f(0)=0$ and $f(1)=1$, this represents a
+                        <strong>Balanced</strong> function.
+                    </p>
+
+                    <pre><code>from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+
+# 1. Setup: 1 Input Qubit (q0), 1 Ancilla Qubit (q1), 1 Classical Bit
+qc = QuantumCircuit(2, 1)
+
+# 2. State Preparation
+qc.x(1)           # Ancilla initialized to |1> BEFORE the Hadamard
+qc.h(0)           # Input to |+>
+qc.h(1)           # Ancilla to |-> (Ready for Phase Kickback)
+qc.barrier()      # Barrier prevents Qiskit from auto-optimizing gates
+
+# 3. The Oracle: Balanced function (CNOT)
+qc.cx(0, 1)
+qc.barrier()
+
+# 4. Interference and Measurement
+qc.h(0)           # Mix the states to extract the relative phase
+qc.measure(0, 0)  # Read the result of the input qubit
+
+# 5. Execution
+simulator = AerSimulator()
+job = simulator.run(qc, shots=1000)
+print(f"Algorithm Output: {job.result().get_counts()}")</code></pre>
+
+                    <div class="mt-4 p-3 bg-light border-start border-4 border-primary rounded">
+                        <strong>Code Analysis:</strong> Because the oracle is balanced, the output will be exactly
+                        <code>{'1': 1000}</code>.
+                        <br><em>Challenge for the Notebook:</em> If you remove the <code>qc.cx(0, 1)</code> line
+                        (making it
+                        an Identity Oracle, $f(x)=0$), the function becomes Constant. The output will perfectly flip
+                        to
+                        <code>{'0': 1000}</code>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="deepdive-box">
+                <h4 class="mb-3"><i class="fa-solid fa-rocket"></i> Deep Dive: Why does this matter? (QC14)</h4>
+                <p>You might realistically think: <em>"Who cares if a 1-bit function is constant or balanced? I
+                        could have
+                        checked that classically in a microsecond."</em></p>
+                <p>You are right. Deutsch's algorithm has <strong>no direct commercial application</strong>.
+                    However, it is
+                    the theoretical foundation of everything that follows. It proves that quantum interference can
+                    change
+                    the algorithmic scaling of a problem from $\mathcal{O}(N)$ to $\mathcal{O}(1)$.</p>
+                <ul class="mb-0">
+                    <li class="mb-3"><strong>The Deutsch-Jozsa Extension:</strong> Expands this exact logic to
+                        functions
+                        with $N$ input bits. A classical computer needs to check $2^{N-1} + 1$ inputs in the worst
+                        case to
+                        know if a function is constant or balanced. The quantum computer still needs exactly
+                        <strong>1
+                            single query</strong>. This represents a massive exponential speedup.
+                    </li>
+                    <li class="mb-3"><strong>Grover's Algorithm:</strong> Uses the exact same Oracle/Phase Kickback
+                        architecture. Instead of just identifying a function type, it uses phase kickback to "mark"
+                        the
+                        correct answer in an unsorted database, finding it quadratically faster than any classical
+                        search.
+                    </li>
+                    <li><strong>Shor's Algorithm:</strong> Ultimately, the ability to extract hidden periodic
+                        structures
+                        using interference (as we did with the final H gate) is the mathematical engine behind
+                        Shor's
+                        algorithm, the protocol that breaks modern RSA encryption.</li>
+                </ul>
+            </div>
+
+            <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-clipboard-check"></i> Part
+                C:
+                Assessment</h2>
+
+            <div class="card mb-3 border-secondary shadow-sm">
+                <div class="card-header bg-secondary text-white fw-bold">Question 1: The Power of the Oracle</div>
+                <div class="card-body">
+                    <p>In the Query Model of computation (QC12), what is the primary metric used to evaluate the
+                        efficiency
+                        of a quantum algorithm?</p>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q1" id="q1a" value="wrong">
+                        <label class="form-check-label" for="q1a">The clock speed (GHz) of the physical quantum
+                            processor.</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q1" id="q1b" value="wrong">
+                        <label class="form-check-label" for="q1b">The physical number of qubits required for error
+                            correction.</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q1" id="q1c" value="correct">
+                        <label class="form-check-label" for="q1c">The total number of times the algorithm must
+                            evaluate the
+                            Oracle function $U_f$.</label>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-3 px-4" onclick="checkAnswer('q1', 'q1c')">Check
+                        Answer</button>
+                    <div id="feedback-q1" class="feedback"></div>
+                </div>
+            </div>
+
+            <div class="card mb-3 border-secondary shadow-sm">
+                <div class="card-header bg-secondary text-white fw-bold">Question 2: The Core Mechanism</div>
+                <div class="card-body">
+                    <p>In the mathematical evolution of Deutsch's algorithm, what physical phenomenon causes the
+                        value of
+                        $f(x)$ to be encoded directly into the <em>phase</em> of the input qubit?</p>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q2" id="q2a" value="wrong">
+                        <label class="form-check-label" for="q2a">The spontaneous emission of photons in the
+                            cavity.</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q2" id="q2b" value="correct">
+                        <label class="form-check-label" for="q2b">The Phase Kickback effect, which only occurs
+                            because the
+                            ancilla qubit is meticulously prepared in the $|-\rangle$ eigenstate.</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q2" id="q2c" value="wrong">
+                        <label class="form-check-label" for="q2c">The final measurement operation collapsing the
+                            wavefunction onto a basis state.</label>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-3 px-4" onclick="checkAnswer('q2', 'q2b')">Check
+                        Answer</button>
+                    <div id="feedback-q2" class="feedback"></div>
+                </div>
+            </div>
+
+            <div class="card mb-3 border-secondary shadow-sm">
+                <div class="card-header bg-secondary text-white fw-bold">Question 3: Reading the Output</div>
+                <div class="card-body">
+                    <p>You run Deutsch's algorithm on a mysterious Oracle and measure the input qubit at the very
+                        end. The
+                        result is 100% certainty of reading <strong>"0"</strong>. According to the interference
+                        step, what
+                        did you just prove about the hidden function?</p>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q3" id="q3a" value="wrong">
+                        <label class="form-check-label" for="q3a">The function is Balanced (e.g., $f(0) \neq
+                            f(1)$).</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q3" id="q3b" value="correct">
+                        <label class="form-check-label" for="q3b">The function is Constant (e.g., $f(0) = f(1)$).
+                            The
+                            identical phases caused constructive interference on $|0\rangle$.</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q3" id="q3c" value="wrong">
+                        <label class="form-check-label" for="q3c">The Oracle contains a classical hardware
+                            error.</label>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-3 px-4" onclick="checkAnswer('q3', 'q3b')">Check
+                        Answer</button>
+                    <div id="feedback-q3" class="feedback"></div>
+                </div>
+            </div>
+
+    </div>
+
+    <footer class="text-center py-4 mt-5 bg-dark text-white border-top">
+        <p class="mb-0">Quantum Computing Foundation - Lab Module 3</p>
+    </footer>
+
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        function checkAnswer(questionName, correctId) {
+            let selected = document.querySelector(`input[name="${questionName}"]:checked`);
+            let feedback = document.getElementById(`feedback-${questionName}`);
+
+            if (!selected) { alert("Please select an answer first."); return; }
+
+            if (selected.id === correctId) {
+                feedback.innerHTML = "<strong>Correct!</strong> <i class='fa-solid fa-check ms-2'></i><hr class='my-2'>";
+
+                if (questionName === 'q1') feedback.innerHTML += "In complexity theory, we measure algorithmic efficiency by how many times we must query the black box to solve the problem.";
+                if (questionName === 'q2') feedback.innerHTML += "The minus sign in the $|-\\rangle$ state is the mathematical key that allows the Oracle's output to kick back into the phase of the control qubit.";
+                if (questionName === 'q3') feedback.innerHTML += "When phases are identical, the final Hadamard gate creates constructive interference pushing the probability amplitude entirely back to $|0\\rangle$.";
+
+                feedback.className = "feedback correct d-block";
+            } else {
+                feedback.innerHTML = "<strong>Incorrect.</strong> <i class='fa-solid fa-xmark ms-2'></i><br><small>Please review the theoretical sections above before trying again.</small>";
+                feedback.className = "feedback wrong d-block";
+            }
+        }
+    </script>
+</body>
+
+</html>
