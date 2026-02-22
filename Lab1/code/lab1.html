@@ -1,51 +1,160 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quantum Lab 1: Single Qubits & Gates</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .hero-section { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: white; padding: 3rem 0; border-bottom: 5px solid #00d2ff; }
-        
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: white;
+            padding: 3rem 0;
+            border-bottom: 5px solid #00d2ff;
+        }
+
         /* Stili per i box informativi */
-        .theory-box { background-color: #e3f2fd; border-left: 5px solid #2196f3; padding: 15px; margin-bottom: 15px; border-radius: 4px; font-size: 0.95rem; }
-        .context-box { background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin-bottom: 15px; border-radius: 4px; font-size: 0.95rem; }
-        
+        .theory-box {
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .context-box {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
         /* Stile specifico per Q-Sphere */
-        .qsphere-box { background-color: #f3e5f5; border-left: 5px solid #9c27b0; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 0.95rem; }
-        .phase-legend-item { display: inline-block; margin-right: 15px; font-size: 0.85rem; }
-        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        
-        .task-box { border: 1px solid #e0e0e0; border-radius: 8px; background: white; margin-bottom: 30px; transition: transform 0.2s; }
-        .task-box:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .task-header { background-color: #f8f9fa; padding: 15px; border-bottom: 1px solid #e0e0e0; font-weight: bold; border-radius: 8px 8px 0 0; }
-        .task-body { padding: 25px; }
-        
-        .gate-badge { font-family: monospace; font-size: 1.1em; padding: 5px 10px; border-radius: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
-        .gate-x { background-color: #05d5fa; color: #000; border: 1px solid #03a9c4; }
-        .gate-h { background-color: #7057ff; color: white; border: 1px solid #5236ff; }
-        .gate-z { background-color: #20c997; color: white; border: 1px solid #1aa179; }
-        
-        .colab-btn { background-color: #f9ab00; color: white; font-weight: bold; }
-        .colab-btn:hover { background-color: #e09b00; color: white; }
-        
-        .feedback { display: none; margin-top: 10px; padding: 10px; border-radius: 5px; }
-        .correct { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .wrong { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        
-        .bloch-img { 
-            max-width: 100%; 
-            height: auto; 
-            border: 1px solid #ddd; 
-            border-radius: 5px; 
+        .qsphere-box {
+            background-color: #f3e5f5;
+            border-left: 5px solid #9c27b0;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .phase-legend-item {
+            display: inline-block;
+            margin-right: 15px;
+            font-size: 0.85rem;
+        }
+
+        .dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .task-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 30px;
+            transition: transform 0.2s;
+        }
+
+        .task-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .task-body {
+            padding: 25px;
+        }
+
+        .gate-badge {
+            font-family: monospace;
+            font-size: 1.1em;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .gate-x {
+            background-color: #05d5fa;
+            color: #000;
+            border: 1px solid #03a9c4;
+        }
+
+        .gate-h {
+            background-color: #7057ff;
+            color: white;
+            border: 1px solid #5236ff;
+        }
+
+        .gate-z {
+            background-color: #20c997;
+            color: white;
+            border: 1px solid #1aa179;
+        }
+
+        .colab-btn {
+            background-color: #f9ab00;
+            color: white;
+            font-weight: bold;
+        }
+
+        .colab-btn:hover {
+            background-color: #e09b00;
+            color: white;
+        }
+
+        .feedback {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .bloch-img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             padding: 5px;
             background: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
+
         .visual-col {
             border-left: 1px solid #eee;
             text-align: center;
@@ -53,11 +162,16 @@
             border-radius: 0 0 8px 0;
             padding: 20px;
         }
+
         @media (max-width: 768px) {
-            .visual-col { border-left: none; border-top: 1px solid #eee; }
+            .visual-col {
+                border-left: none;
+                border-top: 1px solid #eee;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="hero-section text-center">
@@ -74,32 +188,43 @@
         <div class="row mb-5">
             <div class="col-lg-8 mx-auto text-center">
                 <p class="fs-5 text-secondary">
-                    In this laboratory, you will move from the mathematical abstraction of vectors to actual quantum manipulation.
-                    The goal is to develop an intuition for how gates affect the state of a qubit, visually (via Composer) and statistically (via Measurement).
+                    In this laboratory, you will move from the mathematical abstraction of vectors to actual quantum
+                    manipulation.
+                    The goal is to develop an intuition for how gates affect the state of a qubit, visually (via
+                    Composer) and statistically (via Measurement).
                 </p>
-                
+
                 <div class="alert alert-warning text-start shadow-sm mt-4">
-                    <h5 class="alert-heading"><i class="fa-solid fa-triangle-exclamation"></i> Important: Visualization Guide</h5>
+                    <h5 class="alert-heading"><i class="fa-solid fa-triangle-exclamation"></i> Important: Visualization
+                        Guide</h5>
                     <p class="mb-2">We use two different visualizations in this lab:</p>
                     <ul>
-                        <li><strong>Right Column (This Guide):</strong> Shows the <strong>Bloch Sphere</strong> (Single Vector), matching the theory lectures.</li>
-                        <li><strong>IBM Composer (Your Screen):</strong> Uses the <strong>Q-Sphere</strong>. It represents states as "dots" on a sphere.</li>
+                        <li><strong>Right Column (This Guide):</strong> Shows the <strong>Bloch Sphere</strong> (Single
+                            Vector), matching the theory lectures.</li>
+                        <li><strong>IBM Composer (Your Screen):</strong> Uses the <strong>Q-Sphere</strong>. It
+                            represents states as "dots" on a sphere.</li>
                     </ul>
                     <hr>
                     <p class="mb-0 fw-bold">Q-Sphere Phase Color Code (IBM Standard):</p>
                     <div class="mt-2 p-2 bg-white rounded border">
-                        <span class="phase-legend-item"><span class="dot" style="background-color: #002d9c;"></span>Phase 0 (+Real)</span>
-                        <span class="phase-legend-item"><span class="dot" style="background-color: #fa4b4c;"></span>Phase $\pi$ (-Real)</span>
-                        <span class="phase-legend-item"><span class="dot" style="background-color: #a56eff;"></span>Phase $\pi/2$ (+Imag)</span>
-                        <span class="phase-legend-item"><span class="dot" style="background-color: #f1c21b;"></span>Phase $3\pi/2$ (-Imag)</span>
+                        <span class="phase-legend-item"><span class="dot"
+                                style="background-color: #002d9c;"></span>Phase 0 (+Real)</span>
+                        <span class="phase-legend-item"><span class="dot"
+                                style="background-color: #fa4b4c;"></span>Phase $\pi$ (-Real)</span>
+                        <span class="phase-legend-item"><span class="dot"
+                                style="background-color: #a56eff;"></span>Phase $\pi/2$ (+Imag)</span>
+                        <span class="phase-legend-item"><span class="dot"
+                                style="background-color: #f1c21b;"></span>Phase $3\pi/2$ (-Imag)</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-eye"></i> Part A: Visual Intuition (Composer)</h2>
+        <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-eye"></i> Part A: Visual Intuition
+            (Composer)</h2>
         <div class="alert alert-info">
-            <strong>Tool:</strong> Open <a href="https://quantum.ibm.com/composer" target="_blank" class="alert-link">IBM Quantum Composer</a> in a separate tab.
+            <strong>Tool:</strong> Open <a href="https://quantum.ibm.com/composer" target="_blank"
+                class="alert-link">IBM Quantum Composer</a> in a separate tab.
         </div>
 
         <div class="task-box">
@@ -111,18 +236,20 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="context-box">
-                            <strong>Scenario:</strong> 
-                            Imagine you have a classical light switch that is OFF (0). To turn it ON (1), you apply a force. 
-                            In quantum computing, the "switch" is the qubit initialized at $|0\rangle$, and the "force" is the X Gate.
+                            <strong>Scenario:</strong>
+                            Imagine you have a classical light switch that is OFF (0). To turn it ON (1), you apply a
+                            force.
+                            In quantum computing, the "switch" is the qubit initialized at $|0\rangle$, and the "force"
+                            is the X Gate.
                         </div>
 
                         <div class="theory-box">
-                            <strong>Theory [QC04]:</strong> 
+                            <strong>Theory [QC04]:</strong>
                             The X gate rotates the state vector by 180° around the X-axis.
                             $$ X|0\rangle = |1\rangle $$
                             This is a "bit flip" operation.
                         </div>
-                        
+
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
                         <ol>
                             <li>Verify the qubit line $q_0$ is empty (State $|0\rangle$).</li>
@@ -132,19 +259,24 @@
 
                         <div class="qsphere-box">
                             <strong><i class="fa-solid fa-circle-nodes"></i> IBM Composer View (Q-Sphere):</strong>
-                            <br>Look at the sphere. You should see a single dot at the <strong>Bottom (South Pole)</strong>.
+                            <br>Look at the sphere. You should see a single dot at the <strong>Bottom (South
+                                Pole)</strong>.
                             <br>
                             <ul>
                                 <li><strong>Position:</strong> South (means State 1).</li>
-                                <li><strong>Color:</strong> <span style="color: #002d9c; font-weight: bold;">Blue</span>. 
-                                <br><em>Why Blue?</em> Because the state is simply $|1\rangle$ (Phase 0). No complex phase has been introduced yet.</li>
+                                <li><strong>Color:</strong> <span
+                                        style="color: #002d9c; font-weight: bold;">Blue</span>.
+                                    <br><em>Why Blue?</em> Because the state is simply $|1\rangle$ (Phase 0). No complex
+                                    phase has been introduced yet.
+                                </li>
                             </ul>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-4 visual-col">
                         <h6 class="text-muted mb-3">Theoretical Bloch Sphere</h6>
-                        <img src="bloch_0_to_1.png" alt="Bloch Sphere State 1" class="bloch-img" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Bloch_sphere_ket_1.svg/300px-Bloch_sphere_ket_1.svg.png'">
+                        <img src="bloch_0_to_1.png" alt="Bloch Sphere State 1" class="bloch-img"
+                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Bloch_sphere_ket_1.svg/300px-Bloch_sphere_ket_1.svg.png'">
                         <p class="small text-muted mt-2">Vector points DOWN ($|1\rangle$).</p>
                     </div>
                 </div>
@@ -160,39 +292,44 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="context-box">
-                            <strong>Scenario:</strong> 
-                            In the classical world, a coin is either Heads or Tails. 
-                            Here, we spin the coin on a table. While spinning, it is effectively both Heads and Tails. 
+                            <strong>Scenario:</strong>
+                            In the classical world, a coin is either Heads or Tails.
+                            Here, we spin the coin on a table. While spinning, it is effectively both Heads and Tails.
                             The H Gate "spins the coin", putting the qubit into a perfect superposition.
                         </div>
 
                         <div class="theory-box">
-                            <strong>Theory [QC03]:</strong> 
+                            <strong>Theory [QC03]:</strong>
                             The Hadamard gate creates the state $|+\rangle = \frac{|0\rangle + |1\rangle}{\sqrt{2}}$.
                             Both coefficients are positive real numbers.
                         </div>
-                        
+
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
                         <ol>
                             <li>Delete the X gate. Drag the <strong>H Gate</strong> (Blue) onto the line.</li>
-                            <li><strong>Check Probability:</strong> You see 50% on "0" and 50% on "1". This represents pure randomness.</li>
+                            <li><strong>Check Probability:</strong> You see 50% on "0" and 50% on "1". This represents
+                                pure randomness.</li>
                         </ol>
 
                         <div class="qsphere-box">
                             <strong><i class="fa-solid fa-circle-nodes"></i> IBM Composer View (Q-Sphere):</strong>
-                            <br>The vector points to the Equator, but the Q-Sphere shows this as <strong>Two Dots</strong>.
+                            <br>The vector points to the Equator, but the Q-Sphere shows this as <strong>Two
+                                Dots</strong>.
                             <ul>
                                 <li>One dot at North ($|0\rangle$).</li>
                                 <li>One dot at South ($|1\rangle$).</li>
-                                <li><strong>Color:</strong> Both are <span style="color: #002d9c; font-weight: bold;">Blue</span>.</li>
+                                <li><strong>Color:</strong> Both are <span
+                                        style="color: #002d9c; font-weight: bold;">Blue</span>.</li>
                             </ul>
-                            <em>Interpretation:</em> The Blue color confirms that both components ($|0\rangle$ and $|1\rangle$) have the same positive phase.
+                            <em>Interpretation:</em> The Blue color confirms that both components ($|0\rangle$ and
+                            $|1\rangle$) have the same positive phase.
                         </div>
                     </div>
 
                     <div class="col-md-4 visual-col">
                         <h6 class="text-muted mb-3">Theoretical Bloch Sphere</h6>
-                        <img src="bloch_superposition.png" alt="Bloch Sphere Superposition" class="bloch-img" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bloch_sphere_ket_plus.svg/300px-Bloch_sphere_ket_plus.svg.png'">
+                        <img src="bloch_superposition.png" alt="Bloch Sphere Superposition" class="bloch-img"
+                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bloch_sphere_ket_plus.svg/300px-Bloch_sphere_ket_plus.svg.png'">
                         <p class="small text-muted mt-2">Vector points to X-Axis ($|+\rangle$).</p>
                     </div>
                 </div>
@@ -208,76 +345,92 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="context-box">
-                            <strong>Scenario:</strong> 
-                            This is the hardest concept for beginners. 
-                            Imagine the spinning coin from Exercise 2. If you look at it from above, it looks identical whether it spins clockwise or counter-clockwise. 
-                            Similarly, the Z gate changes the "spin direction" (Phase) without changing the "shape" (Probability).
+                            <strong>Scenario:</strong>
+                            This is the hardest concept for beginners.
+                            Imagine the spinning coin from Exercise 2. If you look at it from above, it looks identical
+                            whether it spins clockwise or counter-clockwise.
+                            Similarly, the Z gate changes the "spin direction" (Phase) without changing the "shape"
+                            (Probability).
                         </div>
 
                         <div class="theory-box">
-                            <strong>Theory [QC04]:</strong> 
+                            <strong>Theory [QC04]:</strong>
                             The Z gate creates the state $|-\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}}$.
-                            The minus sign is on the $|1\rangle$ component. This corresponds to a phase of $\pi$ ($e^{i\pi} = -1$).
+                            The minus sign is on the $|1\rangle$ component. This corresponds to a phase of $\pi$
+                            ($e^{i\pi} = -1$).
                         </div>
-                        
+
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
                         <ol>
                             <li>Keep the H gate. Place a <strong>Z Gate</strong> (Green) immediately after it.</li>
-                            <li><strong>Check Probability:</strong> Notice it is STILL 50/50. The "shadow" hasn't changed.</li>
-                            <li><strong>Look at the Q-Sphere:</strong> This is the only place you can see the change.</li>
+                            <li><strong>Check Probability:</strong> Notice it is STILL 50/50. The "shadow" hasn't
+                                changed.</li>
+                            <li><strong>Look at the Q-Sphere:</strong> This is the only place you can see the change.
+                            </li>
                         </ol>
 
                         <div class="qsphere-box">
                             <strong><i class="fa-solid fa-circle-nodes"></i> IBM Composer View (Q-Sphere):</strong>
                             <br>You still see two dots, but look at the colors:
                             <ul>
-                                <li><strong>Top Dot ($|0\rangle$):</strong> Stays <span style="color: #002d9c; font-weight: bold;">Blue</span> (Phase 0).</li>
-                                <li><strong>Bottom Dot ($|1\rangle$):</strong> Turns <span style="color: #fa4b4c; font-weight: bold;">RED</span>.</li>
+                                <li><strong>Top Dot ($|0\rangle$):</strong> Stays <span
+                                        style="color: #002d9c; font-weight: bold;">Blue</span> (Phase 0).</li>
+                                <li><strong>Bottom Dot ($|1\rangle$):</strong> Turns <span
+                                        style="color: #fa4b4c; font-weight: bold;">RED</span>.</li>
                             </ul>
-                            <em>Why Red?</em> As per our legend, Red represents Phase $\pi$ (the minus sign). The system is now in the state $|0\rangle - |1\rangle$.
+                            <em>Why Red?</em> As per our legend, Red represents Phase $\pi$ (the minus sign). The system
+                            is now in the state $|0\rangle - |1\rangle$.
                         </div>
                     </div>
 
                     <div class="col-md-4 visual-col">
                         <h6 class="text-muted mb-3">Theoretical Bloch Sphere</h6>
-                        <img src="bloch_phase_flip.png" alt="Bloch Sphere Phase Flip" class="bloch-img" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Bloch_sphere_ket_minus.svg/300px-Bloch_sphere_ket_minus.svg.png'">
+                        <img src="bloch_phase_flip.png" alt="Bloch Sphere Phase Flip" class="bloch-img"
+                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Bloch_sphere_ket_minus.svg/300px-Bloch_sphere_ket_minus.svg.png'">
                         <p class="small text-muted mt-2">Vector points to NEGATIVE X-Axis ($|-\rangle$).</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-code"></i> Part B: Coding & Simulation</h2>
-        
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-code"></i> Part B: Coding &
+            Simulation</h2>
+
         <div class="card shadow border-0 bg-dark text-white mb-4">
             <div class="card-body p-4 text-center">
                 <h4 class="mb-3">Ready to Code?</h4>
                 <p class="mb-4">
                     In Exercise 3, we saw the "Red Dot" (Phase) appeared but the probabilities didn't change.
-                    <br><strong>How can we prove the Red Dot exists using a real computer that only sees 0s and 1s?</strong>
+                    <br><strong>How can we prove the Red Dot exists using a real computer that only sees 0s and
+                        1s?</strong>
                     <br>Launch the notebook to perform the <strong>Interference Experiment</strong>.
                 </p>
-                <a href="https://colab.research.google.com/" target="_blank" class="btn colab-btn btn-lg px-5 shadow">
+                <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab1/lab1_intro.ipynb"
+                    target="_blank" class="btn colab-btn btn-lg px-5 shadow">
                     <i class="fa-solid fa-rocket"></i> Launch Notebook
                 </a>
                 <p class="mt-2 text-muted small">Use the link provided by your instructor</p>
             </div>
         </div>
 
-        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-clipboard-check"></i> Part C: Assessment</h2>
-        
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-clipboard-check"></i> Part C:
+            Assessment</h2>
+
         <p class="text-muted mb-4">
-            Answer these questions to check if you have connected the <strong>Visual Practice</strong> (Composer) with the <strong>Mathematical Theory</strong>.
+            Answer these questions to check if you have connected the <strong>Visual Practice</strong> (Composer) with
+            the <strong>Mathematical Theory</strong>.
         </p>
 
         <div class="card mb-3 border-light shadow-sm">
             <div class="card-body">
                 <h5 class="card-title text-primary">1. Decoding the "Blue Dots" (Exercise 2)</h5>
                 <p>
-                    In Exercise 2, applying the <strong>H Gate</strong> produced two dots on the Q-Sphere (North and South), both colored <strong>Blue</strong>.
-                    <br>Based on Lesson <strong>QC03</strong>, what does this color tell us about the mathematical state?
+                    In Exercise 2, applying the <strong>H Gate</strong> produced two dots on the Q-Sphere (North and
+                    South), both colored <strong>Blue</strong>.
+                    <br>Based on Lesson <strong>QC03</strong>, what does this color tell us about the mathematical
+                    state?
                 </p>
-                
+
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="q1" id="q1a" value="wrong">
                     <label class="form-check-label" for="q1a">
@@ -287,7 +440,8 @@
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="q1" id="q1b" value="correct">
                     <label class="form-check-label" for="q1b">
-                        It means both coefficients $\alpha$ and $\beta$ are positive real numbers ($+|0\rangle +|1\rangle$).
+                        It means both coefficients $\alpha$ and $\beta$ are positive real numbers ($+|0\rangle
+                        +|1\rangle$).
                     </label>
                 </div>
                 <div class="form-check">
@@ -296,8 +450,9 @@
                         It means the qubit is cold (Ground State).
                     </label>
                 </div>
-                
-                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q1', 'q1b')">Check Answer</button>
+
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q1', 'q1b')">Check
+                    Answer</button>
                 <div id="feedback-q1" class="feedback"></div>
             </div>
         </div>
@@ -309,7 +464,7 @@
                     In Exercise 3, the <strong>Z Gate</strong> turned the bottom dot ($|1\rangle$) <strong>Red</strong>.
                     <br>Which mathematical formula from Lesson <strong>QC04</strong> corresponds to this visual effect?
                 </p>
-                
+
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="q2" id="q2a" value="wrong">
                     <label class="form-check-label" for="q2a">
@@ -328,8 +483,9 @@
                         $|\Psi\rangle = -|0\rangle - |1\rangle$ (Global Phase)
                     </label>
                 </div>
-                
-                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q2', 'q2b')">Check Answer</button>
+
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q2', 'q2b')">Check
+                    Answer</button>
                 <div id="feedback-q2" class="feedback"></div>
             </div>
         </div>
@@ -338,9 +494,10 @@
             <div class="card-body">
                 <h5 class="card-title text-primary">3. Theory vs. Reality (Part B)</h5>
                 <p>
-                    In the Jupyter Notebook, you ran a circuit 1000 times. Why did you likely get results like "492 vs 508" instead of exactly "500 vs 500"?
+                    In the Jupyter Notebook, you ran a circuit 1000 times. Why did you likely get results like "492 vs
+                    508" instead of exactly "500 vs 500"?
                 </p>
-                
+
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="q3" id="q3a" value="correct">
                     <label class="form-check-label" for="q3a">
@@ -359,14 +516,15 @@
                         Because the simulator is not precise enough.
                     </label>
                 </div>
-                
-                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q3', 'q3a')">Check Answer</button>
+
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q3', 'q3a')">Check
+                    Answer</button>
                 <div id="feedback-q3" class="feedback"></div>
             </div>
         </div>
 
     </div>
-    
+
     <footer class="text-center py-4 mt-5 bg-light border-top">
         <p class="text-muted">Quantum Computing Foundation - Lab Module 1</p>
     </footer>
@@ -376,35 +534,36 @@
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <script>
         function checkAnswer(questionName, correctId) {
             let selected = document.querySelector(`input[name="${questionName}"]:checked`);
             let feedback = document.getElementById(`feedback-${questionName}`);
-            
+
             if (!selected) { alert("Please select an answer first."); return; }
 
             // Logica di feedback specifica per ogni domanda per rinforzare l'apprendimento
             if (selected.id === correctId) {
                 feedback.innerHTML = "<strong>Correct!</strong> <i class='fa-solid fa-check'></i>";
-                
+
                 // Messaggi specifici di rinforzo
-                if(questionName === 'q1') feedback.innerHTML += " Blue indicates a positive phase (+).";
-                if(questionName === 'q2') feedback.innerHTML += " The Red dot corresponds to the negative sign in the superposition.";
-                if(questionName === 'q3') feedback.innerHTML += " This statistical fluctuation is fundamental to quantum mechanics.";
+                if (questionName === 'q1') feedback.innerHTML += " Blue indicates a positive phase (+).";
+                if (questionName === 'q2') feedback.innerHTML += " The Red dot corresponds to the negative sign in the superposition.";
+                if (questionName === 'q3') feedback.innerHTML += " This statistical fluctuation is fundamental to quantum mechanics.";
 
                 feedback.className = "feedback correct d-block";
             } else {
                 feedback.innerHTML = "<strong>Incorrect.</strong> <i class='fa-solid fa-xmark'></i>";
-                
+
                 // Suggerimenti specifici
-                if(questionName === 'q1') feedback.innerHTML += " Review the 'Q-Sphere Phase Color Code' legend at the top.";
-                if(questionName === 'q2') feedback.innerHTML += " Look for the state with a 'minus' sign on the |1> component.";
-                if(questionName === 'q3') feedback.innerHTML += " Think about the coin toss analogy.";
+                if (questionName === 'q1') feedback.innerHTML += " Review the 'Q-Sphere Phase Color Code' legend at the top.";
+                if (questionName === 'q2') feedback.innerHTML += " Look for the state with a 'minus' sign on the |1> component.";
+                if (questionName === 'q3') feedback.innerHTML += " Think about the coin toss analogy.";
 
                 feedback.className = "feedback wrong d-block";
             }
         }
     </script>
 </body>
+
 </html>
