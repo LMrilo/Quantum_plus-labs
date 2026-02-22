@@ -48,6 +48,7 @@
 \newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title=Important: The Black Box (Oracle)}
 \newtcolorbox{composerbox}{colback=purple!5!white,colframe=purple!75!black,title=IBM Composer View (Q-Sphere)}
 \newtcolorbox{deepdivebox}{colback=teal!5!white,colframe=teal!75!black,title=Deep Dive: Beyond Deutsch (QC14)}
+\newtcolorbox{mathbox}{colback=red!5!white,colframe=red!75!black,title=Step-by-Step State Evolution}
 
 \title{\textbf{Laboratory Guide 3: Quantum Algorithms}\\
 \large Oracles, Phase Kickback, and the Quantum Advantage}
@@ -59,7 +60,7 @@
 \maketitle
 
 \section{Introduction and Objectives}
-In the previous labs, we learned how to manipulate qubits and create entanglement. Now, we will use these tools to perform actual computation. We will implement \textbf{Deutsch's Algorithm}, the simplest algorithm that proves a quantum computer can solve a problem faster than any classical computer.
+In the previous labs, we learned how to manipulate qubits and create entanglement. Now, we transition from physics to computer science. We will implement \textbf{Deutsch's Algorithm}, a milestone in quantum computing. It is the simplest algorithm that unequivocally proves a quantum computer can solve a specific problem faster than any classical machine.
 
 \vspace{0.3cm}
 \noindent \textbf{Prerequisites:}
@@ -71,15 +72,15 @@ In the previous labs, we learned how to manipulate qubits and create entanglemen
 
 \noindent \textbf{Learning Objectives:}
 \begin{enumerate}
-    \item Understand the Query Model and the concept of a Quantum Oracle.
-    \item Visualize the "Phase Kickback" mechanism using the Composer.
-    \item Implement Deutsch's Algorithm in Qiskit to determine if a function is Constant or Balanced.
-    \item Comprehend the practical meaning of "Quantum Advantage".
+    \item Understand the Query Model and the role of a Quantum Oracle.
+    \item Visualize and master the "Phase Kickback" mechanism using the Composer.
+    \item Track the mathematical evolution of the quantum state step-by-step.
+    \item Implement Deutsch's Algorithm in Qiskit using professional coding standards.
 \end{enumerate}
 
 \begin{warningbox}
 \textbf{What is an Oracle?}\\
-In computer science, an Oracle is a "Black Box". We can give it an input $x$ and it returns an output $f(x)$, but we \textbf{cannot} look inside to see how it calculates the answer. Our goal is to discover properties of $f(x)$ using the minimum possible number of queries (questions) to the Oracle.
+In computational complexity, an Oracle is a "Black Box". Suppose we have a function $f(x)$. We can give the Oracle an input $x$, and it returns the output $f(x)$. Crucially, we \textbf{cannot} look inside the box to see the circuitry or the code. Our goal is to discover global properties of $f(x)$ while minimizing the number of queries (questions) asked to the Oracle.
 \end{warningbox}
 
 \newpage
@@ -88,7 +89,9 @@ In computer science, an Oracle is a "Black Box". We can give it an input $x$ and
 \textit{Platform: IBM Quantum Composer}
 
 \subsection{Exercise 1: Phase Kickback}
-\textbf{Context:} As explained in Lesson \textbf{QC13}, quantum parallelism evaluates $f(0)$ and $f(1)$ simultaneously. But to extract the answer, we need \textbf{Phase Kickback}. This phenomenon occurs when a target qubit is in the state $|-\rangle$. Applying a CNOT gate in this condition transfers a phase change \textit{back} to the control qubit, rather than flipping the target!
+\textbf{Context:} As explained in Lesson \textbf{QC13}, quantum parallelism allows us to evaluate $f(0)$ and $f(1)$ simultaneously. However, measuring the state directly destroys the superposition and only gives us one answer. To extract the relation between $f(0)$ and $f(1)$, we rely on a physical phenomenon called \textbf{Phase Kickback}. 
+
+When a target qubit is in the superposition state $|-\rangle$, applying a controlled operation (like a CNOT) does not flip the target's probabilities. Instead, the phase change "kicks back" and alters the phase of the \textit{control} qubit.
 
 \begin{studentbox}
 \textbf{Action:}
@@ -99,76 +102,107 @@ In computer science, an Oracle is a "Black Box". We can give it an input $x$ and
     \item \textbf{Look at the Q-Sphere} before and after the CNOT.
 \end{enumerate}
 \textbf{Expected Effect:}
-Normally, a CNOT flips the target. But here, the target $q_1$ remains $|-\rangle$. Instead, the phase of the control qubit $q_0$ is flipped from $|+\rangle$ to $|-\rangle$! The "action" kicked back to the control.
+Normally, a CNOT flips the target. Here, the target $q_1$ remains strictly $|-\rangle$. Instead, the phase of the control qubit $q_0$ flips from $|+\rangle$ to $|-\rangle$! The "action" was transferred backward to the control.
 \end{studentbox}
-
-
 
 \begin{composerbox}
 \textbf{Q-Sphere Visualization}\\
-Before the CNOT, the dots on the Q-Sphere for the control qubit are Blue (Positive phase). After the CNOT, the dot corresponding to the $|1\rangle$ component of the control qubit turns \textbf{Red} (Negative phase). The target qubit's probabilities did not change at all.
+Before the CNOT, the dots on the Q-Sphere for the control qubit are Blue (Positive phase). After the CNOT, the dot corresponding to the $|1\rangle$ component of the control qubit turns \textbf{Red} (Negative phase). The target qubit's probabilities and phases did not change at all. This Red dot is the core of quantum computation.
 \end{composerbox}
 
 \newpage
 
-\section{Part B: Coding Deutsch's Algorithm (Qiskit)}
+\section{Part B: The Algorithm Step-by-Step}
 
 \subsection{Exercise 2: Finding the Function Type}
-\textbf{Context:} We are given a function $f(x)$ that takes 1 bit (0 or 1) and returns 1 bit (0 or 1). 
-There are two types of functions:
+\textbf{The Problem:} We are given a function $f(x)$ that takes 1 bit (0 or 1) as input and returns 1 bit. 
+There are two possible categories for this function:
 \begin{itemize}
-    \item \textbf{Constant:} Returns the same value for all inputs (e.g., always 0, or always 1).
-    \item \textbf{Balanced:} Returns 0 for half the inputs and 1 for the other half.
+    \item \textbf{Constant:} Returns the same value for all inputs (i.e., $f(0) = f(1)$).
+    \item \textbf{Balanced:} Returns different values (i.e., $f(0) \neq f(1)$).
 \end{itemize}
-Classically, we must check both $f(0)$ and $f(1)$ (2 queries). Quantumly, we can do it in 1 query.
+Classically, you must evaluate the function twice ($x=0$ and $x=1$) to compare the outputs. Deutsch's Algorithm solves this with \textbf{exactly 1 quantum query}.
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=Coding Task: Deutsch's Algorithm]
+\begin{mathbox}
+\textbf{How it works: The Mathematical Evolution}\\
+Let's trace the state $|\psi\rangle$ of our two qubits (Input $x$, Ancilla $y$) through the algorithm.
+\begin{enumerate}
+    \item \textbf{Initialization:} We start with the input at $|0\rangle$ and the ancilla at $|1\rangle$.
+    $$|\psi_0\rangle = |0\rangle \otimes |1\rangle$$
+    
+    \item \textbf{Superposition (Apply H to both):} We prepare the input to query both values simultaneously, and the ancilla to absorb the phase kickback.
+    $$|\psi_1\rangle = |+\rangle \otimes |-\rangle = \left( \frac{|0\rangle + |1\rangle}{\sqrt{2}} \right) \left( \frac{|0\rangle - |1\rangle}{\sqrt{2}} \right)$$
+    
+    \item \textbf{The Oracle Query $U_f$:} The quantum oracle performs the operation $|x\rangle|y\rangle \to |x\rangle|y \oplus f(x)\rangle$. Because the ancilla is in the $|-\rangle$ state, the function's output $f(x)$ is transferred to the phase of the input qubit:
+    $$|\psi_2\rangle = \left( \frac{(-1)^{f(0)}|0\rangle + (-1)^{f(1)}|1\rangle}{\sqrt{2}} \right) |-\rangle$$
+    
+    \item \textbf{Interference (Apply H to Input):} We apply a final Hadamard gate to the input qubit to extract the phase difference.
+    \begin{itemize}
+        \item If $f(0) = f(1)$ (Constant), the phases are the same, and the state interferes constructively back to $\pm|0\rangle$.
+        \item If $f(0) \neq f(1)$ (Balanced), the phases are opposite, and the state interferes constructively to $\pm|1\rangle$.
+    \end{itemize}
+\end{enumerate}
+\textbf{Conclusion:} A measurement of $0$ means Constant. A measurement of $1$ means Balanced.
+\end{mathbox}
+
+\newpage
+
+\subsection{Exercise 3: Coding Deutsch's Algorithm in Qiskit}
+We will now implement the algorithm described above. We will use a CNOT gate as our Oracle. A CNOT acts as $f(x) = x$, which is a \textbf{Balanced} function.
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=Coding Task: Deutsch's Algorithm Implementation]
 \begin{lstlisting}[language=Python]
+"""
+Deutsch's Algorithm Implementation.
+This script demonstrates the algorithm using a balanced oracle.
+"""
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qiskit.visualization import plot_histogram
 
-# 1. Setup: 2 Qubits (q0 is input, q1 is ancilla/target)
-qc = QuantumCircuit(2, 1)
+def run_deutsch_algorithm() -> dict:
+    """
+    Builds and executes Deutsch's algorithm for a balanced function f(x) = x.
+    
+    Returns:
+        dict: The measurement counts, proving the function type.
+    """
+    # 1. Setup: 1 Input Qubit (q0), 1 Ancilla Qubit (q1), 1 Classical Bit
+    qc = QuantumCircuit(2, 1)
 
-# 2. Initialization
-qc.h(0)           # Put input in superposition |+>
-qc.x(1)           # Put ancilla in |1>
-qc.h(1)           # Put ancilla in |-> for phase kickback
+    # 2. State Preparation (Superposition and Phase Target)
+    qc.h(0)           # Input to |+>
+    qc.x(1)           # Ancilla to |1>
+    qc.h(1)           # Ancilla to |-> for phase kickback
+    qc.barrier()
 
-qc.barrier()      # Visual separator
+    # 3. The Oracle: Balanced function (CNOT)
+    # This represents the unknown black box.
+    qc.cx(0, 1)
+    qc.barrier()
 
-# 3. THE ORACLE (Example: A Balanced Function)
-# We implement f(x) = x. This is a CNOT gate.
-qc.cx(0, 1)
+    # 4. Interference and Measurement
+    qc.h(0)           # Extract the relative phase
+    qc.measure(0, 0)  # Read the result into the classical bit
 
-qc.barrier()
+    # 5. Execution
+    simulator = AerSimulator()
+    job = simulator.run(qc, shots=1000)
+    return job.result().get_counts()
 
-# 4. Interference and Measurement
-qc.h(0)           # Mix the phases
-qc.measure(0, 0)  # Measure the input qubit
-
-# 5. Execute
-job = AerSimulator().run(qc, shots=1000)
-counts = job.result().get_counts()
-print(f"Result: {counts}")
+# Run the simulation and print the results
+counts = run_deutsch_algorithm()
+print(f"Algorithm Output: {counts}")
 \end{lstlisting}
-\textbf{Analysis:} 
-If the result is \textbf{0}, the function is Constant. 
-If the result is \textbf{1}, the function is Balanced. 
-Since we used a CNOT (which acts differently for 0 and 1), the function is Balanced, and your output should be 100\% '1'.
+\textbf{Analysis:} Because the oracle we built is balanced, the output will be exactly `{'1': 1000}`. If you replaced the Oracle block with an empty space (Identity gate), it would act as $f(x) = 0$ (Constant), and the output would be `{'0': 1000}`.
 \end{tcolorbox}
-
-
 
 \begin{deepdivebox}
 \textbf{Beyond Deutsch: Why does this matter? (Lesson QC14)}\\
-You might think: \textit{"Who cares if a 1-bit function is constant or balanced?"}
-Deutsch's algorithm has no direct practical application. However, it proves that quantum interference can solve a problem in $\mathcal{O}(1)$ steps instead of $\mathcal{O}(N)$.
+Deutsch's algorithm has no direct commercial application. However, it proves that quantum interference can solve a problem in $\mathcal{O}(1)$ steps instead of $\mathcal{O}(N)$.
 \begin{itemize}
-    \item \textbf{Deutsch-Jozsa:} Expands this to $N$ bits. The classical computer needs $2^{N-1} + 1$ queries. The quantum computer still needs exactly \textbf{1 query}. This is an exponential speedup!
-    \item \textbf{Grover's Algorithm:} Uses similar Oracle/Phase kickback logic to search unsorted databases quadratically faster.
-    \item \textbf{Shor's Algorithm:} Uses these principles to find prime factors, fundamentally threatening modern RSA cryptography.
+    \item \textbf{Deutsch-Jozsa:} Expands this to $N$ bits. A classical computer needs $2^{N-1} + 1$ queries in the worst case. The quantum computer still needs exactly \textbf{1 query}. This represents an exponential speedup.
+    \item \textbf{Grover \& Shor:} The logic of Oracles and Phase Kickback is the exact same engine used by Grover's algorithm to search databases and Shor's algorithm to break RSA encryption.
 \end{itemize}
 \end{deepdivebox}
 
@@ -180,33 +214,33 @@ Deutsch's algorithm has no direct practical application. However, it proves that
 In the Query Model of computation (QC12), what is the primary metric used to evaluate the efficiency of a quantum algorithm?
 \begin{itemize}
     \item[A)] The clock speed of the quantum processor.
-    \item[B)] The number of qubits used.
-    \item[C)] The number of times the algorithm queries the Oracle function $f(x)$.
+    \item[B)] The physical number of qubits required.
+    \item[C)] The number of times the algorithm evaluates the Oracle function $f(x)$.
 \end{itemize}
 
 \vspace{0.3cm}
 
-\textbf{Q2. Phase Kickback Mechanism}\\
-In Deutsch's algorithm, what is the required state of the "ancilla" (target) qubit before querying the Oracle to ensure Phase Kickback works?
+\textbf{Q2. The Core Mechanism}\\
+In the mathematical evolution of Deutsch's algorithm, what causes the value of $f(x)$ to be encoded into the \textit{phase} of the input qubit?
 \begin{itemize}
-    \item[A)] $|0\rangle$ (Ground state)
-    \item[B)] $|-\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}}$
-    \item[C)] $|+\rangle = \frac{|0\rangle + |1\rangle}{\sqrt{2}}$
+    \item[A)] The entanglement between the two qubits.
+    \item[B)] The Phase Kickback effect, which occurs because the ancilla qubit is initialized in the $|-\rangle$ state.
+    \item[C)] The final measurement operation collapsing the wavefunction.
 \end{itemize}
 
 \vspace{0.3cm}
 
 \textbf{Q3. Reading the Output}\\
-You run Deutsch's algorithm on a mysterious Oracle and measure the input qubit at the very end. The result is 100\% certainty of reading \textbf{"0"}. What did the algorithm just prove about the hidden function?
+You run Deutsch's algorithm on a mysterious Oracle and measure the input qubit at the very end. The result is 100\% certainty of reading \textbf{"0"}. According to the interference step, what did you just prove about the hidden function?
 \begin{itemize}
-    \item[A)] The function is Balanced (e.g., $f(x) = x$).
-    \item[B)] The function is Constant (e.g., $f(x) = 1$ for all $x$).
-    \item[C)] The Oracle contains an error.
+    \item[A)] The function is Balanced (e.g., $f(0) \neq f(1)$).
+    \item[B)] The function is Constant (e.g., $f(0) = f(1)$).
+    \item[C)] The Oracle contains a hardware error.
 \end{itemize}
 
 \vspace{1cm}
 \hrule
 \vspace{0.2cm}
-\footnotesize{\textbf{Solutions:} Q1: C (As stated in QC12); Q2: B (The minus sign is required to kick back the phase); Q3: B.}
+\footnotesize{\textbf{Solutions:} Q1: C (As stated in QC12); Q2: B (The minus sign is required to kick back the phase); Q3: B (Constructive interference on $|0\rangle$).}
 
 \end{document}
