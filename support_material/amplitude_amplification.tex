@@ -1,0 +1,209 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{braket}
+\usepackage{geometry}
+\geometry{margin=2cm}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,quotes}
+
+\title{Geometric Representation of Amplitude Amplification\\in Grover's Algorithm}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{The Geometric Picture}
+
+Grover's algorithm operates in a two-dimensional subspace of the full $2^n$-dimensional Hilbert space. The key insight is that the algorithm's state vector always remains in the plane spanned by two orthogonal basis vectors:
+
+\begin{itemize}
+  \item $\ket{s}$: the uniform superposition
+    \[
+    \ket{s} = \frac{1}{\sqrt{N}}\sum_{x=0}^{N-1}\ket{x},\qquad N=2^n.
+    \]
+  \item $\ket{w}$: the target (marked) state.
+\end{itemize}
+
+Define the orthogonal complement
+\[
+\ket{s'} = \frac{1}{\sqrt{N-1}}\sum_{x\neq w}\ket{x}.
+\]
+The full space is spanned by $\{\ket{w},\ket{s'}\}$, but we work in the $\{\ket{s},\ket{w}\}$ basis, which is \emph{not} orthogonal.
+
+\section*{Initial State and Angle $\theta$}
+
+The algorithm starts in $\ket{s}$. We can write
+\[
+\ket{s} = \sin\theta\ket{w} + \cos\theta\ket{s'},
+\]
+where
+\[
+\sin\theta = \frac{1}{\sqrt{N}},\qquad
+\cos\theta = \sqrt{\frac{N-1}{N}},\qquad
+\theta = \arcsin\left(\frac{1}{\sqrt{N}}\right).
+\]
+
+For large $N$, $\theta\approx\frac{1}{\sqrt{N}}$ is small.
+
+\section*{Grover Iteration as Reflections}
+
+A single Grover iteration $G = DO$ consists of two reflections:
+
+\subsection*{1. Oracle Reflection $O$}
+
+The oracle reflects about the hyperplane orthogonal to $\ket{w}$:
+\[
+O = I - 2\ket{w}\bra{w}.
+\]
+Geometrically, $O$ is a reflection across the line $\ket{s'}$ in our plane.
+
+\subsection*{2. Diffusion Reflection $D$}
+
+The diffusion operator reflects about $\ket{s}$:
+\[
+D = 2\ket{s}\bra{s} - I.
+\]
+
+\subsection*{Composition: Rotation by $2\theta$}
+
+The product of two reflections is a rotation by twice the angle between their axes. Here, $DO$ rotates the state vector by angle $2\theta$ toward $\ket{w}$:
+\[
+\ket{s} \xrightarrow{G} \ket{\psi_1} \xrightarrow{G} \ket{\psi_2} \xrightarrow{G} \cdots \xrightarrow{G} \ket{\psi_R} \approx \ket{w}.
+\]
+
+After $R\approx\frac{\pi}{4}\sqrt{N}$ iterations, the state is nearly $\ket{w}$.
+
+\section*{Geometric Diagram}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  scale=1.5,
+  >=Stealth,
+  every node/.style={font=\footnotesize},
+  axis/.style={very thick, ->, black},
+  vector/.style={thick, -Stealth, black},
+  reflect/.style={dashed, gray},
+  rotate/.style={blue, thick}
+]
+
+% Coordinate axes
+\draw[axis] (0,0) -- (0,3.5) node[above] {$\ket{w}$};
+\draw[axis] (0,0) -- (4.2,0) node[right] {$\ket{s'}$};
+
+% Initial state |s>
+\draw[vector, red] (0,0) -- (3.8,0.3) node[right] {$\ket{s}$};
+\node[red,below right,font=\scriptsize] at (2.2,0.15) {$\theta$};
+
+% Target state |w>
+\draw[vector, green!70!black] (0,0) -- (0,3.2) node[above] {$\ket{w}$};
+
+% |s> axis (diffusion reflection line)
+\draw[dashed,blue] (0,0) -- (3.8,0.3) node[right] {$\ket{s}$};
+
+% First oracle reflection (across |s'>)
+\draw[dashed,gray] (0,0) -- (4.2,0);
+\node[gray,above left,font=\tiny] at (2.1,0) {$O$};
+
+% State after oracle
+\draw[vector,orange] (3.8,0.3) -- (1.6,1.2) node[above right] {$\ket{\psi_1^-}$};
+
+% Diffusion reflection line
+\draw[reflect] (0,0) -- (3.8,0.3);
+\node[blue,above left,font=\tiny] at (1.9,0.15) {$D$};
+
+% State after diffusion (after 1 iteration)
+\draw[vector,violet] (0,0) -- (2.8,1.1) node[above right] {$\ket{\psi_1}$};
+\draw[rotate,double,blue] (3.8,0.3) to[bend left=20] (2.8,1.1)
+  node[midway,right,font=\tiny] {$2\theta$};
+
+% Second iteration (dashed for clarity)
+\draw[vector,orange,dashed,opacity=0.7] (2.8,1.1) -- (1.0,1.9);
+\draw[vector,violet,dashed,opacity=0.7] (0,0) -- (1.8,2.2);
+\draw[rotate,double,blue,dashed,opacity=0.7] (2.8,1.1) to[bend left=20] (1.8,2.2);
+
+% Optimal point
+\draw[fill=red,opacity=0.3] (0.2,3.1) circle (0.08);
+\node[red,above right,font=\scriptsize] at (0.3,3.1) {Optimal};
+
+\end{tikzpicture}
+\caption{Geometric picture of Grover's algorithm. Each iteration $G=DO$ rotates the state vector toward $\ket{w}$ by angle $2\theta$. The oracle $O$ reflects across $\ket{s'}$, while the diffusion operator $D$ reflects across $\ket{s}$. After $\sim\frac{\pi}{4}\sqrt{N}$ iterations, the state reaches the optimal point near $\ket{w}$.}
+\label{fig:grover-geometry}
+\end{figure}
+
+\section*{Mathematical Derivation}
+
+\subsection*{State After One Iteration}
+
+Start with $\ket{s} = \sin\theta\ket{w} + \cos\theta\ket{s'}$.
+
+\textbf{Oracle reflection:}
+\[
+O\ket{s}
+= \sin\theta\,O\ket{w} + \cos\theta\,O\ket{s'}
+= -\sin\theta\ket{w} + \cos\theta\ket{s'}
+= \sin\theta\,(-\ket{w}) + \cos\theta\ket{s'},
+\]
+which makes angle $\pi-\theta$ with $\ket{w}$.
+
+\textbf{Diffusion reflection:}
+Since $D$ reflects about $\ket{s}$,
+\[
+D\ket{\psi^-} = 2(\bra{s}\psi^-)\ket{s} - \ket{\psi^-},
+\]
+where $\ket{\psi^-} = O\ket{s}$. Compute
+\[
+\bra{s}\psi^- = \sin\theta(-\sin\theta) + \cos\theta(\cos\theta)
+             = \cos(2\theta).
+\]
+Thus
+\[
+D\ket{\psi^-}
+= 2\cos(2\theta)\ket{s} - \ket{\psi^-}.
+\]
+
+In the $\{\ket{w},\ket{s'}\}$ basis, this becomes
+\[
+\ket{\psi_1} = \sin(3\theta)\ket{w} + \cos(3\theta)\ket{s'}.
+\]
+The angle with $\ket{s'}$ increased from $\theta$ to $3\theta$---a rotation by $2\theta$.
+
+\subsection*{General Iteration}
+
+After $k$ iterations,
+\[
+\ket{\psi_k} = \sin\bigl((2k+1)\theta\bigr)\ket{w}
+             + \cos\bigl((2k+1)\theta\bigr)\ket{s'}.
+\]
+The probability of measuring $\ket{w}$ is
+\[
+P_k = \sin^2\bigl((2k+1)\theta\bigr).
+\]
+The optimal number of iterations is
+\[
+k_{\text{opt}} = \left\lfloor\frac{\pi}{4\sqrt{N}}\right\rfloor,
+\]
+which maximizes $P_k\approx 1$.
+
+\section*{Amplitude Amplification Generalization}
+
+The same geometric picture underlies \emph{amplitude amplification}, a generalization where the initial state $\ket{s}$ has arbitrary (small) overlap $\sin\theta$ with the ``good'' subspace $\mathcal{G}$ (not necessarily a single state). The same reflection operators amplify the projection onto $\mathcal{G}$ until it dominates.
+
+This framework extends Grover's algorithm to quantum counting, collision finding, and many optimization problems.
+
+\section*{Key Insights}
+
+\begin{itemize}
+  \item Grover's algorithm is a \emph{rotation} in a 2D subspace by fixed angle $2\theta$ per iteration.
+  \item The oracle $O$ ``marks'' the target by phase flip (reflection).
+  \item The diffusion $D$ amplifies via inversion about the mean (second reflection).
+  \item Optimal iterations $\sim\frac{\pi}{4}\sqrt{N}$ yield $\sim 1-\mathcal{O}(1/N)$ success probability.
+  \item Quadratic speedup $O(\sqrt{N})$ vs.\ classical $O(N)$.
+\end{itemize}
+
+\end{document}
