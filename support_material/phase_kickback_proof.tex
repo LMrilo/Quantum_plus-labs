@@ -1,0 +1,183 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{braket}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\title{Proof of the Phase Kickback Phenomenon for the CNOT Gate}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+
+In this short document we show in detail how the circuit
+\[
+\mathrm{CNOT}\, (H \otimes HX)
+\]
+applied to the initial state \(\ket{00}\) implements the transformation
+\[
+\ket{+ -} \xrightarrow{\ \mathrm{CNOT}\ } \ket{- -},
+\]
+where the first qubit is the control and the second is the target.
+This effect, in which the phase of the target is ``kicked back'' onto
+the control, is known as \emph{phase kickback}.
+
+\section*{Preliminaries}
+
+We recall the definitions of the single-qubit \(\ket{\pm}\) states:
+\begin{equation}
+  \ket{+} = \frac{1}{\sqrt{2}}\bigl(\ket{0} + \ket{1}\bigr),\qquad
+  \ket{-} = \frac{1}{\sqrt{2}}\bigl(\ket{0} - \ket{1}\bigr).
+\end{equation}
+
+The Hadamard gate \(H\) and Pauli \(X\) gate act on the computational basis as
+\begin{align}
+  H\ket{0} &= \ket{+}, & H\ket{1} &= \ket{-}, \\
+  X\ket{0} &= \ket{1}, & X\ket{1} &= \ket{0}.
+\end{align}
+
+Moreover, \(\ket{-}\) is an eigenvector of \(X\) with eigenvalue \(-1\):
+\begin{equation}
+  X\ket{-}
+  = X\left(\frac{\ket{0}-\ket{1}}{\sqrt{2}}\right)
+  = \frac{\ket{1}-\ket{0}}{\sqrt{2}}
+  = -\frac{\ket{0}-\ket{1}}{\sqrt{2}}
+  = -\ket{-}.
+  \label{eq:Xminus}
+\end{equation}
+
+The CNOT gate with the first qubit as control and the second as target acts as
+\begin{equation}
+  \mathrm{CNOT}\ket{00} = \ket{00},\quad
+  \mathrm{CNOT}\ket{01} = \ket{01},\quad
+  \mathrm{CNOT}\ket{10} = \ket{11},\quad
+  \mathrm{CNOT}\ket{11} = \ket{10}.
+\end{equation}
+
+\section*{Preparing the state \texorpdfstring{$\ket{+ -}$}{|+ -⟩}}
+
+We start from the initial state \(\ket{00}\) and apply the gates indicated in the circuit.
+
+\subsection*{First qubit (control)}
+
+On the first qubit we apply a Hadamard gate:
+\begin{equation}
+  (H \otimes I)\ket{00}
+  = H\ket{0} \otimes \ket{0}
+  = \ket{+}\ket{0}.
+\end{equation}
+
+\subsection*{Second qubit (target)}
+
+On the second qubit we first apply \(X\) and then \(H\):
+\begin{equation}
+  (I \otimes X)\ket{0}
+  = \ket{1},\qquad
+  (I \otimes H X)\ket{0}
+  = H X \ket{0}
+  = H\ket{1}
+  = \ket{-}.
+\end{equation}
+
+Overall, after the local gates we obtain the state
+\begin{equation}
+  \ket{\psi}
+  = \ket{+}\ket{-}.
+\end{equation}
+
+Let us now write \(\ket{\psi}\) explicitly in the computational basis:
+\begin{align}
+  \ket{\psi}
+  &= \ket{+}\ket{-} \\
+  &= \left(\frac{\ket{0}+\ket{1}}{\sqrt{2}}\right)
+     \otimes
+     \left(\frac{\ket{0}-\ket{1}}{\sqrt{2}}\right) \\
+  &= \frac{1}{2}\bigl(
+        \ket{00} - \ket{01}
+      + \ket{10} - \ket{11}
+     \bigr).
+  \label{eq:psi-explicit}
+\end{align}
+
+\section*{Action of the CNOT}
+
+We now apply the CNOT gate to the state \(\ket{\psi}\) in
+\eqref{eq:psi-explicit}:
+\begin{align}
+  \ket{\psi'}
+  &= \mathrm{CNOT}\,\ket{\psi} \\
+  &= \frac{1}{2}\bigl(
+        \mathrm{CNOT}\ket{00}
+      - \mathrm{CNOT}\ket{01}
+      + \mathrm{CNOT}\ket{10}
+      - \mathrm{CNOT}\ket{11}
+     \bigr) \\
+  &= \frac{1}{2}\bigl(
+        \ket{00}
+      - \ket{01}
+      + \ket{11}
+      - \ket{10}
+     \bigr).
+\end{align}
+
+We group the terms according to the first qubit:
+\begin{align}
+  \ket{\psi'}
+  &= \frac{1}{2}\Bigl[
+        \ket{0}\bigl(\ket{0}-\ket{1}\bigr)
+      + \ket{1}\bigl(\ket{1}-\ket{0}\bigr)
+     \Bigr].
+\end{align}
+
+Note that
+\begin{equation}
+  \ket{0}-\ket{1} = \sqrt{2}\,\ket{-},\qquad
+  \ket{1}-\ket{0} = -\sqrt{2}\,\ket{-},
+\end{equation}
+and therefore
+\begin{align}
+  \ket{\psi'}
+  &= \frac{1}{2}\Bigl[
+        \ket{0}\bigl(\sqrt{2}\ket{-}\bigr)
+      + \ket{1}\bigl(-\sqrt{2}\ket{-}\bigr)
+     \Bigr] \\
+  &= \frac{\sqrt{2}}{2}
+     \bigl(\ket{0} - \ket{1}\bigr)\ket{-} \\
+  &= \frac{\sqrt{2}}{2}
+     \bigl(\sqrt{2}\ket{-}\bigr)\ket{-} \\
+  &= \ket{-}\ket{-}
+   = \ket{- -}.
+\end{align}
+
+We have thus shown explicitly that
+\begin{equation}
+  \mathrm{CNOT}\,\ket{+ -} = \ket{- -}.
+\end{equation}
+
+\section*{Interpretation as phase kickback}
+
+From the point of view of the second qubit, we see that it remains in the
+state \(\ket{-}\) both before and after the CNOT.
+However, from \eqref{eq:Xminus}, the state \(\ket{-}\) is an eigenstate of
+\(X\) with eigenvalue \(-1\).
+This means that when the control is \(\ket{1}\), the action of CNOT is
+equivalent to multiplying the target state by a phase factor \(-1\).
+
+Since the target is already in an eigenstate of \(X\), the net effect is not a
+change of its state, but rather a \emph{shift} of this phase onto the control
+qubit.
+In other words, the \(\ket{1}\) component of the control acquires a minus sign
+with respect to its \(\ket{0}\) component, turning \(\ket{+}\) into
+\(\ket{-}\).
+This transfer of phase from the target to the control is the
+\emph{phase kickback} phenomenon.
+
+\end{document}
