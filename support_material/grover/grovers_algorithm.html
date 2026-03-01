@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grover's Algorithm — Amplitude Amplification</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Cinzel:wght@400;600&display=swap');
+
+  :root {
+    --bg: #04060f;
+    --panel: #080d1e;
+    --border: #1a2545;
+    --accent1: #00d4ff;
+    --accent2: #7b2fff;
+    --accent3: #ff6b35;
+    --target: #00ff9d;
+    --text: #c8d8f0;
+    --dim: #4a607a;
+    --glow1: rgba(0,212,255,0.15);
+    --glow2: rgba(123,47,255,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield bg */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(0,80,160,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(80,0,160,0.08) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  .stars {
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 30%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 75%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 92% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 45%, rgba(200,180,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 33% 88%, rgba(200,240,255,0.3) 0%, transparent 100%);
+  }
+
+  .container {
+    position:relative; z-index:1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  header {
+    text-align:center;
+    margin-bottom: 50px;
+  }
+
+  header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    color: var(--dim);
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .divider {
+    height:1px;
+    background: linear-gradient(90deg, transparent, var(--accent1), var(--accent2), transparent);
+    margin: 10px auto 0;
+    width: 60%;
+    opacity: 0.4;
+  }
+
+  /* STEP CONTROLS */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .step-label {
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color: var(--dim);
+  }
+
+  .step-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--accent1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 8px 20px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .step-btn:hover, .step-btn.active {
+    background: var(--glow1);
+    border-color: var(--accent1);
+    box-shadow: 0 0 12px rgba(0,212,255,0.3);
+  }
+
+  .step-btn.active {
+    color: #fff;
+  }
+
+  /* MAIN PANELS */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 700px) { .panels { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .panel::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background: linear-gradient(135deg, var(--glow1) 0%, transparent 60%);
+    pointer-events:none;
+  }
+
+  .panel-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* GEOMETRIC VISUALIZATION */
+  canvas#geo {
+    display:block;
+    width:100%;
+    height:320px;
+  }
+
+  /* AMPLITUDE BARS */
+  .amp-container {
+    height: 320px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .amp-bars {
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap: 6px;
+    height: 220px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    position:relative;
+  }
+
+  .mean-line {
+    position:absolute;
+    left:0; right:0;
+    height: 1px;
+    background: var(--accent3);
+    opacity: 0.6;
+    transition: bottom 0.7s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .bar-wrap {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    flex:1;
+    min-width:0;
+    max-width:52px;
+    height:100%;
+    justify-content:flex-end;
+    position:relative;
+  }
+
+  .bar {
+    width: 100%;
+    min-height: 2px;
+    transition: height 0.7s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+    position:relative;
+  }
+
+  .bar.target {
+    background: linear-gradient(180deg, var(--target), rgba(0,255,157,0.3));
+    box-shadow: 0 0 10px rgba(0,255,157,0.4);
+  }
+
+  .bar.other {
+    background: linear-gradient(180deg, var(--accent1), rgba(0,212,255,0.2));
+  }
+
+  .bar-label {
+    font-size: 0.6rem;
+    color: var(--dim);
+    margin-top: 5px;
+    text-align:center;
+  }
+
+  .amp-legend {
+    display:flex;
+    gap:20px;
+    margin-top:12px;
+    font-size:0.65rem;
+    color: var(--dim);
+    flex-wrap:wrap;
+  }
+
+  .legend-dot {
+    width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px;
+    vertical-align:middle;
+  }
+
+  /* EQUATIONS PANEL */
+  .eq-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .eq-panel::before {
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(135deg, var(--glow2) 0%, transparent 50%);
+    pointer-events:none;
+  }
+
+  .eq-panel .panel-title { color: var(--accent2); }
+
+  .equations {
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 32px;
+  }
+  @media (max-width:600px) { .equations { grid-template-columns:1fr; } }
+
+  .eq-block {
+    padding: 16px;
+    border: 1px solid var(--border);
+    position:relative;
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+
+  .eq-block.highlight {
+    border-color: var(--accent2);
+    box-shadow: 0 0 16px rgba(123,47,255,0.25);
+  }
+
+  .eq-tag {
+    font-size:0.6rem;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    opacity: 0.8;
+  }
+
+  .eq-content {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  /* INFO BOX */
+  .info-box {
+    background: rgba(0,212,255,0.04);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent1);
+    padding: 16px 20px;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--dim);
+    transition: all 0.5s;
+  }
+
+  .info-box .highlight-text { color: var(--accent1); }
+  .info-box .target-text { color: var(--target); }
+
+  /* ITERATION COUNTER */
+  .iteration-display {
+    text-align:center;
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--accent2);
+    text-shadow: 0 0 20px rgba(123,47,255,0.5);
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+    transition: all 0.4s;
+  }
+
+  .iteration-sub {
+    text-align:center;
+    font-size:0.65rem;
+    letter-spacing:0.15em;
+    color: var(--dim);
+    text-transform:uppercase;
+    margin-bottom: 20px;
+  }
+
+</style>
+</head>
+<body>
+<div class="stars"></div>
+
+<div class="container">
+  <header>
+    <h1>Grover's Algorithm</h1>
+    <p>Amplitude Amplification &amp; Geometric Representation</p>
+    <div class="divider"></div>
+  </header>
+
+  <div class="iteration-display" id="iter-num">k = 0</div>
+  <div class="iteration-sub">Grover Iteration</div>
+
+  <div class="controls">
+    <span class="step-label">Step →</span>
+    <button class="step-btn active" data-step="0" onclick="setStep(0)">Initial |s⟩</button>
+    <button class="step-btn" data-step="1" onclick="setStep(1)">After O₁</button>
+    <button class="step-btn" data-step="2" onclick="setStep(2)">After D₁</button>
+    <button class="step-btn" data-step="3" onclick="setStep(3)">After O₂</button>
+    <button class="step-btn" data-step="4" onclick="setStep(4)">After D₂</button>
+  </div>
+
+  <div class="panels">
+    <!-- GEOMETRIC -->
+    <div class="panel">
+      <div class="panel-title">⬡ Geometric (2D Subspace)</div>
+      <canvas id="geo" width="500" height="320"></canvas>
+    </div>
+
+    <!-- AMPLITUDE BARS -->
+    <div class="panel">
+      <div class="panel-title">◈ Amplitude Distribution</div>
+      <div class="amp-container">
+        <div class="amp-bars" id="amp-bars">
+          <div class="mean-line" id="mean-line"></div>
+        </div>
+        <div class="amp-legend">
+          <span><span class="legend-dot" style="background:var(--target)"></span>Target state |ω⟩</span>
+          <span><span class="legend-dot" style="background:var(--accent1)"></span>Other states</span>
+          <span><span class="legend-dot" style="background:var(--accent3)"></span>Mean amplitude</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO BOX -->
+  <div class="info-box" id="info-box">
+    Loading...
+  </div>
+
+  <br>
+
+  <!-- EQUATIONS -->
+  <div class="eq-panel">
+    <div class="panel-title">∑ Key Equations (LaTeX)</div>
+    <div class="equations">
+
+      <div class="eq-block" id="eq-superposition">
+        <div class="eq-tag">Uniform Superposition</div>
+        <div class="eq-content" id="eq1"></div>
+      </div>
+
+      <div class="eq-block" id="eq-oracle">
+        <div class="eq-tag">Oracle (Phase Kickback)</div>
+        <div class="eq-content" id="eq2"></div>
+      </div>
+
+      <div class="eq-block" id="eq-diffusion">
+        <div class="eq-tag">Diffusion Operator</div>
+        <div class="eq-content" id="eq3"></div>
+      </div>
+
+      <div class="eq-block" id="eq-iterations">
+        <div class="eq-tag">Optimal Iterations</div>
+        <div class="eq-content" id="eq4"></div>
+      </div>
+
+      <div class="eq-block" id="eq-state">
+        <div class="eq-tag">State After k Iterations</div>
+        <div class="eq-content" id="eq5"></div>
+      </div>
+
+      <div class="eq-block" id="eq-prob">
+        <div class="eq-tag">Success Probability</div>
+        <div class="eq-content" id="eq6"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+const N = 8;        // total states
+const targetIdx = 2; // index of target state (|ω⟩)
+const optK = Math.round(Math.PI / 4 * Math.sqrt(N)); // ~2 for N=8
+
+// Compute amplitudes for step k
+function computeAmplitudes(k) {
+  // Initial uniform
+  const a0 = 1 / Math.sqrt(N);
+  // After k Grover iterations:
+  // non-target: cos((2k+1)θ)/sqrt(N-1)  ...precise formula
+  // target: sin((2k+1)θ)
+  // where sin(θ) = 1/sqrt(N)
+  const theta = Math.asin(1 / Math.sqrt(N));
+  const phi = (2 * k + 1) * theta;
+  const ampTarget = Math.sin(phi);
+  const ampOther = Math.cos(phi) / Math.sqrt(N - 1);
+
+  let amps = [];
+  for (let i = 0; i < N; i++) {
+    amps.push(i === targetIdx ? ampTarget : ampOther);
+  }
+  return amps;
+}
+
+// States for the 5 buttons
+// step 0: initial (k=0 start, before any oracle)
+// step 1: after oracle 1 (phase flip, amplitudes same magnitude)
+// step 2: after diffusion 1 (k=1)
+// step 3: after oracle 2
+// step 4: after diffusion 2 (k=2)
+
+function getState(step) {
+  // Even steps (0,2,4) = after diffusion (k=0,1,2)
+  // Odd steps (1,3) = after oracle (phase flipped target)
+  let k = Math.floor(step / 2);
+  let afterOracle = (step % 2 === 1);
+
+  let amps = computeAmplitudes(k);
+  if (afterOracle) {
+    // Oracle flips sign of target
+    amps[targetIdx] = -amps[targetIdx];
+  }
+  return { amps, k, afterOracle };
+}
+
+// ─── GEOMETRY CANVAS ────────────────────────────────────────────────────────
+const canvas = document.getElementById('geo');
+const ctx = canvas.getContext('2d');
+
+// We represent the state in the 2D subspace spanned by |ω⟩ and |s'⟩
+// |s⟩ = sin(θ)|ω⟩ + cos(θ)|s'⟩
+// State vector rotates in this plane
+
+function drawGeo(step) {
+  const { amps, k, afterOracle } = getState(step);
+
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2 - 20, cy = H / 2 + 10;
+  const R = Math.min(W, H) * 0.36;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // background circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = '#1a2545';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Dashed unit circle grid lines
+  ctx.setLineDash([4,4]);
+  ctx.strokeStyle = '#0f1a30';
+  ctx.beginPath(); ctx.moveTo(cx-R*1.1, cy); ctx.lineTo(cx+R*1.1, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy-R*1.1); ctx.lineTo(cx, cy+R*1.1); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axes labels
+  ctx.fillStyle = '#4a607a';
+  ctx.font = '11px JetBrains Mono';
+  ctx.fillText('|ω⟩', cx + R + 8, cy + 4);
+  ctx.fillText('|s\'⟩', cx - 14, cy - R - 8);
+
+  // θ angle (initial superposition angle)
+  const theta = Math.asin(1 / Math.sqrt(N));
+
+  // |s⟩ initial vector (step 0)
+  // sin(θ) along |ω⟩ axis (x), cos(θ) along |s'⟩ (y)
+  const sx = Math.sin(theta), sy = Math.cos(theta);
+
+  // Draw |s⟩ reference
+  ctx.setLineDash([5,4]);
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + sx * R, cy - sy * R);
+  ctx.strokeStyle = '#334466';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#334466';
+  ctx.font = '11px JetBrains Mono';
+  ctx.fillText('|s⟩', cx + sx * R + 6, cy - sy * R - 4);
+
+  // Current state vector
+  // After k full Grover iterations: angle from |s'⟩ is (2k+1)θ
+  // (x = sin(phi), y = cos(phi) from |ω⟩/|s'⟩ plane)
+  let phi;
+  if (!afterOracle) {
+    phi = (2 * k + 1) * theta;
+  } else {
+    // After oracle: reflection about |s'⟩ axis → negate x component
+    phi = -(2 * k + 1) * theta;
+  }
+
+  const vx = Math.sin(phi), vy = Math.cos(phi);
+
+  // Draw angle arc showing phi
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.22, -Math.PI/2, -Math.PI/2 + Math.atan2(vx, vy) , false);
+  ctx.strokeStyle = 'rgba(0,212,255,0.25)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Draw state vector
+  const grad = ctx.createLinearGradient(cx, cy, cx + vx * R, cy - vy * R);
+  grad.addColorStop(0, afterOracle ? 'rgba(255,107,53,0.2)' : 'rgba(0,212,255,0.2)');
+  grad.addColorStop(1, afterOracle ? '#ff6b35' : '#00d4ff');
+
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + vx * R, cy - vy * R);
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Arrow head
+  const angle = Math.atan2(-vy, vx);
+  const arrowLen = 12;
+  const ex = cx + vx * R, ey = cy - vy * R;
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - arrowLen * Math.cos(angle - 0.4), ey - arrowLen * Math.sin(angle - 0.4));
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - arrowLen * Math.cos(angle + 0.4), ey - arrowLen * Math.sin(angle + 0.4));
+  ctx.strokeStyle = afterOracle ? '#ff6b35' : '#00d4ff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dot at tip
+  ctx.beginPath();
+  ctx.arc(ex, ey, 5, 0, 2*Math.PI);
+  ctx.fillStyle = afterOracle ? '#ff6b35' : '#00d4ff';
+  ctx.shadowColor = afterOracle ? '#ff6b35' : '#00d4ff';
+  ctx.shadowBlur = 14;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Label
+  ctx.fillStyle = afterOracle ? '#ff6b35' : '#00d4ff';
+  ctx.font = 'bold 12px JetBrains Mono';
+  const labelOff = 14;
+  const lx = ex + labelOff * Math.cos(angle + 0.7);
+  const ly = ey + labelOff * Math.sin(angle + 0.7);
+  ctx.fillText(afterOracle ? 'Oₖ|ψ⟩' : '|ψₖ⟩', lx - 15, ly);
+
+  // Target axis dot
+  ctx.beginPath();
+  ctx.arc(cx + R, cy, 4, 0, 2*Math.PI);
+  ctx.fillStyle = '#00ff9d';
+  ctx.shadowColor = '#00ff9d';
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Probability annotation
+  const prob = Math.sin(phi) ** 2;
+  ctx.fillStyle = '#c8d8f0';
+  ctx.font = '11px JetBrains Mono';
+  ctx.fillText(`P(ω) = ${(prob * 100).toFixed(1)}%`, 10, 18);
+  ctx.fillText(`φ = ${(phi * 180 / Math.PI).toFixed(1)}°`, 10, 34);
+}
+
+// ─── AMPLITUDE BARS ──────────────────────────────────────────────────────────
+function renderBars(step) {
+  const { amps } = getState(step);
+  const container = document.getElementById('amp-bars');
+
+  // Clear and rebuild
+  container.innerHTML = '<div class="mean-line" id="mean-line"></div>';
+
+  const MAX_DISPLAY_AMP = 1.1; // slightly over 1 for scale
+  const BAR_HEIGHT = 200;
+
+  const mean = amps.reduce((a,b) => a+b, 0) / N;
+  const meanFrac = (mean + 0.5) / MAX_DISPLAY_AMP; // 0..1 from bottom
+
+  // Mean line
+  const ml = document.getElementById('mean-line');
+  ml.style.bottom = (meanFrac * BAR_HEIGHT) + 'px';
+
+  for (let i = 0; i < N; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bar-wrap';
+
+    const bar = document.createElement('div');
+    bar.className = 'bar ' + (i === targetIdx ? 'target' : 'other');
+
+    const amp = amps[i];
+    const isNeg = amp < 0;
+    const frac = Math.abs(amp) / MAX_DISPLAY_AMP;
+    const px = Math.max(frac * BAR_HEIGHT, 2);
+    bar.style.height = px + 'px';
+
+    if (isNeg) {
+      bar.style.background = 'linear-gradient(0deg, rgba(255,107,53,0.2), #ff6b35)';
+      bar.style.boxShadow = '0 0 8px rgba(255,107,53,0.4)';
+    }
+
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = `|${i}⟩`;
+
+    const ampLbl = document.createElement('div');
+    ampLbl.className = 'bar-label';
+    ampLbl.style.color = isNeg ? '#ff6b35' : (i === targetIdx ? '#00ff9d' : '#4a607a');
+    ampLbl.style.marginTop = '2px';
+    ampLbl.textContent = amp.toFixed(2);
+
+    wrap.appendChild(bar);
+    wrap.appendChild(lbl);
+    wrap.appendChild(ampLbl);
+    container.appendChild(wrap);
+  }
+}
+
+// ─── INFO BOXES ──────────────────────────────────────────────────────────────
+const INFO = [
+  `<span class="highlight-text">Initial State:</span> Hadamard gates create a uniform superposition over all N=8 states. Each amplitude equals 1/√N ≈ 0.354. The state vector |s⟩ lies at angle θ = arcsin(1/√N) from the |s'⟩ axis. <span class="target-text">Target |ω⟩ is indistinguishable from other states</span> — probability of finding it is just 1/N = 12.5%.`,
+  `<span class="highlight-text">After Oracle O (1st):</span> The oracle applies a phase flip to the target state: α|ω⟩ → −α|ω⟩. The <span class="target-text">amplitude of |ω⟩ becomes negative</span> (shown in orange). The probability distribution is unchanged — this is a phase encoding, invisible to measurement alone. Geometrically, the vector reflects across |s'⟩.`,
+  `<span class="highlight-text">After Diffusion D (1st):</span> The diffusion operator "inverts about the mean." Each amplitude aᵢ → 2⟨a⟩ − aᵢ. This <span class="target-text">boosts the target amplitude significantly</span> while suppressing others. P(ω) jumps from 12.5% → ~78%. The state vector rotates by 2θ toward |ω⟩.`,
+  `<span class="highlight-text">After Oracle O (2nd):</span> Oracle again phase-flips the (now large) target amplitude. The other amplitudes are small and negative after flip. Geometrically, reflect once more across |s'⟩. The vector is approaching |ω⟩ with each full Grover rotation of 2θ.`,
+  `<span class="highlight-text">After Diffusion D (2nd):</span> Second inversion-about-mean. <span class="target-text">P(ω) ≈ 94.5%</span> for N=8, k=2 ≈ π√N/4 ≈ 2.2 optimal iterations. One measurement now returns the target state with high probability. Further iterations would overshoot and reduce probability — Grover's algorithm must stop at the optimal k.`,
+];
+
+// ─── STEP CONTROL ────────────────────────────────────────────────────────────
+let currentStep = 0;
+
+function setStep(s) {
+  currentStep = s;
+  document.querySelectorAll('.step-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.step) === s);
+  });
+
+  const { k, afterOracle } = getState(s);
+  document.getElementById('iter-num').textContent = `k = ${k}${afterOracle ? ' (post-oracle)' : ''}`;
+
+  drawGeo(s);
+  renderBars(s);
+  document.getElementById('info-box').innerHTML = INFO[s];
+
+  // Highlight relevant equation blocks
+  const eqOracle = document.getElementById('eq-oracle');
+  const eqDiffusion = document.getElementById('eq-diffusion');
+  eqOracle.classList.toggle('highlight', afterOracle);
+  eqDiffusion.classList.toggle('highlight', !afterOracle && s > 0);
+}
+
+// ─── MATHJAX EQUATIONS ───────────────────────────────────────────────────────
+function renderEquations() {
+  const eqs = {
+    eq1: `\\(|s\\rangle = H^{\\otimes n}|0\\rangle^n = \\dfrac{1}{\\sqrt{N}}\\sum_{x=0}^{N-1}|x\\rangle\\)`,
+    eq2: `\\(\\mathcal{O}|x\\rangle = (-1)^{f(x)}|x\\rangle, \\quad f(x) = \\begin{cases}1 & x=\\omega \\\\ 0 & x\\neq\\omega\\end{cases}\\)`,
+    eq3: `\\(D = 2|s\\rangle\\langle s| - I, \\quad a_i \\mapsto 2\\langle a\\rangle - a_i\\)`,
+    eq4: `\\(k^* = \\left\\lfloor\\dfrac{\\pi}{4}\\sqrt{N}\\right\\rfloor \\approx \\left\\lfloor\\dfrac{\\pi}{4}\\sqrt{${N}}\\right\\rfloor = ${optK}\\)`,
+    eq5: `\\(|\\psi_k\\rangle = \\sin\\!\\left((2k{+}1)\\theta\\right)|\\omega\\rangle + \\cos\\!\\left((2k{+}1)\\theta\\right)|s'\\rangle\\)`,
+    eq6: `\\(P(\\omega,k) = \\sin^2\\!\\left((2k{+}1)\\theta\\right), \\quad \\theta = \\arcsin\\!\\left(\\dfrac{1}{\\sqrt{N}}\\right)\\)`,
+  };
+
+  for (const [id, tex] of Object.entries(eqs)) {
+    document.getElementById(id).innerHTML = tex;
+  }
+
+  MathJax.typesetPromise();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Resize canvas properly
+  const c = document.getElementById('geo');
+  c.width = c.offsetWidth * (window.devicePixelRatio || 1);
+  c.height = 320 * (window.devicePixelRatio || 1);
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  c.style.width = '100%';
+  c.style.height = '320px';
+
+  setStep(0);
+  renderEquations();
+});
+</script>
+</body>
+</html>

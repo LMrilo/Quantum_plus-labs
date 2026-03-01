@@ -8,44 +8,101 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* BASE COURSE STYLES */
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .hero-section { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); color: white; padding: 3.5rem 0; border-bottom: 5px solid #ff9800; }
         
         /* Informational Boxes */
-        .theory-box { background-color: #e3f2fd; border-left: 5px solid #2196f3; padding: 18px; margin-bottom: 20px; border-radius: 4px; font-size: 0.95rem; line-height: 1.6; }
-        .context-box { background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 18px; margin-bottom: 20px; border-radius: 4px; font-size: 0.95rem; line-height: 1.6; }
         .warning-box { background-color: #fff3e0; border-left: 5px solid #ff9800; padding: 20px; margin-bottom: 25px; border-radius: 6px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        /* Specific Elements */
-        .qsphere-box { background-color: #f3e5f5; border-left: 5px solid #9c27b0; padding: 18px; margin-top: 20px; border-radius: 4px; font-size: 0.95rem; }
         .math-box { background-color: #ffebee; border-left: 5px solid #f44336; padding: 25px; margin-top: 20px; margin-bottom: 20px; border-radius: 6px; font-size: 0.95rem; }
+        .theory-box { background-color: #e3f2fd; border-left: 5px solid #2196f3; padding: 20px; margin-bottom: 20px; border-radius: 4px; font-size: 0.95rem; }
         
         /* Task Cards */
-        .task-box { border: 1px solid #e0e0e0; border-radius: 8px; background: white; margin-bottom: 35px; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .task-box:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .task-header { background-color: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; font-weight: bold; border-radius: 8px 8px 0 0; font-size: 1.1rem; }
+        .task-box { border: 1px solid #e0e0e0; border-radius: 8px; background: white; margin-bottom: 35px; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .task-header { background-color: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-size: 1.1rem; }
         .task-body { padding: 30px; }
         
         /* UI Elements */
         .gate-badge { font-family: monospace; font-size: 1em; padding: 6px 12px; border-radius: 5px; box-shadow: 1px 1px 3px rgba(0,0,0,0.1); margin-left: 5px; }
-        .gate-x { background-color: #05d5fa; color: #000; border: 1px solid #03a9c4; }
-        .gate-h { background-color: #7057ff; color: white; border: 1px solid #5236ff; }
-        .gate-cz { background-color: #e91e63; color: white; border: 1px solid #c2185b; }
-        
-        .colab-btn { background-color: #f9ab00; color: white; font-weight: bold; padding: 10px 25px; }
+        .gate-x   { background-color: #05d5fa; color: #000; border: 1px solid #03a9c4; }
+        .gate-h   { background-color: #7057ff; color: white; border: 1px solid #5236ff; }
+        .gate-ccx { background-color: #009688; color: white; border: 1px solid #00796b; }
+        .colab-btn { background-color: #f9ab00; color: white; font-weight: bold; padding: 10px 25px; text-decoration: none; border-radius: 5px; }
         .colab-btn:hover { background-color: #e09b00; color: white; }
         
-        .feedback { display: none; margin-top: 15px; padding: 12px; border-radius: 5px; }
-        .correct { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .wrong { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        
         /* Layout */
-        .visual-img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; padding: 5px; background: #fff; margin-bottom: 15px; }
         .visual-col { border-left: 1px solid #eee; text-align: center; background-color: #fafafa; border-radius: 0 0 8px 0; padding: 30px; }
         @media (max-width: 768px) { .visual-col { border-left: none; border-top: 1px solid #eee; } }
-        
         pre { background-color: #2b2b2b; color: #f8f8f2; padding: 20px; border-radius: 6px; font-size: 0.9rem; overflow-x: auto; border: 1px solid #1a1a1a; }
         code { font-family: 'Courier New', Courier, monospace; }
+
+        /* ── INTERACTIVE VISUALIZATION ───────────────────────────────────── */
+        canvas#geo {
+            display: block; width: 100%; height: 320px;
+            background-color: #fafafa; border-radius: 6px; border: 1px solid #eee;
+        }
+        .amp-container {
+            background-color: #fafafa; padding: 15px; border-radius: 6px; border: 1px solid #eee;
+        }
+
+        /*
+         * Signed bar chart: positive bars grow upward, negative bars grow downward
+         * from the shared baseline (border-bottom of .amp-chart-area).
+         * POS_H = 180px, NEG_H = 60px — must match JS constants.
+         */
+        .amp-chart-area {
+            display: flex; align-items: flex-end; justify-content: center; gap: 8px;
+            height: 242px;   /* POS_H (180) + baseline (2) + NEG_H (60) */
+            position: relative;
+            border-bottom: 2px solid #dee2e6;  /* the baseline */
+        }
+
+        .mean-line {
+            position: absolute; left: 0; right: 0; height: 2px;
+            background: #ffc107; opacity: 0.9; z-index: 10;
+            /* 'bottom' is set by JS, measured from the baseline */
+            transition: bottom 0.7s cubic-bezier(0.4,0,0.2,1);
+            pointer-events: none;
+        }
+        .mean-line::after {
+            content: 'μ'; position: absolute; right: -18px; top: -9px;
+            font-size: 0.75rem; color: #ffc107; font-weight: bold;
+        }
+
+        .bar-wrap {
+            display: flex; flex-direction: column; align-items: center;
+            flex: 1; min-width: 0; max-width: 50px; height: 100%;
+            justify-content: flex-end; /* anchor at baseline */
+            position: relative;
+        }
+
+        /* Positive bar: grows upward from the baseline */
+        .bar-pos {
+            width: 100%; min-height: 1px; border-radius: 4px 4px 0 0;
+            transition: height 0.7s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+        }
+        /* Negative bar: grows downward, positioned absolutely from the baseline */
+        .bar-neg {
+            position: absolute; bottom: 0; width: 100%; min-height: 1px;
+            border-radius: 0 0 4px 4px; transform: translateY(100%);
+            transition: height 0.7s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+        }
+
+        .bar-label    { font-size: 0.68rem; color: #495057; margin-top: 6px; text-align: center; font-family: monospace; }
+        .amp-val-label { font-size: 0.68rem; text-align: center; font-family: monospace; margin-top: 2px; }
+
+        .amp-legend { display: flex; gap: 15px; margin-top: 15px; font-size: 0.8rem; color: #6c757d; justify-content: center; flex-wrap: wrap; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+        .info-box-interactive {
+            background: #e8f4f8; border-left: 4px solid #0dcaf0;
+            padding: 15px; border-radius: 0 4px 4px 0;
+            font-size: 0.95rem; color: #333; min-height: 80px; margin-top: 16px;
+        }
+        .btn-group { flex-wrap: wrap; justify-content: center; gap: 5px; }
+
+        /* Circuit SVG diagram */
+        .circuit-svg { width: 100%; max-width: 360px; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -66,7 +123,7 @@
         <div class="row mb-5">
             <div class="col-lg-10 mx-auto text-center">
                 <p class="fs-5 text-secondary">
-                    In Lab 3, we used an Oracle to discover a global property of a function. In this laboratory, we tackle a highly practical problem: <strong>Unstructured Search</strong>. Imagine trying to find a specific name in a phone book that has been completely scrambled. We will build <strong>Grover's Algorithm</strong>, which uses quantum interference to find the needle in the haystack quadratically faster than any classical computer.
+                    In Lab 3, we used an Oracle to discover a global property of a function. In this lab, we tackle a highly practical problem: <strong>Unstructured Search</strong>. We will build <strong>Grover's Algorithm</strong>, which uses quantum interference to find a specific item with a quadratic speedup over classical computing.
                 </p>
             </div>
         </div>
@@ -75,235 +132,648 @@
             <div class="col-lg-10 mx-auto">
                 <div class="warning-box">
                     <h4 class="text-warning text-dark mb-3"><i class="fa-solid fa-gauge-high"></i> The Quadratic Speedup</h4>
-                    <p>
-                        Classically, finding one specific item in an unsorted list of $N$ items requires checking the list $N/2$ times on average, and $N$ times in the worst case ($\mathcal{O}(N)$).
-                    </p>
-                    <p class="mb-0 fw-bold">
-                        Grover's Algorithm finds the item in roughly $\sqrt{N}$ steps ($\mathcal{O}(\sqrt{N})$).
-                    </p>
+                    <p>Classically, finding an item in an unsorted database of $N$ elements requires checking $N/2$ items on average ($\mathcal{O}(N)$). Grover's Algorithm finds it in approximately $\sqrt{N}$ steps ($\mathcal{O}(\sqrt{N})$).</p>
                     <div class="mt-3 p-2 bg-white rounded border text-center">
                         For a database of 1,000,000 items:<br>
-                        Classical Computer &approx; <strong>1,000,000 checks</strong> | Quantum Computer &approx; <strong>1,000 checks</strong>
+                        Classical Computer &approx; <strong>500,000 checks</strong> &nbsp;|&nbsp; Quantum Computer &approx; <strong>1,000 iterations</strong>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-sitemap"></i> Part A: The Anatomy of a Quantum Search</h2>
+        <!-- ═══════════════════════════════════════════════════════════════════
+             PART A: MATHEMATICS
+        ════════════════════════════════════════════════════════════════════ -->
+        <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-square-root-variable"></i> Part A: Mathematical Evolution</h2>
         
-        <p class="lead">Grover's Algorithm always follows a specific logical loop:</p>
-        <ol class="fs-5 mb-4">
-            <li><strong>Initialize:</strong> Create an equal superposition of all possible answers.</li>
-            <li><strong>The Oracle:</strong> Flip the phase (make it negative) <em>only</em> for the correct answer.</li>
-            <li><strong>The Diffuser:</strong> Perform an "Inversion about the Mean" to shrink the wrong answers and amplify the correct one.</li>
-            <li><strong>Repeat:</strong> Steps 2 and 3 are repeated $\approx \sqrt{N}$ times.</li>
-        </ol>
+        <p>Grover's algorithm alternates between two operators: the Oracle $U_\omega$ and the Diffuser $U_s$. Let's formalize the state vector evolution for a general search space of $N$ elements.</p>
 
-        <div class="math-box shadow-sm mb-5">
-            <h5 class="text-danger mb-4"><i class="fa-solid fa-wand-magic-sparkles"></i> The 2-Qubit Magic (Step-by-Step)</h5>
-            <p>We will search a database of $N=4$ items (using 2 qubits). The winning item we are looking for is $|11\rangle$. Let's trace the amplitudes (probabilities are the square of the amplitude).</p>
-            
-            <ol class="mt-4 ps-3">
-                <li class="mb-4"><strong>Superposition (H gates):</strong>
-                    <div class="bg-white p-2 text-center rounded mt-2 border">$$|\psi_1\rangle = \frac{1}{2}|00\rangle + \frac{1}{2}|01\rangle + \frac{1}{2}|10\rangle + \frac{1}{2}|11\rangle$$</div>
-                    <em class="text-muted">The average (mean) amplitude is $\frac{1}{2}$. Every state has a 25% chance of being measured.</em>
-                </li>
-                
-                <li class="mb-4"><strong>The Oracle (Marks $|11\rangle$):</strong> The Oracle applies a negative phase to the winner.
-                    <div class="bg-white p-2 text-center rounded mt-2 border">$$|\psi_2\rangle = \frac{1}{2}|00\rangle + \frac{1}{2}|01\rangle + \frac{1}{2}|10\rangle \mathbf{-} \frac{1}{2}|11\rangle$$</div>
-                    <em class="text-muted">The new mean amplitude drops to $\frac{1}{4}$ (because we have three $+0.5$ and one $-0.5$).</em>
-                </li>
-                
-                <li class="mb-2"><strong>The Diffuser (Inversion about the Mean):</strong> The Diffuser reflects every amplitude around the new mean ($\frac{1}{4}$). The geometric formula is: $\text{New} = 2 \times \text{Mean} - \text{Old}$.
-                    <ul class="mt-2 mb-3">
-                        <li>For the wrong answers ($+0.5$): $2(\frac{1}{4}) - \frac{1}{2} = \frac{1}{2} - \frac{1}{2} = \mathbf{0}$.</li>
-                        <li>For the winner ($-0.5$): $2(\frac{1}{4}) - (-\frac{1}{2}) = \frac{1}{2} + \frac{1}{2} = \mathbf{1}$.</li>
-                    </ul>
-                    <div class="bg-white p-2 text-center rounded mt-2 border">$$|\psi_3\rangle = 0|00\rangle + 0|01\rangle + 0|10\rangle + \mathbf{1}|11\rangle$$</div>
-                </li>
-            </ol>
-            
-            <div class="p-3 bg-danger text-white rounded mt-4 text-center fw-bold fs-5 shadow-sm">
-                Result: In exactly 1 step, the probability of measuring the winner $|11\rangle$ went from 25% to 100%!
+        <div class="math-box shadow-sm">
+            <h5 class="mb-3 text-danger"></i> 1. State Vector Evolution</h5>
+
+            <p><strong>Step 1 — Initialization.</strong> Three Hadamard gates create a uniform superposition of all $N = 2^n$ basis states:</p>
+            <div class="bg-white p-2 text-center rounded border mb-3">
+                $$ |\psi_0\rangle = |s\rangle = \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} |x\rangle $$
+            </div>
+
+            <p>We decompose $|s\rangle$ in the 2D plane spanned by the target state $|\omega\rangle$ and the uniform superposition of all other states $|s'\rangle$:</p>
+            <div class="bg-white p-2 text-center rounded border mb-3">
+                $$ |s'\rangle = \frac{1}{\sqrt{N-1}} \sum_{x \neq \omega} |x\rangle $$
+                $$ |s\rangle = \sin(\theta)\,|\omega\rangle + \cos(\theta)\,|s'\rangle \qquad \theta = \arcsin\!\left(\frac{1}{\sqrt{N}}\right) $$
+            </div>
+            <p>The individual amplitudes at initialization are therefore:</p>
+            <div class="bg-white p-2 text-center rounded border mb-3">
+                $$ \alpha_\omega^{(0)} = \sin\theta = \frac{1}{\sqrt{N}}, \qquad \alpha_x^{(0)} = \frac{\cos\theta}{\sqrt{N-1}} = \frac{1}{\sqrt{N}} \quad (x \neq \omega) $$
+            </div>
+
+            <p class="mt-4"><strong>Step 2 — The Grover Operator $G = U_s\,U_\omega$.</strong></p>
+            <ul>
+                <li>The <strong>Oracle</strong> $U_\omega = I - 2|\omega\rangle\langle\omega|$ reflects the state across the $|s'\rangle$ axis, negating only the target amplitude.</li>
+                <li>The <strong>Diffuser</strong> $U_s = 2|s\rangle\langle s| - I$ reflects the state across the initial superposition $|s\rangle$.</li>
+            </ul>
+            <p>Two successive reflections compose into a <em>rotation</em>. Each application of $G$ rotates the state vector by $2\theta$ towards $|\omega\rangle$. After $k$ iterations:</p>
+            <div class="bg-white p-2 text-center rounded border mb-3">
+                $$ |\psi_k\rangle = G^k|s\rangle = \sin\!\bigl((2k+1)\theta\bigr)\,|\omega\rangle + \cos\!\bigl((2k+1)\theta\bigr)\,|s'\rangle $$
+            </div>
+            <p>Expanding $|s'\rangle$, the individual amplitude of each non-target state is:</p>
+            <div class="bg-white p-2 text-center rounded border mb-3">
+                $$ \alpha_\omega^{(k)} = \sin\!\bigl((2k+1)\theta\bigr), \qquad \alpha_x^{(k)} = \frac{\cos\!\bigl((2k+1)\theta\bigr)}{\sqrt{N-1}} \quad (x \neq \omega) $$
+            </div>
+
+            <h5 class="mt-5 mb-3 text-danger"></i> 2. Optimal Iteration Count</h5>
+            <p>We maximise $P(\omega) = \sin^2\!\bigl((2k+1)\theta\bigr)$ by setting $(2k+1)\theta = \frac{\pi}{2}$, giving the exact formula:</p>
+            <div class="bg-white p-2 text-center rounded border mb-3">
+                $$ k^* = \operatorname{round}\!\left(\frac{\pi}{4\theta} - \frac{1}{2}\right) $$
+            </div>
+            <p>For large $N$, $\theta \approx \sin\theta = 1/\sqrt{N}$, recovering the famous bound $k^* \approx \frac{\pi}{4}\sqrt{N}$.</p>
+
+            <div class="alert alert-danger mt-3 mb-0 py-2">
+                <strong>3-Qubit Application ($N = 8$):</strong>
+                $\;\theta = \arcsin\!\bigl(1/\sqrt{8}\bigr) \approx 0.3614\text{ rad}$,
+                $\;k^* = \operatorname{round}\!\bigl(\pi/(4\times 0.3614) - 0.5\bigr) = \operatorname{round}(1.677) = \mathbf{2}$ iterations.
+                Final success probability: $P(\omega) = \sin^2(5\theta) \approx \mathbf{94.5\%}$.
             </div>
         </div>
 
-        <div class="text-center mb-5">
-            
-            <p class="small text-muted">Geometric representation of Amplitude Amplification.</p>
+        <!-- ═══════════════════════════════════════════════════════════════════
+             PART B: INTERACTIVE SIMULATOR
+        ════════════════════════════════════════════════════════════════════ -->
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"></i> Part B: Interactive Amplitude Amplification</h2>
+
+        <div class="task-box">
+            <div class="task-header bg-light">Interactive Simulator — Search for $|111\rangle$ in 3 Qubits ($N = 8$)</div>
+            <div class="task-body">
+                <p class="mb-4">Use the buttons to step through the algorithm. The bar chart uses a <strong>signed representation</strong>: bars above the baseline are positive, below are negative. The yellow line shows the current mean $\mu$ — the geometric pivot of the diffuser's inversion.</p>
+                
+                <div class="text-center mb-4">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-primary   step-btn" data-step="0" onclick="setStep(0)">1. Initialization</button>
+                        <button class="btn btn-outline-primary step-btn" data-step="1" onclick="setStep(1)">2. Oracle (Iter 1)</button>
+                        <button class="btn btn-outline-primary step-btn" data-step="2" onclick="setStep(2)">3. Diffuser (Iter 1)</button>
+                        <button class="btn btn-outline-primary step-btn" data-step="3" onclick="setStep(3)">4. Oracle (Iter 2)</button>
+                        <button class="btn btn-outline-primary step-btn" data-step="4" onclick="setStep(4)">5. Diffuser (Iter 2)</button>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-2">
+                    <div class="col-md-6">
+                        <h6 class="text-center text-muted fw-bold mb-2">Geometric View (2D Subspace)</h6>
+                        <canvas id="geo" width="500" height="320"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-center text-muted fw-bold mb-2">Probability Amplitudes (signed)</h6>
+                        <div class="amp-container shadow-sm">
+                            <div class="amp-chart-area" id="amp-bars">
+                                <div class="mean-line" id="mean-line"></div>
+                            </div>
+                            <div class="amp-legend">
+                                <span><span class="legend-dot" style="background:#198754"></span>Target $|111\rangle$ (+)</span>
+                                <span><span class="legend-dot" style="background:#0d6efd"></span>Other states (+)</span>
+                                <span><span class="legend-dot" style="background:#dc3545"></span>Negative amplitude</span>
+                                <span><span class="legend-dot" style="background:#ffc107"></span>Mean $\mu$</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box-interactive shadow-sm" id="info-box">Loading...</div>
+            </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════════════════
+             PART C: CIRCUIT COMPOSER
+        ════════════════════════════════════════════════════════════════════ -->
 
-        <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-puzzle-piece"></i> Part B: Building Grover (Composer)</h2>
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-puzzle-piece"></i> Part C: Building Grover (Composer)</h2>
+
         <div class="alert alert-info shadow-sm mb-4">
-            <i class="fa-solid fa-wrench"></i> <strong>Tool Required:</strong> Open <a href="https://quantum.ibm.com/composer" target="_blank" class="alert-link">IBM Quantum Composer</a> in a separate tab.
+            <i class="fa-solid fa-wrench"></i> <strong>Tool Required:</strong> Open <a
+                href="https://quantum.ibm.com/composer" target="_blank" class="alert-link">IBM Quantum Composer</a> in a
+            separate tab to visualize the states interactively.
         </div>
 
         <div class="task-box">
-            <div class="task-header">Exercise 1: Visualizing the Amplification</div>
+            <div class="task-header">Exercise 1: The Oracle and the Diffuser</div>
             <div class="task-body">
                 <div class="row">
-                    <div class="col-md-8">
-                        <p>We will build the Oracle to mark $|11\rangle$. A gate that applies a negative phase <em>only</em> when both qubits are 1 is the <strong>Controlled-Z (CZ) gate</strong>.</p>
+                    <div class="col-md-7">
+                        <p>We will build the Oracle to mark $|111\rangle$. A gate that applies a negative phase <em>only</em> when all three qubits are $|1\rangle$ is the <strong>Multi-Controlled Z (CCZ)</strong>, implemented as $H$–CCX–$H$ on the target qubit.</p>
                         
-                        <h5 class="mt-4"><i class="fa-solid fa-list-ol text-primary"></i> Instructions:</h5>
+                        <h5 class="mt-4"><i class="fa-solid fa-list-ol text-primary"></i> Instructions</h5>
                         <ol class="mb-4">
-                            <li class="mb-2">Put $q_0$ and $q_1$ in an equal superposition using <span class="badge gate-h">H</span> gates.</li>
-                            <li class="mb-2"><strong>The Oracle:</strong> Apply a <span class="badge gate-cz">CZ</span> gate connecting $q_0$ and $q_1$. Look at the Q-Sphere: the state $|11\rangle$ is now Red (negative phase).</li>
-                            <li class="mb-2"><strong>The Diffuser:</strong> This circuit performs the inversion about the mean:
+                            <li class="mb-2">Apply <span class="badge gate-h">H</span> to $q_0, q_1, q_2$ to create a uniform superposition.</li>
+                            <li class="mb-2"><strong>Oracle block:</strong>
+                                <span class="badge gate-h">H</span> on $q_2$
+                                → <span class="badge gate-ccx">CCX</span> (ctrl $q_0,q_1$; tgt $q_2$)
+                                → <span class="badge gate-h">H</span> on $q_2$.
+                            </li>
+                            <li class="mb-2"><strong>Diffuser block:</strong>
                                 <ul class="mt-2">
-                                    <li>Apply <span class="badge gate-h">H</span> gates to both qubits.</li>
-                                    <li>Apply <span class="badge gate-x">X</span> gates to both qubits.</li>
-                                    <li>Apply a <span class="badge gate-cz">CZ</span> gate between them.</li>
-                                    <li>Apply <span class="badge gate-x">X</span> gates to both qubits.</li>
-                                    <li>Apply <span class="badge gate-h">H</span> gates to both qubits.</li>
+                                    <li>Apply <span class="badge gate-h">H</span> then <span class="badge gate-x">X</span> to all qubits.</li>
+                                    <li>Repeat the CCZ logic (<span class="badge gate-h">H</span>–<span class="badge gate-ccx">CCX</span>–<span class="badge gate-h">H</span> on $q_2$).</li>
+                                    <li>Re-apply <span class="badge gate-x">X</span> then <span class="badge gate-h">H</span> to all qubits.</li>
                                 </ul>
                             </li>
-                            <li><strong>Look at the Probabilities bar chart.</strong></li>
+                            <li>Repeat steps 2–3 for the second Grover iteration ($k^* = 2$ for $N = 8$).</li>
                         </ol>
-
-                        <div class="context-box bg-light border-success">
-                            <strong><i class="fa-solid fa-check"></i> Expected Effect:</strong> The bar chart will show exactly 100% probability on the state $|11\rangle$. The algorithm successfully amplified the marked state and suppressed all others to 0.
-                        </div>
                     </div>
-                    
-                    <div class="col-md-4 visual-col d-flex flex-column justify-content-center align-items-center">
-                        <h6 class="text-muted fw-bold mb-3">Grover's Circuit ($N=4$)</h6>
-                        
-                        <p class="small text-muted mt-3 text-start">
-                            <em>The circuit is distinctly divided into Initialization, Oracle, and Diffuser.</em>
-                        </p>
+
+                    <!-- Circuit diagram (inline SVG) -->
+                    <div class="col-md-5 visual-col d-flex flex-column justify-content-center align-items-center">
+                        <h6 class="text-muted fw-bold mb-3">Circuit Structure (1 Iteration)</h6>
+                        <svg class="circuit-svg" viewBox="0 0 370 190" xmlns="http://www.w3.org/2000/svg" style="max-width:340px;">
+                            <!-- qubit lines -->
+                            <line x1="10" y1="40"  x2="360" y2="40"  stroke="#adb5bd" stroke-width="1.5"/>
+                            <line x1="10" y1="95"  x2="360" y2="95"  stroke="#adb5bd" stroke-width="1.5"/>
+                            <line x1="10" y1="150" x2="360" y2="150" stroke="#adb5bd" stroke-width="1.5"/>
+                            <!-- qubit labels -->
+                            <text x="3" y="44"  font-size="11" fill="#6c757d" font-family="monospace">q₀</text>
+                            <text x="3" y="99"  font-size="11" fill="#6c757d" font-family="monospace">q₁</text>
+                            <text x="3" y="154" font-size="11" fill="#6c757d" font-family="monospace">q₂</text>
+
+                            <!-- INIT: H on all -->
+                            <rect x="22" y="28" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="33" y="43" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <rect x="22" y="83" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="33" y="98" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <rect x="22" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="33" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+
+                            <!-- separator -->
+                            <line x1="52" y1="15" x2="52" y2="175" stroke="#dee2e6" stroke-width="1" stroke-dasharray="4,3"/>
+                            <text x="56" y="13" font-size="9" fill="#6c757d">INIT</text>
+
+                            <!-- ORACLE: H q2, CCX, H q2 -->
+                            <rect x="58" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="69" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+
+                            <!-- CCX: filled dots on q0,q1; ⊕ on q2 -->
+                            <circle cx="105" cy="40" r="5" fill="#343a40"/>
+                            <circle cx="105" cy="95" r="5" fill="#343a40"/>
+                            <line x1="105" y1="40" x2="105" y2="150" stroke="#343a40" stroke-width="1.5"/>
+                            <circle cx="105" cy="150" r="9" fill="white" stroke="#343a40" stroke-width="1.5"/>
+                            <line x1="96" y1="150" x2="114" y2="150" stroke="#343a40" stroke-width="1.5"/>
+                            <line x1="105" y1="141" x2="105" y2="159" stroke="#343a40" stroke-width="1.5"/>
+
+                            <rect x="120" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="131" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+
+                            <!-- separator -->
+                            <line x1="150" y1="15" x2="150" y2="175" stroke="#dee2e6" stroke-width="1" stroke-dasharray="4,3"/>
+                            <text x="153" y="13" font-size="9" fill="#6c757d">ORACLE</text>
+
+                            <!-- DIFFUSER: H+X on all -->
+                            <rect x="156" y="28"  width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="167" y="43"  text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <rect x="156" y="83"  width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="167" y="98"  text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <rect x="156" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="167" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+
+                            <rect x="184" y="28"  width="22" height="22" rx="3" fill="#05d5fa" stroke="#03a9c4"/>
+                            <text x="195" y="43"  text-anchor="middle" font-size="10" fill="#000" font-family="monospace">X</text>
+                            <rect x="184" y="83"  width="22" height="22" rx="3" fill="#05d5fa" stroke="#03a9c4"/>
+                            <text x="195" y="98"  text-anchor="middle" font-size="10" fill="#000" font-family="monospace">X</text>
+                            <rect x="184" y="138" width="22" height="22" rx="3" fill="#05d5fa" stroke="#03a9c4"/>
+                            <text x="195" y="153" text-anchor="middle" font-size="10" fill="#000" font-family="monospace">X</text>
+
+                            <!-- CCZ inside diffuser -->
+                            <rect x="212" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="223" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <circle cx="253" cy="40"  r="5" fill="#343a40"/>
+                            <circle cx="253" cy="95"  r="5" fill="#343a40"/>
+                            <line x1="253" y1="40" x2="253" y2="150" stroke="#343a40" stroke-width="1.5"/>
+                            <circle cx="253" cy="150" r="9" fill="white" stroke="#343a40" stroke-width="1.5"/>
+                            <line x1="244" y1="150" x2="262" y2="150" stroke="#343a40" stroke-width="1.5"/>
+                            <line x1="253" y1="141" x2="253" y2="159" stroke="#343a40" stroke-width="1.5"/>
+                            <rect x="267" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="278" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+
+                            <!-- X+H restore -->
+                            <rect x="296" y="28"  width="22" height="22" rx="3" fill="#05d5fa" stroke="#03a9c4"/>
+                            <text x="307" y="43"  text-anchor="middle" font-size="10" fill="#000" font-family="monospace">X</text>
+                            <rect x="296" y="83"  width="22" height="22" rx="3" fill="#05d5fa" stroke="#03a9c4"/>
+                            <text x="307" y="98"  text-anchor="middle" font-size="10" fill="#000" font-family="monospace">X</text>
+                            <rect x="296" y="138" width="22" height="22" rx="3" fill="#05d5fa" stroke="#03a9c4"/>
+                            <text x="307" y="153" text-anchor="middle" font-size="10" fill="#000" font-family="monospace">X</text>
+
+                            <rect x="324" y="28"  width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="335" y="43"  text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <rect x="324" y="83"  width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="335" y="98"  text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+                            <rect x="324" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
+                            <text x="335" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
+
+                            <!-- separator + label -->
+                            <line x1="152" y1="15" x2="152" y2="175" stroke="#dee2e6" stroke-width="1" stroke-dasharray="4,3"/>
+                            <text x="200" y="178" font-size="9" fill="#6c757d" text-anchor="middle">DIFFUSER</text>
+                        </svg>
+                        <p class="text-muted mt-3" style="font-size:0.8rem;">Repeat the Oracle + Diffuser block $k^* = 2$ times.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-code"></i> Part C: Coding Grover's Algorithm (Qiskit)</h2>
+        <!-- ═══════════════════════════════════════════════════════════════════
+             PART D: PYTHON
+        ════════════════════════════════════════════════════════════════════ -->
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-code"></i> Part D: Qiskit Python Implementation</h2>
 
         <div class="task-box">
             <div class="task-header d-flex justify-content-between align-items-center">
-                <span>Exercise 2: Python Implementation</span>
+                <span>Exercise 2: Dynamic Python Script</span>
                 <a href="#" class="btn btn-sm colab-btn"><i class="fa-solid fa-terminal"></i> Launch Colab Notebook</a>
             </div>
             <div class="task-body">
-                <p>Now we implement the 2-qubit Grover search in Qiskit to find the state $|11\rangle$.</p>
-                
-                <pre><code>from qiskit import QuantumCircuit
+                <p>This Qiskit implementation dynamically computes the exact optimal iteration count $k^*$ for any $n$-qubit search space.</p>
+                <pre><code>import math
+from typing import Dict
+from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 
-# 1. Setup
-qc = QuantumCircuit(2, 2)
+def create_grover_circuit(num_qubits: int, iterations: int) -> QuantumCircuit:
+    """
+    Constructs a Grover's Algorithm circuit that searches for the all-ones state |1...1>.
 
-# 2. Initialization: Equal Superposition
-qc.h([0, 1])
-qc.barrier()
+    Args:
+        num_qubits: Number of qubits (search space = 2**num_qubits).
+        iterations: Number of Grover iterations k* (Oracle + Diffuser).
 
-# 3. THE ORACLE (Marks state |11>)
-# A Controlled-Z gate flips the phase only if both qubits are 1
-qc.cz(0, 1)
-qc.barrier()
+    Returns:
+        A QuantumCircuit ready for simulation.
+    """
+    qc = QuantumCircuit(num_qubits, num_qubits)
 
-# 4. THE DIFFUSER (Amplitude Amplification)
-# Step 4a: Apply H gates
-qc.h([0, 1])
-# Step 4b: Apply X gates (shifts the |00> state to |11>)
-qc.x([0, 1])
-# Step 4c: Apply CZ (marks the new |11> state)
-qc.cz(0, 1)
-# Step 4d: Undo X and H
-qc.x([0, 1])
-qc.h([0, 1])
-qc.barrier()
+    # ── 1. Initialization: uniform superposition ─────────────────────────────
+    qc.h(range(num_qubits))
+    qc.barrier()
 
-# 5. Measurement
-qc.measure([0, 1], [0, 1])
+    for _ in range(iterations):
+        # ── 2. Oracle  U_omega = I - 2|omega><omega|  ────────────────────────
+        # CCZ implemented as H – MCX – H on the last qubit
+        qc.h(num_qubits - 1)
+        qc.mcx(list(range(num_qubits - 1)), num_qubits - 1)
+        qc.h(num_qubits - 1)
+        qc.barrier()
 
-# 6. Execution
-simulator = AerSimulator()
-job = simulator.run(qc, shots=1000)
-print(f"Search Results: {job.result().get_counts()}")</code></pre>
-                
-                <div class="mt-4 p-3 bg-light border-start border-4 border-primary rounded">
-                    <strong>Code Analysis:</strong> The output will be 100% <code>{'11': 1000}</code>. You found the hidden data in exactly 1 query! The logic of the Diffuser (Steps 4a-4d) is universally used to amplify probabilities in many other quantum algorithms.
-                </div>
+        # ── 3. Diffuser  U_s = 2|s><s| - I  ─────────────────────────────────
+        qc.h(range(num_qubits))
+        qc.x(range(num_qubits))
+
+        qc.h(num_qubits - 1)
+        qc.mcx(list(range(num_qubits - 1)), num_qubits - 1)
+        qc.h(num_qubits - 1)
+
+        qc.x(range(num_qubits))
+        qc.h(range(num_qubits))
+        qc.barrier()
+
+    # ── 4. Measurement ────────────────────────────────────────────────────────
+    qc.measure(range(num_qubits), range(num_qubits))
+    return qc
+
+
+def optimal_iterations(num_qubits: int) -> int:
+    """
+    Exact formula: k* = round(pi / (4*theta) - 1/2)
+    where theta = arcsin(1 / sqrt(N)).
+    For large N this approaches the well-known k* ≈ (pi/4)*sqrt(N).
+    """
+    N     = 2 ** num_qubits
+    theta = math.asin(1.0 / math.sqrt(N))
+    return round(math.pi / (4 * theta) - 0.5)
+
+
+def run_simulation() -> None:
+    num_qubits = 3
+    k_star     = optimal_iterations(num_qubits)
+
+    grover_circ = create_grover_circuit(num_qubits, k_star)
+
+    simulator = AerSimulator()
+    job       = simulator.run(grover_circ, shots=2000)
+    result: Dict[str, int] = job.result().get_counts()
+
+    print(f"Grover search — {num_qubits} qubits, N={2**num_qubits}, k*={k_star} iterations")
+    print("-" * 55)
+    for state, counts in sorted(result.items(), key=lambda x: x[1], reverse=True):
+        probability = counts / 2000 * 100
+        print(f"  |{state}>  {counts:4d} shots  ({probability:5.1f}%)")
+
+
+if __name__ == "__main__":
+    run_simulation()
+</code></pre>
             </div>
         </div>
 
-        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"><i class="fa-solid fa-clipboard-check"></i> Part D: Assessment</h2>
-        
-        <div class="card mb-3 border-secondary shadow-sm">
-            <div class="card-header bg-secondary text-white fw-bold">Question 1: The Speedup</div>
-            <div class="card-body">
-                <p>If you have an unsorted database of 10,000 items, roughly how many operations does Grover's Algorithm need to find the target?</p>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="q1" id="q1a" value="wrong">
-                    <label class="form-check-label" for="q1a">10,000</label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="q1" id="q1b" value="wrong">
-                    <label class="form-check-label" for="q1b">5,000</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="q1" id="q1c" value="correct">
-                    <label class="form-check-label" for="q1c">100</label>
-                </div>
-                <button class="btn btn-sm btn-outline-primary mt-3 px-4" onclick="checkAnswer('q1', 'q1c')">Check Answer</button>
-                <div id="feedback-q1" class="feedback"></div>
-            </div>
-        </div>
-        
-        <div class="card mb-3 border-secondary shadow-sm">
-            <div class="card-header bg-secondary text-white fw-bold">Question 2: The Division of Labor</div>
-            <div class="card-body">
-                <p>In Grover's Algorithm, what is the specific job of the <strong>Diffuser</strong>?</p>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="q2" id="q2a" value="wrong">
-                    <label class="form-check-label" for="q2a">To "mark" the correct answer by flipping its phase to negative.</label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="q2" id="q2b" value="correct">
-                    <label class="form-check-label" for="q2b">To invert all amplitudes around the mean, which shrinks the wrong answers and boosts the marked correct answer.</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="q2" id="q2c" value="wrong">
-                    <label class="form-check-label" for="q2c">To put all qubits into an initial equal superposition.</label>
-                </div>
-                <button class="btn btn-sm btn-outline-primary mt-3 px-4" onclick="checkAnswer('q2', 'q2b')">Check Answer</button>
-                <div id="feedback-q2" class="feedback"></div>
-            </div>
-        </div>
-
-    </div>
+    </div><!-- /container -->
     
     <footer class="text-center py-4 mt-5 bg-dark text-white border-top">
-        <p class="mb-0">Quantum Computing Foundation - Lab Module 3.5 (Grover)</p>
+        <p class="mb-0">Quantum Computing Foundation — Lab Module 3.5 (Grover)</p>
     </footer>
 
+    <!-- MathJax -->
     <script>
         window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
     </script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <script>
-        function checkAnswer(questionName, correctId) {
-            let selected = document.querySelector(`input[name="${questionName}"]:checked`);
-            let feedback = document.getElementById(`feedback-${questionName}`);
-            
-            if (!selected) { alert("Please select an answer first."); return; }
+    /* ═══════════════════════════════════════════════════════════════════════
+     * CONFIG  (shared by geometry canvas and bar chart)
+     * ═══════════════════════════════════════════════════════════════════════ */
+    const N      = 8;    // 2^3 states
+    const TARGET = 7;    // index of |111⟩  (binary 111 = 7)
 
-            if (selected.id === correctId) {
-                feedback.innerHTML = "<strong>Correct!</strong> <i class='fa-solid fa-check ms-2'></i><hr class='my-2'>";
-                
-                if(questionName === 'q1') feedback.innerHTML += "The speedup is quadratic: $\\sqrt{10000} = 100$.";
-                if(questionName === 'q2') feedback.innerHTML += "The Oracle is responsible for marking, while the Diffuser physically redistributes the probabilities to amplify the marked state.";
+    // Bar-chart height constants (must match CSS)
+    const POS_H   = 180;   // pixel height of the positive zone
+    const NEG_H   = 60;    // pixel height of the negative zone
+    const MAX_AMP = 1.0;   // amplitude that fills POS_H completely
 
-                feedback.className = "feedback correct d-block";
-            } else {
-                feedback.innerHTML = "<strong>Incorrect.</strong> <i class='fa-solid fa-xmark ms-2'></i><br><small>Please review the theoretical sections above before trying again.</small>";
-                feedback.className = "feedback wrong d-block";
-            }
+    /* ═══════════════════════════════════════════════════════════════════════
+     * AMPLITUDE MATHEMATICS
+     *
+     * After k full Grover iterations:
+     *   alpha_omega = sin((2k+1)*theta)
+     *   alpha_x     = cos((2k+1)*theta) / sqrt(N-1)   for x != omega
+     * ═══════════════════════════════════════════════════════════════════════ */
+    function computeAmplitudes(k) {
+        const theta   = Math.asin(1 / Math.sqrt(N));
+        const phi     = (2 * k + 1) * theta;
+        const aTarget = Math.sin(phi);
+        const aOther  = Math.cos(phi) / Math.sqrt(N - 1);
+        return Array.from({ length: N }, (_, i) => (i === TARGET ? aTarget : aOther));
+    }
+
+    // Even step (0,2,4) → after diffuser k=step/2
+    // Odd  step (1,3)   → after oracle   (phase-flip target)
+    function getState(step) {
+        const k           = Math.floor(step / 2);
+        const afterOracle = (step % 2 === 1);
+        const amps        = computeAmplitudes(k);
+        if (afterOracle) amps[TARGET] = -amps[TARGET];
+        return { amps, k, afterOracle };
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * GEOMETRIC CANVAS
+     * ═══════════════════════════════════════════════════════════════════════ */
+    const canvas = document.getElementById('geo');
+    const ctx    = canvas.getContext('2d');
+
+    function drawGeo(step) {
+        const { k, afterOracle } = getState(step);
+
+        // Use CSS pixel dimensions for all drawing (ctx is already DPI-scaled)
+        const W  = canvas.offsetWidth;
+        const H  = canvas.offsetHeight;
+        const cx = W / 2 - 20;
+        const cy = H / 2 + 10;
+        const R  = Math.min(W, H) * 0.36;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // ── Unit circle ──────────────────────────────────────────────────────
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1.5; ctx.stroke();
+
+        // ── Dashed axes ──────────────────────────────────────────────────────
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = '#ccc';
+        ctx.beginPath(); ctx.moveTo(cx - R*1.15, cy); ctx.lineTo(cx + R*1.15, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - R*1.15); ctx.lineTo(cx, cy + R*1.15); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ── Axis labels ──────────────────────────────────────────────────────
+        ctx.fillStyle = '#666'; ctx.font = '12px Arial';
+        ctx.fillText('|ω⟩ Target',  cx + R + 8, cy + 4);
+        ctx.fillText("|s'⟩ Others", cx - 30,    cy - R - 10);
+
+        const theta = Math.asin(1 / Math.sqrt(N));
+
+        // ── |s⟩ reference vector ─────────────────────────────────────────────
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.sin(theta) * R, cy - Math.cos(theta) * R);
+        ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#999';
+        ctx.fillText('|s⟩', cx + Math.sin(theta) * R + 6, cy - Math.cos(theta) * R - 4);
+
+        // ── Arc showing current rotation angle ───────────────────────────────
+        const phi = afterOracle ? -(2 * k + 1) * theta : (2 * k + 1) * theta;
+        // In canvas coords: x maps to |ω⟩ (rightward), y maps to |s'⟩ (upward → negative canvas-y)
+        // angle from +x axis:  state vector at (sin(phi), cos(phi)) → canvas angle = atan2(-cos(phi), sin(phi))
+        const arcStart = -Math.PI / 2;  // = angle of |s'⟩ axis  (pointing up)
+        const arcEnd   = Math.atan2(-Math.cos(phi), Math.sin(phi));
+        ctx.beginPath();
+        ctx.arc(cx, cy, R * 0.22, arcStart, arcEnd, phi < 0);
+        ctx.strokeStyle = 'rgba(100,100,180,0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
+        // Small angle label
+        const midAngle = (arcStart + arcEnd) / 2;
+        ctx.fillStyle = '#8888cc'; ctx.font = '10px Arial';
+        ctx.fillText('φ', cx + R*0.26 * Math.cos(midAngle) - 4,
+                         cy + R*0.26 * Math.sin(midAngle) + 4);
+
+        // ── State vector ─────────────────────────────────────────────────────
+        const vx    = Math.sin(phi);
+        const vy    = Math.cos(phi);
+        const color = afterOracle ? '#dc3545' : '#0d6efd';
+
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + vx*R, cy - vy*R);
+        ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+
+        // Arrowhead
+        const ang = Math.atan2(-vy, vx);
+        const ex  = cx + vx * R;
+        const ey  = cy - vy * R;
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - 12*Math.cos(ang - 0.4), ey - 12*Math.sin(ang - 0.4));
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - 12*Math.cos(ang + 0.4), ey - 12*Math.sin(ang + 0.4));
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+
+        // Dot at tip
+        ctx.beginPath(); ctx.arc(ex, ey, 5, 0, 2*Math.PI);
+        ctx.fillStyle = color; ctx.fill();
+
+        // Vector label
+        ctx.fillStyle = color; ctx.font = 'bold 12px Arial';
+        const labelOffset = 10;
+        ctx.fillText(
+            afterOracle ? 'U\u03C9|\u03C8\u27E9' : `|\u03C8${k}\u27E9`,
+            ex + labelOffset, ey - 6
+        );
+
+        // ── Stats overlay ────────────────────────────────────────────────────
+        const prob = Math.sin(phi) ** 2;   // sin²(±φ) = sin²(φ) ✓
+        ctx.fillStyle = '#333'; ctx.font = '12px Arial';
+        ctx.fillText(`P(|111\u27E9) = ${(prob*100).toFixed(1)}%`, 10, 20);
+        ctx.fillText(`\u03C6 = ${(phi*180/Math.PI).toFixed(1)}\u00B0`,  10, 38);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * BAR CHART  (signed, baseline-centred)
+     * ═══════════════════════════════════════════════════════════════════════ */
+    function renderBars(step) {
+        const { amps } = getState(step);
+        const container = document.getElementById('amp-bars');
+        container.innerHTML = '<div class="mean-line" id="mean-line"></div>';
+
+        // Mean line — uses same POS_H constant as bars
+        const mean   = amps.reduce((s, a) => s + a, 0) / N;
+        const meanPx = Math.min(POS_H, Math.max(-NEG_H, (mean / MAX_AMP) * POS_H));
+        document.getElementById('mean-line').style.bottom = meanPx + 'px';
+
+        for (let i = 0; i < N; i++) {
+            const amp   = amps[i];
+            const isNeg = amp < 0;
+            const absPx = Math.min((Math.abs(amp) / MAX_AMP) * POS_H, POS_H);
+
+            const wrap = document.createElement('div');
+            wrap.className = 'bar-wrap';
+
+            const barColor = isNeg ? '#dc3545' : (i === TARGET ? '#198754' : '#0d6efd');
+
+            // Positive bar (upward)
+            const barPos = document.createElement('div');
+            barPos.className = 'bar-pos';
+            barPos.style.height     = (isNeg ? 0 : absPx) + 'px';
+            barPos.style.background = barColor;
+            if (i === TARGET && !isNeg)
+                barPos.style.boxShadow = '0 0 8px rgba(25,135,84,0.45)';
+
+            // Negative bar (downward)
+            const barNeg = document.createElement('div');
+            barNeg.className = 'bar-neg';
+            barNeg.style.height     = (isNeg ? Math.min(absPx, NEG_H) : 0) + 'px';
+            barNeg.style.background = barColor;
+
+            // State label
+            const lbl = document.createElement('div');
+            lbl.className = 'bar-label text-dark fw-bold';
+            lbl.innerHTML = `|${i.toString(2).padStart(3,'0')}\u27E9`;
+
+            // Amplitude + probability
+            const pct = (amp * amp * 100).toFixed(1);
+            const val = document.createElement('div');
+            val.className = 'amp-val-label';
+            val.style.color = isNeg ? '#dc3545' : (i === TARGET ? '#198754' : '#666');
+            val.innerHTML = `${amp.toFixed(3)}<br><span style="font-size:0.55rem;color:#888;">(${pct}%)</span>`;
+
+            wrap.append(barPos, barNeg, lbl, val);
+            container.appendChild(wrap);
         }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * INFO STRINGS
+     *
+     * ALL LaTeX commands inside JS strings must use double backslash so that
+     * the string value contains a single backslash:
+     *   JS literal `\\theta`  →  string value `\theta`  →  MathJax renders θ
+     *
+     * Special JS escape sequences to watch out for:
+     *   \t  = TAB  → affects \theta, \text, \times, \top
+     *   \r  = CR   → affects \rangle
+     *   \n  = LF   → affects \nu, \nabla  (not used here)
+     * All of these would silently corrupt LaTeX if not doubled.
+     * ═══════════════════════════════════════════════════════════════════════ */
+    const INFO = [
+        // step 0 — initialization
+        `<strong>1. Initialization</strong> &mdash;
+         Hadamard gates create a uniform superposition of all $N = 8$ states.
+         Every amplitude equals
+         $\\alpha = 1/\\sqrt{8} \\approx 0.354$,
+         and every probability $|\\alpha|^2 = 1/8 = 12.5\\%$.
+         The geometric angle of $|s\\rangle$ from the $|s'\\rangle$ axis is
+         $\\theta = \\arcsin(1/\\sqrt{8}) \\approx 20.7°$.
+         The target state $|111\\rangle$ is completely indistinguishable from the rest.`,
+
+        // step 1 — after oracle iteration 1
+        `<strong>2. Oracle — Iteration 1</strong> &mdash;
+         The CCZ gate applies the phase transformation
+         $U_\\omega|\\omega\\rangle = -|\\omega\\rangle$,
+         flipping the sign of $|111\\rangle$'s amplitude to $-0.354$ (shown below the baseline in red).
+         All measurement probabilities are <em>unchanged</em> — the oracle encodes information in phase only.
+         The overall mean $\\mu$ drops from $+0.354$ to
+         $\\mu = (7 \\times 0.354 + (-0.354))/8 \\approx +0.266$,
+         setting the pivot for the next diffuser step.`,
+
+        // step 2 — after diffuser iteration 1
+        `<strong>3. Diffuser — Iteration 1</strong> &mdash;
+         The diffuser applies the inversion-about-the-mean rule
+         $a_i \\mapsto 2\\mu - a_i$.
+         Because $|111\\rangle$ sat below the mean, reflecting it over $\\mu$ sends it to a large positive value.
+         Other states, which were above the mean, are suppressed.
+         The state vector has rotated by $2\\theta \\approx 41.4°$ toward $|\\omega\\rangle$.
+         <strong class="text-success">$P(|111\\rangle) = \\sin^2(3\\theta) \\approx 78.1\\%$</strong>
+         — one more iteration is needed.`,
+
+        // step 3 — after oracle iteration 2
+        `<strong>4. Oracle — Iteration 2</strong> &mdash;
+         The oracle phase-flips the now-dominant $|111\\rangle$ amplitude once more, making it deeply negative.
+         The non-target amplitudes are small and positive, so the mean $\\mu$ drops sharply toward zero,
+         creating an ideal pivot for the final amplification.`,
+
+        // step 4 — after diffuser iteration 2
+        `<strong>5. Diffuser — Iteration 2</strong> &mdash;
+         The second inversion about the mean concentrates almost all probability on $|111\\rangle$.
+         The state vector has now rotated by $5\\theta \\approx 103.4°$ from the $|s'\\rangle$ axis —
+         nearly aligned with $|\\omega\\rangle$.
+         <strong class="text-success">
+             $P(|111\\rangle) = \\sin^2(5\\theta) \\approx 94.5\\%$
+         </strong>
+         — measuring the system now returns the target state with near certainty.`
+    ];
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * STEP CONTROLLER
+     * ═══════════════════════════════════════════════════════════════════════ */
+    function setStep(s) {
+        document.querySelectorAll('.step-btn').forEach(btn => {
+            const active = parseInt(btn.dataset.step) === s;
+            btn.classList.toggle('btn-primary',         active);
+            btn.classList.toggle('btn-outline-primary', !active);
+        });
+
+        drawGeo(s);
+        renderBars(s);
+
+        const infoBox = document.getElementById('info-box');
+        infoBox.innerHTML = INFO[s];
+        if (window.MathJax && window.MathJax.typesetPromise)
+            MathJax.typesetPromise([infoBox]);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+     * INIT & RESIZE
+     * ═══════════════════════════════════════════════════════════════════════ */
+    function initCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width  = canvas.offsetWidth  * dpr;
+        canvas.height = canvas.offsetHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('load', () => {
+        initCanvas();
+        setStep(0);
+    });
+
+    // Redraw on resize (e.g. tablet orientation change)
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            initCanvas();
+            // Redraw whatever step is currently active
+            const active = document.querySelector('.step-btn.btn-primary');
+            if (active) drawGeo(parseInt(active.dataset.step));
+        }, 150);
+    });
     </script>
 </body>
 </html>
