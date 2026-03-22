@@ -1,0 +1,647 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, matrix}
+
+% ── Page geometry ──────────────────────────────────────────────────────────────
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% ── Custom colours ─────────────────────────────────────────────────────────────
+\definecolor{ibmblue}{RGB}{0,45,156}
+\definecolor{ibmred}{RGB}{250,75,76}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{tealcolor}{RGB}{0,128,128}
+\definecolor{orangecolor}{RGB}{230,100,0}
+\definecolor{goldcolor}{RGB}{180,140,0}
+
+% ── Colour helpers ─────────────────────────────────────────────────────────────
+\newcommand{\crd}[1]{\textcolor{ibmred}{#1}}
+\newcommand{\cpur}[1]{\textcolor{codepurple}{#1}}
+\newcommand{\cblu}[1]{\textcolor{ibmblue}{#1}}
+\newcommand{\cgr}[1]{\textcolor{codegreen}{#1}}
+\newcommand{\corg}[1]{\textcolor{orangecolor}{#1}}
+\newcommand{\cteal}[1]{\textcolor{tealcolor}{#1}}
+\newcommand{\cgold}[1]{\textcolor{goldcolor}{#1}}
+
+% ── Listings ───────────────────────────────────────────────────────────────────
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false, breaklines=true,
+    captionpos=b, keepspaces=true,
+    numbers=left, numbersep=5pt,
+    showspaces=false, showstringspaces=false,
+    showtabs=false, tabsize=2
+}
+\lstset{style=mystyle}
+
+% ── tcolorbox environments ─────────────────────────────────────────────────────
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,
+    title=Student Activity, fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1][Key Concept]{%
+    colback=yellow!10!white,colframe=orange!80!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{mathbox}[1][Derivation]{%
+    colback=red!5!white,colframe=red!75!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{defbox}[1][Definition]{%
+    colback=teal!5!white,colframe=teal!70!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{finbox}[1][Financial Interpretation]{%
+    colback=green!5!white,colframe=green!65!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{bridgebox}{colback=purple!5!white,colframe=purple!70!black,
+    title=Connection to Lab 4, fonttitle=\bfseries}
+
+% ── Math shorthands ────────────────────────────────────────────────────────────
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\expect}[1]{\langle #1 \rangle}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\tr}{\mathrm{Tr}}
+
+\title{\textbf{Laboratory Guide 5: Quantum Portfolio Optimization}\\
+\large Finance \& Industry Applications of Variational Quantum Algorithms}
+\author{Course: Quantum Computing Foundation}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction and Objectives}
+% ══════════════════════════════════════════════════════════════════════════════
+
+In Lab 4 you built the full technical machinery of variational quantum
+algorithms: the parameter-shift rule, VQE, and QAOA applied to the MaxCut
+combinatorial problem. This laboratory is the direct application of that
+machinery to a real-world industrial problem: \textbf{portfolio optimization
+in quantitative finance}.
+
+The core mathematical structure is identical to Lab 4 — a Quadratic
+Unconstrained Binary Optimization (QUBO) problem mapped to a QAOA Hamiltonian.
+The novelty is threefold: (i) the QUBO is derived from real financial data,
+(ii) interpreting the output requires both a technical and a business lens,
+and (iii) the problem has a natural classical solution that allows direct
+benchmarking.
+
+\vspace{0.3cm}
+\noindent\textbf{Prerequisites:}
+\begin{itemize}
+    \item Lab 4: Variational Quantum Algorithms, QAOA, QUBO formulation
+    \item Basic probability and statistics: mean, variance, covariance
+    \item No prior knowledge of quantitative finance is assumed
+\end{itemize}
+
+\noindent\textbf{Learning Objectives:}
+\begin{enumerate}
+    \item Model a combinatorial portfolio selection problem as a QUBO.
+    \item Map the QUBO to a quantum Hamiltonian and build the QAOA circuit.
+    \item Run QAOA on a 4-asset universe (AAPL, MSFT, JPM, XOM) and
+          verify the result against brute-force.
+    \item Interpret results from both a business and a technical perspective.
+    \item Understand the scaling advantage for large $n$ and the challenges
+          of NISQ hardware.
+\end{enumerate}
+
+\begin{warningbox}[Why Quantum for Portfolio Optimization?]
+For $n$ assets selecting $K$, the number of candidate portfolios is
+$\binom{n}{K}$. Classical branch-and-bound solvers handle this well up
+to $n \approx 1000$. However, adding realistic constraints (transaction
+costs, sector limits, ESG scores, integer lots) makes the problem
+NP-hard in general. QAOA provides a \emph{near-term heuristic} that
+may achieve quantum advantage for $n \gtrsim 100$ constrained assets —
+a scale that matters for institutional portfolios (e.g.\ Russell 2000
+universe, $n=2000$).
+\end{warningbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part A: Classical Portfolio Theory}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Mean-Variance Optimization (Markowitz, 1952)}
+
+Let $x \in \mathbb{R}^n$ be a portfolio weight vector with
+$\sum_i x_i = 1$ (continuous). The mean-variance problem is:
+
+\begin{equation}
+    \min_x\; \lambda\, x^T \Sigma\, x - \boldsymbol\mu^T x,
+    \label{eq:mv-cont}
+\end{equation}
+
+where $\Sigma \in \mathbb{R}^{n\times n}$ is the asset return
+\emph{covariance matrix}, $\boldsymbol\mu \in \mathbb{R}^n$ is the
+vector of \emph{expected returns}, and $\lambda > 0$ is the
+\emph{risk-aversion} parameter. The first term penalises risk (portfolio
+variance), the second rewards expected return.
+
+\begin{defbox}[Risk-Aversion Parameter $\lambda$]
+\begin{itemize}
+    \item $\lambda \to 0$: maximise returns regardless of risk
+          (aggressive investor).
+    \item $\lambda \to \infty$: minimise variance regardless of returns
+          (defensive investor, cash-like).
+    \item Typical institutional values: $\lambda \in [0.5,\, 5]$.
+\end{itemize}
+For this lab we use $\lambda = 1$ as the baseline.
+\end{defbox}
+
+\subsection{The Combinatorial Version and its Hardness}
+
+In practice, portfolio managers must select \emph{exactly $K$ assets}
+from a universe of $n$ candidates and invest equally. The binary version
+of equation~\eqref{eq:mv-cont} is:
+
+\begin{equation}
+    \min_{x \in \{0,1\}^n}\; \lambda\, x^T \Sigma\, x
+    - \boldsymbol\mu^T x,
+    \quad\text{subject to}\quad \mathbf{1}^T x = K.
+    \label{eq:mv-binary}
+\end{equation}
+
+For $n=4$, $K=2$ there are only $\binom{4}{2} = 6$ candidates — trivially
+enumerable. For $n=50$, $K=10$ there are $\binom{50}{10} \approx 10^{10}$
+candidates. For $n=500$, $K=50$: $\sim\!10^{82}$ — far beyond brute-force.
+The continuous relaxation (equation~\eqref{eq:mv-cont}) gives the
+\emph{efficient frontier} but loses the discreteness that real portfolios
+require.
+
+\subsection{Asset Universe: AAPL, MSFT, JPM, XOM (2020--2024)}
+
+We work with the four assets in Table~\ref{tab:assets}. The covariance
+matrix $\Sigma$ and expected returns $\boldsymbol\mu$ are computed from
+daily closing prices over 2020--2024 (annualised).
+
+\begin{table}[H]
+\centering
+\caption{Asset data used in this laboratory (annualised, 2020--2024).}
+\label{tab:assets}
+\begin{tabular}{clccc}
+    \toprule
+    Index & Ticker & Sector & $\mu_i$ & $\sigma_i = \sqrt{\Sigma_{ii}}$ \\
+    \midrule
+    0 & AAPL  & Technology    & 0.340 & 0.290 \\
+    1 & MSFT  & Technology    & 0.270 & 0.270 \\
+    2 & JPM   & Financials    & 0.150 & 0.240 \\
+    3 & XOM   & Energy        & 0.220 & 0.350 \\
+    \bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The annualised covariance matrix (approximate):
+\begin{equation}
+    \Sigma = \begin{pmatrix}
+        \cgr{0.0841} & 0.0588 & 0.0313 & 0.0203 \\
+        0.0588 & \cgr{0.0729} & 0.0272 & 0.0170 \\
+        0.0313 & 0.0272 & \cgr{0.0576} & 0.0294 \\
+        0.0203 & 0.0170 & 0.0294 & \cgr{0.1225}
+    \end{pmatrix}.
+    \label{eq:sigma}
+\end{equation}
+The diagonal entries $\Sigma_{ii} = \sigma_i^2$ are the individual asset
+variances; the off-diagonal entries capture return correlations.
+AAPL--MSFT have the highest co-movement (both tech-sector), while
+XOM (energy) is weakly correlated with the others.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part B: QUBO Formulation}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{From Constrained to Unconstrained}
+
+We convert the equality constraint $\sum_i x_i = K$ into a quadratic
+penalty added to the objective:
+
+\begin{equation}
+    \min_{x\in\{0,1\}^n}\;
+    \underbrace{\lambda\, x^T\Sigma x - \boldsymbol\mu^T x}_{\text{cost}}
+    \;+\;
+    \underbrace{\lambda_\text{pen}\!\left(\sum_{i=1}^n x_i - K\right)^{\!2}}_{\text{budget penalty}},
+    \label{eq:qubo-full}
+\end{equation}
+
+where $\lambda_\text{pen}$ must be large enough that any infeasible
+solution (wrong number of assets) is always worse than any feasible one.
+A safe choice is $\lambda_\text{pen} > \max_{x,\text{feasible}} |C(x)|$.
+
+Expanding and collecting, equation~\eqref{eq:qubo-full} takes the
+standard QUBO form:
+
+\begin{equation}
+    \min_{x\in\{0,1\}^n}\; x^T Q\, x,
+    \label{eq:qubo}
+\end{equation}
+
+\noindent with:
+\begin{equation}
+    Q_{ij} = \begin{cases}
+        \lambda\,\Sigma_{ii} - \mu_i + \lambda_\text{pen}(1-2K)
+        & i = j \\[4pt]
+        \lambda\,\Sigma_{ij} + 2\lambda_\text{pen}
+        & i \neq j.
+    \end{cases}
+    \label{eq:Q}
+\end{equation}
+
+\begin{mathbox}[QUBO Matrix for $n=4$, $K=2$, $\lambda=1$, $\lambda_\text{pen}=3$]
+Substituting equation~\eqref{eq:sigma} and $\mu = (0.34, 0.27, 0.15, 0.22)$
+into equation~\eqref{eq:Q} with $\lambda_\text{pen}(1-2K) = 3(1-4) = -9$:
+\[
+    Q = \lambda\Sigma - \mathrm{diag}(\boldsymbol\mu)
+    + \lambda_\text{pen}
+    \begin{pmatrix}
+        1-2K & 2 & 2 & 2 \\
+        2 & 1-2K & 2 & 2 \\
+        2 & 2 & 1-2K & 2 \\
+        2 & 2 & 2 & 1-2K
+    \end{pmatrix}
+\]
+\[
+    Q = \begin{pmatrix}
+        -\crd{8.8259} & 6.1764 & 6.0939 & 6.0609 \\
+        6.1764 & -\crd{8.9571} & 6.0816 & 6.0510 \\
+        6.0939 & 6.0816 & -\crd{9.0324} & 6.0882 \\
+        6.0609 & 6.0510 & 6.0882 & -\crd{8.7575}
+    \end{pmatrix}.
+\]
+The large off-diagonal terms reflect the strong budget penalty;
+the negative diagonal terms reflect the return incentive.
+\end{mathbox}
+
+\subsection{Classical Brute-Force Baseline}
+
+For $n=4$, $K=2$ we can enumerate all $\binom{4}{2}=6$ portfolios
+exactly. Table~\ref{tab:bf} shows the cost $x^T Qx$ and the
+corresponding financial interpretation.
+
+\begin{table}[H]
+\centering
+\caption{Brute-force enumeration of all 2-asset portfolios ($\lambda=1$).}
+\label{tab:bf}
+\begin{tabular}{clcc}
+    \toprule
+    Bitstring $x$ & Assets selected & Cost $x^TQx$ & Rank \\
+    \midrule
+    $\cblu{1100}$ & \cblu{AAPL + MSFT} & $\cblu{-0.335}$ & \cblu{1 (optimal)} \\
+    $1001$ & AAPL + XOM        & $-0.313$ & 2 \\
+    $1010$ & AAPL + JPM        & $-0.286$ & 3 \\
+    $0101$ & MSFT + XOM        & $-0.261$ & 4 \\
+    $0110$ & MSFT + JPM        & $-0.235$ & 5 \\
+    $0011$ & JPM  + XOM        & $-0.131$ & 6 \\
+    \bottomrule
+\end{tabular}
+\end{table}
+
+\begin{finbox}
+\textbf{Why AAPL + MSFT?} Despite having the highest inter-asset
+covariance (both technology sector), AAPL and MSFT also have the
+highest expected returns ($0.34$ and $0.27$ respectively). For
+$\lambda=1$ the return advantage outweighs the diversification cost.
+As $\lambda$ increases (more risk-averse investor), the optimal
+portfolio shifts toward AAPL + XOM (energy provides diversification)
+and eventually toward JPM + XOM (defensive, low correlation).
+\end{finbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part C: Quantum Hamiltonian and QAOA Circuit}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{QUBO $\to$ Ising Hamiltonian}
+
+Substituting $x_i = (1 - Z_i)/2$ into equation~\eqref{eq:qubo}:
+
+\begin{align}
+    x^T Q\, x &= \sum_{i,j} Q_{ij} x_i x_j
+    = \sum_{i,j} Q_{ij} \frac{(1-Z_i)(1-Z_j)}{4} \notag\\
+    &= \frac{1}{4}\sum_{i,j} Q_{ij}
+    \bigl(I - Z_i - Z_j + Z_iZ_j\bigr) \notag\\
+    &\equiv H_\text{portfolio} \;+\; \text{const.}
+    \label{eq:ising-map}
+\end{align}
+
+Collecting terms, the cost Hamiltonian is:
+
+\begin{equation}
+    H_\text{portfolio}
+    = \sum_{i<j} \frac{Q_{ij}}{2}\, Z_iZ_j
+    + \sum_i \left[-\frac{1}{2}\sum_j Q_{ij}\right] Z_i
+    + \text{const.}
+    \label{eq:H-portfolio}
+\end{equation}
+
+\begin{bridgebox}
+The structure of $H_\text{portfolio}$ is a sum of $Z_iZ_j$ and $Z_i$
+Pauli operators — \emph{exactly} the same form as the MaxCut Hamiltonian
+in Lab 4. The QAOA circuit implementation is therefore identical:
+\begin{itemize}
+    \item $e^{-i\gamma Z_i Z_j}$: CNOT\,--\,$R_z(2\gamma)$\,--\,CNOT
+    \item $e^{-i\gamma Z_i}$: $R_z(2\gamma)$ directly
+    \item $e^{-i\beta H_B}$: $R_x(2\beta)$ on all qubits
+\end{itemize}
+Only the coefficients in front of the Pauli strings change.
+\end{bridgebox}
+
+\subsection{Explicit Hamiltonian Terms ($n=4$, $\lambda=1$)}
+
+Applying equation~\eqref{eq:H-portfolio} to our $Q$ matrix yields
+the following non-trivial Pauli terms (omitting the constant):
+
+\begin{center}
+\begin{tabular}{lrl}
+    \toprule
+    Pauli term & Coefficient & Origin \\
+    \midrule
+    $Z_0 Z_1$ & $+3.0882$ & AAPL--MSFT covariance + penalty \\
+    $Z_0 Z_2$ & $+3.0470$ & AAPL--JPM covariance + penalty \\
+    $Z_0 Z_3$ & $+3.0305$ & AAPL--XOM covariance + penalty \\
+    $Z_1 Z_2$ & $+3.0408$ & MSFT--JPM covariance + penalty \\
+    $Z_1 Z_3$ & $+3.0255$ & MSFT--XOM covariance + penalty \\
+    $Z_2 Z_3$ & $+3.0441$ & JPM--XOM covariance + penalty \\
+    $Z_0$     & $+0.1568$ & AAPL diagonal term \\
+    $Z_1$     & $+0.0929$ & MSFT diagonal term \\
+    $Z_2$     & $-0.0474$ & JPM diagonal term \\
+    $Z_3$     & $+0.1238$ & XOM diagonal term \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{QAOA Circuit Structure ($p=1$)}
+
+The $p=1$ QAOA circuit alternates one cost unitary and one mixer:
+
+\begin{equation}
+    \ket{\gamma,\beta} =
+    e^{-i\beta\sum_i X_i}\,
+    e^{-i\gamma H_\text{portfolio}}\,
+    H^{\otimes 4}\ket{0000}.
+\end{equation}
+
+The cost unitary decomposes into one $R_z$ gate per $Z_i$ term and
+one CNOT\,--\,$R_z$\,--\,CNOT block per $Z_iZ_j$ term. For $n=4$:
+4 single-qubit + $4 \times 2 = 8$ two-qubit blocks (for $\binom{4}{2}=6$ edges)
+= \textbf{4 $R_z$ + 6 CNOT pairs} per cost layer. Total circuit depth
+for $p=1$: $\mathcal{O}(n^2)$ gates.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part D: Result Interpretation}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Reading the Output Distribution}
+
+After QAOA optimisation, we sample the circuit $M$ times and obtain a
+histogram over $2^n = 16$ bitstrings. The \emph{technical} interpretation:
+the state $\ket{1100}$ (AAPL=1, MSFT=1, JPM=0, XOM=0, in Qiskit
+little-endian) should have the highest probability.
+
+\begin{finbox}[Technical $\to$ Business Translation]
+\begin{center}
+\begin{tabular}{cl}
+    \toprule
+    Bitstring & Business meaning \\
+    \midrule
+    $\ket{1100}$ & Invest in AAPL and MSFT \\
+    $\ket{1001}$ & Invest in AAPL and XOM \\
+    $\ket{0011}$ & Invest in JPM and XOM \\
+    $\ket{0000}$ & Infeasible (no assets) \\
+    $\ket{1111}$ & Infeasible (all assets, $K \neq 2$) \\
+    \bottomrule
+\end{tabular}
+\end{center}
+Infeasible states have high energy due to the penalty term —
+they should appear with near-zero probability after optimisation.
+\end{finbox}
+
+\subsection{Approximation Quality and Business Risk}
+
+QAOA with $p=1$ does not always find the exact optimum. Define the
+\emph{success probability} $P^* = P(\ket{1100})$: the probability
+the circuit returns the exact optimal portfolio. For $n=4$, $p=1$:
+$P^* \approx 40$--$60\%$. For production use, we would:
+
+\begin{enumerate}
+    \item Sample the circuit $M$ times (e.g.\ $M=1000$).
+    \item Take the most frequent \emph{feasible} bitstring as the answer.
+    \item Compare its cost against the top-$k$ classical candidates.
+\end{enumerate}
+
+Increasing $p$ improves $P^*$ but also increases circuit depth and
+susceptibility to hardware noise.
+
+\subsection{Sensitivity Analysis: Risk Aversion $\lambda$}
+
+\begin{mathbox}[How $\lambda$ Shifts the Optimal Portfolio]
+At $\lambda = 0.5$ (return-focused): $\cblu{\text{AAPL}+\text{MSFT}}$ optimal. \\
+At $\lambda = 1.0$ (balanced):      $\cblu{\text{AAPL}+\text{MSFT}}$ optimal. \\
+At $\lambda = 2.0$ (risk-averse):   $\corg{\text{AAPL}+\text{XOM}}$ may emerge. \\
+At $\lambda = 5.0$ (very defensive): $\crd{\text{JPM}+\text{XOM}}$ (lowest covariance
+                                                                    pair) wins.
+
+\noindent The quantum circuit must be re-optimised for each $\lambda$
+because the Hamiltonian $H_\text{portfolio}(\lambda)$ changes.
+The optimal QAOA parameters $(\gamma^*,\beta^*)$ also shift.
+\end{mathbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part E: IBM Composer Exercise}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\textit{Platform: IBM Quantum Composer ---
+\url{https://quantum.ibm.com/composer}}
+
+\begin{studentbox}
+\textbf{Visualise the Portfolio Hamiltonian Structure:}
+\begin{enumerate}
+    \item Build a 4-qubit circuit with $H$ on all qubits.
+    \item Add the first $ZZ$ term of $H_\text{portfolio}$
+          (AAPL--MSFT, coefficient $+3.09$):
+          CNOT$(q_0, q_1)$ --- $R_z(2\gamma \cdot 3.09)$ on $q_1$
+          --- CNOT$(q_0, q_1)$, with $\gamma = 0.5$.
+    \item Add the $Z_0$ single-qubit term ($+0.157$):
+          $R_z(2\gamma \cdot 0.157)$ on $q_0$.
+    \item Apply $R_x(2\beta)$ on all four qubits with $\beta = 0.8$.
+    \item Measure and observe the Q-Sphere. The states corresponding
+          to feasible 2-asset portfolios (exactly two 1s) should
+          dominate.
+\end{enumerate}
+\textbf{Observation:} Even one QAOA layer begins to suppress infeasible
+states. Compare the Q-Sphere with and without the $R_z$ terms.
+\end{studentbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part F: Qiskit Python Implementation}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The full implementation is in the companion notebook. Three exercises
+are provided:
+
+\begin{enumerate}
+    \item \textbf{QUBO Construction:} Build $Q$ from real asset data,
+          enumerate all $\binom{4}{2}$ portfolios classically, identify
+          the optimum.
+    \item \textbf{QAOA Optimisation:} Run QAOA with $p \in \{1,2\}$,
+          compare the measured distribution against brute-force.
+    \item \textbf{Business Analysis:} Plot the efficient frontier,
+          extract the top-3 most probable portfolios from the QAOA
+          sample, and compute their actual risk-return profiles.
+\end{enumerate}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
+    title=Key Code Structure, fonttitle=\bfseries]
+\begin{lstlisting}[language=Python]
+# Core objects: same structure as Lab 4, different Hamiltonian
+def build_portfolio_hamiltonian(Q: np.ndarray) -> SparsePauliOp:
+    n     = Q.shape[0]
+    terms = []
+    for i in range(n):
+        for j in range(i+1, n):
+            coeff = Q[i,j] / 2           # ZiZj coefficient
+            terms.append((zz_str(i,j,n), coeff))
+        z_coeff = -sum(Q[i,:]) / 2       # Zi coefficient
+        terms.append((z_str(i,n), z_coeff))
+    return SparsePauliOp.from_list(terms).simplify()
+
+# QAOA circuit: identical to Lab 4's build_qaoa_circuit
+# Only H_C = H_portfolio changes; circuit structure is the same
+\end{lstlisting}
+\end{tcolorbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part G: Scaling and Outlook}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Scaling to Larger Portfolios}
+
+\begin{table}[H]
+\centering
+\caption{QAOA circuit scaling for portfolio optimization.}
+\label{tab:scaling}
+\begin{tabular}{cccccc}
+    \toprule
+    $n$ & $\binom{n}{K}$ & QAOA qubits & ZZ terms & Classical gates (p=1) \\
+    \midrule
+    4  & 6          & 4   & 6   & 16  \\
+    6  & 15         & 6   & 15  & 36  \\
+    10 & 252        & 10  & 45  & 100 \\
+    20 & 184,756    & 20  & 190 & 400 \\
+    50 & $\sim 10^{12}$ & 50  & 1,225 & 2,500 \\
+    \bottomrule
+\end{tabular}
+\end{table}
+
+The QAOA circuit grows as $\mathcal{O}(n^2)$ gates (from the $\binom{n}{2}$
+ZZ interaction terms), while the classical search space grows as
+$\binom{n}{K} \sim n^K / K!$. For $n=20$, $K=5$: classical brute-force
+checks $\sim\!10^5$ portfolios (fast classically); for $n=50$, $K=10$:
+$\sim\!10^{12}$ (intractable). The QAOA circuit for $n=50$ requires
+only $1225$ two-qubit gates per layer — within reach of near-term hardware.
+
+\subsection{Limitations and Open Questions}
+
+\begin{itemize}
+    \item \textbf{Barren plateaus:} For $n \gtrsim 50$, the QAOA landscape
+          may be exponentially flat, requiring problem-informed initial
+          parameters.
+    \item \textbf{Hardware noise:} The $\sim\!1225$ CX gates at $n=50$
+          with $\sim\!0.5\%$ error each give an overall fidelity of
+          $0.995^{1225} \approx 0.002$ — noise dominates.
+    \item \textbf{Quantum advantage:} Not yet demonstrated for portfolio
+          optimization. Active research area (JPMorgan, Goldman Sachs,
+          IBM Research).
+    \item \textbf{Beyond QUBO:} Transaction costs, lot sizes, turnover
+          constraints are not naturally quadratic — require slack variables
+          or penalty engineering.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part H: Assessment}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\textbf{Q1.\ QUBO Formulation}\\
+Why is the budget constraint $\sum_i x_i = K$ added as a penalty term
+$\lambda_\text{pen}(\sum_i x_i - K)^2$ rather than enforced directly in
+the quantum circuit?
+\begin{itemize}
+    \item[A)] Because quantum circuits cannot measure the number of 1s
+              in a bitstring.
+    \item[B)] Because the QAOA Hamiltonian must be a sum of Pauli operators
+              (diagonal in the $Z$-basis), and a soft penalty converts the
+              hard constraint into such a form.
+    \item[C)] Because the penalty term is always zero for feasible solutions,
+              making it costless.
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Q2.\ Hamiltonian Terms}\\
+In the portfolio Hamiltonian $H_\text{portfolio}$, what is the physical
+origin of the $Z_iZ_j$ terms?
+\begin{itemize}
+    \item[A)] The expected returns $\mu_i$ of the individual assets.
+    \item[B)] The covariance $\Sigma_{ij}$ between assets $i$ and $j$,
+              plus the budget penalty terms that couple all pairs of qubits.
+    \item[C)] The CNOT gates in the QAOA mixer.
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Q3.\ Result Interpretation}\\
+A QAOA circuit for the 4-asset portfolio returns the histogram:
+$P(\ket{1100})=0.45$, $P(\ket{1001})=0.22$, $P(\ket{0011})=0.15$,
+all others $< 0.05$. What is the recommended decision, and why is the
+second-most-probable state a useful output?
+\begin{itemize}
+    \item[A)] Always select $\ket{1100}$; all other states are errors.
+    \item[B)] Select $\ket{1100}$ as primary; $\ket{1001}$ is a useful
+              second-best feasible portfolio that can serve as a
+              diversification alternative.
+    \item[C)] Re-run the circuit until one state reaches $>99\%$ probability.
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Q4.\ Scaling}\\
+For $n=50$ assets and $K=10$, the classical brute-force requires
+$\binom{50}{10} \approx 10^{10}$ cost evaluations. How many two-qubit
+gates does the QAOA circuit for $n=50$ require per layer $p$?
+\begin{itemize}
+    \item[A)] $n = 50$
+    \item[B)] $n^2 = 2500$
+    \item[C)] $\binom{n}{2} = 1225$ (one CNOT pair per ZZ interaction term)
+\end{itemize}
+
+\vspace{1cm}
+\hrule
+\vspace{0.2cm}
+\footnotesize{\textbf{Solutions:}
+Q1: B (the Ising Hamiltonian is $\sum_i h_i Z_i + \sum_{ij} J_{ij} Z_iZ_j$;
+    the penalty converts the constraint into this Pauli-operator form);
+Q2: B (the $Q_{ij}$ for $i\neq j$ contains $\lambda\Sigma_{ij}$ from
+    the risk term plus $2\lambda_\text{pen}$ from the penalty, both
+    contributing to the $Z_iZ_j$ coefficient after the substitution
+    $x_i=(1-Z_i)/2$);
+Q3: B (in real applications the QAOA output is a probability distribution
+    over solutions; the second-most-probable feasible state is a legitimate
+    portfolio recommendation, not noise — it represents the second-best
+    risk-return trade-off found by the algorithm);
+Q4: C ($\binom{50}{2} = 1225$ ZZ terms each requiring one CNOT pair,
+    giving $2\times 1225 = 2450$ CNOT gates per layer, plus 50 $R_z$
+    gates; total $\mathcal{O}(n^2)$).}
+
+\end{document}
