@@ -1,0 +1,773 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2, arrows.meta, positioning, shapes.geometric}
+
+% ── Page geometry ──────────────────────────────────────────────────────────────
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% ── Custom colours ─────────────────────────────────────────────────────────────
+\definecolor{ibmblue}{RGB}{0,45,156}
+\definecolor{ibmred}{RGB}{250,75,76}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{tealcolor}{RGB}{0,128,128}
+\definecolor{orangecolor}{RGB}{230,100,0}
+
+% ── Colour helpers ─────────────────────────────────────────────────────────────
+\newcommand{\crd}[1]{\textcolor{ibmred}{#1}}
+\newcommand{\cpur}[1]{\textcolor{codepurple}{#1}}
+\newcommand{\cblu}[1]{\textcolor{ibmblue}{#1}}
+\newcommand{\cgr}[1]{\textcolor{codegreen}{#1}}
+\newcommand{\corg}[1]{\textcolor{orangecolor}{#1}}
+\newcommand{\cteal}[1]{\textcolor{tealcolor}{#1}}
+
+% ── Listings ───────────────────────────────────────────────────────────────────
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% ── tcolorbox environments ─────────────────────────────────────────────────────
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,
+    title=Student Activity, fonttitle=\bfseries}
+\newtcolorbox{theorybox}{colback=gray!5!white,colframe=gray!50!black,
+    title=Theory Recap, fonttitle=\bfseries}
+\newtcolorbox{warningbox}[1][Key Concept]{%
+    colback=yellow!10!white,colframe=orange!80!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{mathbox}[1][Derivation]{%
+    colback=red!5!white,colframe=red!75!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{defbox}[1][Definition]{%
+    colback=teal!5!white,colframe=teal!70!black,
+    title=#1, fonttitle=\bfseries}
+\newtcolorbox{bridgebox}{colback=purple!5!white,colframe=purple!70!black,
+    title=Bridge to Lab 5: Finance \& Industry, fonttitle=\bfseries}
+
+% ── Math shorthands ────────────────────────────────────────────────────────────
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\braket}[2]{\langle#1|#2\rangle}
+\newcommand{\ev}[2]{\langle#1|#2|#1\rangle}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\expect}[1]{\langle #1 \rangle}
+\newcommand{\pshift}{\tfrac{\pi}{2}}
+
+\title{\textbf{Laboratory Guide 4: Variational Quantum Algorithms}\\
+\large Hybrid Classical-Quantum Computing: VQE and QAOA}
+\author{Course: Quantum Computing Foundation}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction and Objectives}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Labs 3, 3.5 and 3.6 introduced the foundations of quantum interference, search,
+and integer factoring. All those algorithms assumed a \emph{fault-tolerant}
+quantum computer: a device with essentially unlimited coherence time and
+negligible gate error. Today's hardware — the so-called NISQ era — does not
+meet this assumption. Circuits deeper than a few dozen layers are dominated by
+noise before they can return a useful result.
+
+This laboratory introduces the practical answer to the NISQ limitation:
+\textbf{variational quantum algorithms}, also called \emph{hybrid
+classical-quantum} algorithms. Rather than running a single deep quantum
+circuit, these algorithms iterate between a short parametric quantum circuit
+and a classical optimizer, converging toward a useful solution.
+Understanding this paradigm is a prerequisite for Lab 5, where you will apply
+it to a real-world portfolio optimization problem.
+
+\vspace{0.3cm}
+\noindent\textbf{Prerequisites:}
+\begin{itemize}
+    \item Lab 3.6 (Shor's Algorithm) and all preceding labs
+    \item Basic linear algebra: eigenvalues, Hermitian matrices, tensor products
+    \item Classical optimization concepts: gradient descent, cost functions
+\end{itemize}
+
+\noindent\textbf{Learning Objectives:}
+\begin{enumerate}
+    \item Understand why the NISQ era requires a hybrid paradigm.
+    \item Master parametric quantum circuits (PQC) and the concept of ansatz.
+    \item Derive and apply the \emph{parameter-shift rule} for quantum gradients.
+    \item Implement the Variational Quantum Eigensolver (VQE) for a 2-qubit
+          Ising model.
+    \item Implement QAOA for MaxCut and understand the QUBO framework that
+          bridges directly to financial optimization.
+\end{enumerate}
+
+\begin{warningbox}[The NISQ Bottleneck]
+Current quantum computers (IBM Eagle, Heron; Google Sycamore; IonQ Forte)
+have:
+\begin{itemize}
+    \item \textbf{Gate errors:} $\sim\!0.1$--$1\%$ per two-qubit gate.
+    \item \textbf{Coherence times:} $T_1, T_2 \sim 100$--$500\,\mu$s.
+    \item \textbf{Depth limit:} circuits deeper than $\sim$50--200 gates
+          produce results dominated by noise.
+\end{itemize}
+Shor's Algorithm for RSA-2048 requires $\sim\!10^9$ fault-tolerant gates and
+millions of error-corrected qubits. VQE and QAOA are designed to run on
+circuits with $\mathcal{O}(n)$--$\mathcal{O}(n^2)$ gates and can
+\emph{tolerate some noise} because the classical optimizer can compensate
+for small systematic errors.
+\end{warningbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part A: The Hybrid Paradigm}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Architecture of the Variational Loop}
+
+A variational quantum algorithm operates as follows:
+
+\begin{enumerate}
+    \item \textbf{Encode:} Map the problem into a Hamiltonian $H$ such that the
+          solution corresponds to the ground state (lowest eigenvalue) of $H$.
+    \item \textbf{Ansatz:} Choose a parametric quantum circuit
+          $U(\boldsymbol\theta)$ — the \emph{ansatz} — that produces the trial
+          state $\ket{\psi(\boldsymbol\theta)} = U(\boldsymbol\theta)\ket{0}$.
+    \item \textbf{Measure:} Evaluate the cost function
+          $C(\boldsymbol\theta) = \bra{\psi(\boldsymbol\theta)}H
+          \ket{\psi(\boldsymbol\theta)} = \expect{H}_{\boldsymbol\theta}$.
+    \item \textbf{Optimise:} A \emph{classical} optimizer updates
+          $\boldsymbol\theta \to \boldsymbol\theta'$ to reduce $C$.
+    \item \textbf{Repeat:} Steps 3--4 iterate until convergence.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners=4pt, minimum width=2.8cm,
+        minimum height=1cm, align=center, font=\small},
+    arr/.style={-{Stealth}, thick}
+]
+    \node[box, fill=ibmblue!15] (param) {Classical\\Optimizer\\$\boldsymbol\theta \to \boldsymbol\theta'$};
+    \node[box, fill=ibmred!15, right=2.2cm of param] (circ) {Quantum\\Circuit\\$U(\boldsymbol\theta)$};
+    \node[box, fill=codegreen!15, right=2.2cm of circ] (meas) {Measurement\\$C(\boldsymbol\theta)$};
+
+    \draw[arr] (param) -- (circ) node[midway,above]{\footnotesize new $\boldsymbol\theta$};
+    \draw[arr] (circ) -- (meas) node[midway,above]{\footnotesize $\ket{\psi(\boldsymbol\theta)}$};
+    \draw[arr] (meas.south) -- ++(0,-0.6) -| (param.south)
+        node[midway, below]{\footnotesize cost $C(\boldsymbol\theta)$};
+    \node[above=0.15cm of circ, font=\footnotesize\itshape, text=gray]
+        {short depth, NISQ-compatible};
+\end{tikzpicture}
+\end{center}
+
+\subsection{The Ansatz: Expressibility vs.\ Trainability}
+
+The ansatz $U(\boldsymbol\theta)$ must satisfy two competing requirements:
+\begin{itemize}
+    \item \textbf{Expressibility:} the set of states
+          $\{\ket{\psi(\boldsymbol\theta)}\}$ should include (or approximate)
+          the true ground state.
+    \item \textbf{Trainability:} gradients $\partial C/\partial\theta_k$
+          must be non-negligible so the optimizer can navigate the landscape.
+\end{itemize}
+
+\begin{defbox}[Hardware-Efficient Ansatz (HEA)]
+An ansatz built from gates native to the target hardware:
+alternating layers of single-qubit rotations $R_y(\theta)$, $R_z(\phi)$
+and entangling CNOT gates. For $n$ qubits and $L$ layers, the circuit has
+$\mathcal{O}(nL)$ parameters. Maximises expressibility within the coherence
+budget, but may not respect problem symmetry.
+\end{defbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part B: The Parameter-Shift Rule}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{The Gradient Problem in Quantum Circuits}
+
+Classical neural networks use backpropagation to compute gradients exactly
+in one backward pass. In a quantum circuit, however, we cannot backpropagate
+through a unitary — we can only \emph{evaluate} the circuit at different
+parameter settings. The \textbf{parameter-shift rule} (Mitarai et al., 2018;
+Schuld et al., 2019) gives us an exact gradient using only two additional
+circuit evaluations.
+
+\subsection{Derivation}
+
+Consider a gate of the form $G(\theta) = e^{-i\theta P/2}$, where $P$ is a
+Hermitian operator with eigenvalues $\pm 1$ (a Pauli operator: $P \in
+\{X, Y, Z, X\otimes Z, \ldots\}$). Then:
+\begin{equation}
+    G(\theta) = e^{-i\theta P/2} = \cos\!\tfrac{\theta}{2}\,I
+    - i\sin\!\tfrac{\theta}{2}\,P.
+\end{equation}
+
+The cost function (measuring observable $O$ after applying a circuit
+$V(\theta) = \cdots G(\theta) \cdots$ to state $\rho$) is:
+\begin{equation}
+    f(\theta) = \mathrm{Tr}\!\left[O\,V(\theta)\,\rho\,V^\dagger(\theta)\right].
+\end{equation}
+
+\begin{mathbox}[Parameter-Shift Rule — Full Derivation]
+\textbf{Step 1: Expand $G(\theta)$.}
+Using $\cos(\theta/2) = \frac{e^{i\theta/2} + e^{-i\theta/2}}{2}$ and
+$\sin(\theta/2) = \frac{e^{i\theta/2} - e^{-i\theta/2}}{2i}$, and
+denoting the context of the circuit (all gates before and after $G$)
+as a fixed superoperator $\mathcal{L}$, we can write:
+\begin{equation}
+    f(\theta) = \mathrm{Tr}\!\left[\tilde{O}(\theta)\right]
+    = a + b\cos\theta + c\sin\theta
+\end{equation}
+where $a, b, c \in \mathbb{R}$ depend on $O$, $\rho$ and the rest of
+the circuit, but \emph{not} on $\theta$. This is proved by expanding:
+
+\begin{align}
+V(\theta)\rho V^\dagger(\theta) &=
+    \Bigl(\cos\tfrac{\theta}{2}\,I - i\sin\tfrac{\theta}{2}\,P\Bigr)\,
+    \tilde{\rho}\,
+    \Bigl(\cos\tfrac{\theta}{2}\,I + i\sin\tfrac{\theta}{2}\,P\Bigr) \notag\\
+&= \cos^2\!\tfrac{\theta}{2}\,\tilde{\rho}
+   + \sin^2\!\tfrac{\theta}{2}\,P\tilde{\rho}P
+   + i\sin\tfrac{\theta}{2}\cos\tfrac{\theta}{2}\,[\tilde{\rho},P], \notag
+\end{align}
+where $\tilde\rho$ absorbs all gates not containing $\theta$. Applying
+$\mathrm{Tr}[O\,\cdot\,]$ and using $\cos^2 = (1+\cos\theta)/2$,
+$\sin^2 = (1-\cos\theta)/2$, $\sin(\theta/2)\cos(\theta/2) = \sin\theta/2$:
+\begin{align}
+f(\theta) &= \frac{1+\cos\theta}{2}\,\mathrm{Tr}[O\tilde\rho]
+    + \frac{1-\cos\theta}{2}\,\mathrm{Tr}[OP\tilde\rho P]
+    + \frac{\sin\theta}{2}\,\underbrace{i\,\mathrm{Tr}[O[\tilde\rho,P]]}_{\in\,\mathbb{R}} \notag\\
+&= \underbrace{\tfrac{1}{2}\bigl(\mathrm{Tr}[O\tilde\rho]+\mathrm{Tr}[OP\tilde\rho P]\bigr)}_{a}
+   + \underbrace{\tfrac{1}{2}\bigl(\mathrm{Tr}[O\tilde\rho]-\mathrm{Tr}[OP\tilde\rho P]\bigr)}_{b}\cos\theta
+   + c\sin\theta. \notag
+\end{align}
+
+\textbf{Step 2: Differentiate the trigonometric form.}
+
+Since $f(\theta) = a + b\cos\theta + c\sin\theta$:
+\begin{equation}
+    \frac{df}{d\theta} = -b\sin\theta + c\cos\theta.
+\end{equation}
+
+\textbf{Step 3: Express the derivative via two circuit evaluations.}
+
+Evaluate $f$ at the shifted points:
+\begin{align}
+    f\!\left(\theta + \tfrac\pi2\right) &= a
+        + b\cos\!\bigl(\theta+\tfrac\pi2\bigr)
+        + c\sin\!\bigl(\theta+\tfrac\pi2\bigr)
+        = a - b\sin\theta + c\cos\theta, \\
+    f\!\left(\theta - \tfrac\pi2\right) &= a
+        + b\cos\!\bigl(\theta-\tfrac\pi2\bigr)
+        + c\sin\!\bigl(\theta-\tfrac\pi2\bigr)
+        = a + b\sin\theta - c\cos\theta.
+\end{align}
+Subtracting:
+\begin{equation}
+    f\!\left(\theta+\tfrac\pi2\right) - f\!\left(\theta-\tfrac\pi2\right)
+    = -2b\sin\theta + 2c\cos\theta = 2\,\frac{df}{d\theta}.
+\end{equation}
+
+\textbf{Result:}
+\begin{equation}
+    \boxed{\frac{\partial f}{\partial\theta_k}
+    = \frac{1}{2}\left[f\!\left(\theta_k + \frac\pi2\right)
+    - f\!\left(\theta_k - \frac\pi2\right)\right].}
+    \label{eq:psr}
+\end{equation}
+
+This is \textbf{exact}, not an approximation. The gradient of any
+expectation value with respect to a Pauli-generator rotation gate
+requires exactly \textbf{two additional circuit evaluations}.
+\end{mathbox}
+
+\subsection{Concrete Example}
+
+For the circuit $R_y(\theta)\ket{0}$ measuring $\langle Z\rangle$:
+\[
+    f(\theta) = \bra{0}R_y^\dagger(\theta)\,Z\,R_y(\theta)\ket{0}
+    = \cos^2\!\tfrac\theta2 - \sin^2\!\tfrac\theta2 = \cos\theta.
+\]
+Applying equation~\eqref{eq:psr}:
+\[
+    \frac{df}{d\theta}
+    = \frac{f(\theta+\pi/2) - f(\theta-\pi/2)}{2}
+    = \frac{\cos(\theta+\pi/2) - \cos(\theta-\pi/2)}{2}
+    = \frac{-\sin\theta - \sin\theta}{2} = -\sin\theta. \quad\checkmark
+\]
+
+\subsection{Barren Plateaus}
+
+The parameter-shift rule guarantees we can \emph{compute} gradients, but not
+that gradients are \emph{large}. As the number of qubits $n$ grows, random
+parametric circuits suffer the \textbf{barren plateau} phenomenon:
+
+\begin{warningbox}[Barren Plateaus (McClean et al., 2018)]
+For a random $n$-qubit ansatz, the variance of the gradient
+$\partial C/\partial\theta_k$ decreases exponentially:
+\[
+    \mathrm{Var}\!\left[\frac{\partial C}{\partial\theta_k}\right]
+    = \mathcal{O}\!\left(\frac{1}{2^n}\right).
+\]
+This means gradients are exponentially small in expectation — the optimizer
+is lost on a flat landscape. Mitigations include: problem-inspired ansätze,
+layerwise training, natural gradient methods, and classical pre-training.
+\end{warningbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part C: VQE — The Variational Quantum Eigensolver}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Goal and Formulation}
+
+VQE (Peruzzo et al., 2014) finds the ground-state energy of a Hamiltonian $H$
+by exploiting the \emph{variational principle} of quantum mechanics:
+\begin{equation}
+    E_0 \;\leq\; C(\boldsymbol\theta)
+    = \bra{\psi(\boldsymbol\theta)}\,H\,\ket{\psi(\boldsymbol\theta)}
+    \quad \forall\,\boldsymbol\theta.
+\end{equation}
+The optimizer minimises $C(\boldsymbol\theta)$ over $\boldsymbol\theta$,
+pushing the trial state toward the ground state.
+
+\subsection{Case Study: 2-Qubit Transverse Ising Model}
+
+We work with the Hamiltonian:
+\begin{equation}
+    \label{eq:ising}
+    H = Z_0 Z_1 + 0.5\, Z_0,
+\end{equation}
+where $Z_i$ denotes the Pauli $Z$ operator on qubit $i$.
+The $Z_0 Z_1$ term penalises states where the two qubits are anti-aligned;
+$0.5\, Z_0$ introduces a longitudinal field on qubit 0.
+
+\begin{mathbox}[Ground State of Equation~\eqref{eq:ising}]
+The matrix of $H$ in the $\{\ket{00}, \ket{01}, \ket{10}, \ket{11}\}$ basis is diagonal
+(since $H$ is a sum of Pauli-$Z$ products):
+\[
+H = \mathrm{diag}(1 + 0.5,\;-1 + 0.5,\;-1 - 0.5,\;1 - 0.5)
+  = \mathrm{diag}(1.5,\;-0.5,\;\crd{-1.5},\;0.5).
+\]
+\begin{itemize}
+    \item Ground state: $\ket{10}$ with energy $E_0 = \crd{-1.5}$.
+    \item First excited: $\ket{01}$ with energy $-0.5$.
+\end{itemize}
+\end{mathbox}
+
+\subsection{Hardware-Efficient Ansatz for $H$}
+
+We use a 2-parameter ansatz:
+\[
+\begin{quantikz}
+    \lstick{$q_0\!:\!\ket{0}$} & \gate{R_y(\theta_0)} & \ctrl{1} & \qw \\
+    \lstick{$q_1\!:\!\ket{0}$} & \gate{R_y(\theta_1)} & \targ{}  & \qw
+\end{quantikz}
+\]
+\[
+    \ket{\psi(\theta_0, \theta_1)} =
+    \mathrm{CX}_{01}\,\bigl(R_y(\theta_0)\otimes R_y(\theta_1)\bigr)\ket{00}.
+\]
+The cost function:
+\begin{equation}
+    C(\theta_0, \theta_1) =
+    \bra{\psi(\theta_0,\theta_1)}\bigl(Z_0 Z_1 + 0.5\,Z_0\bigr)
+    \ket{\psi(\theta_0,\theta_1)}.
+\end{equation}
+
+\begin{studentbox}
+\textbf{Verify:} Set $\theta_0 = \pi$, $\theta_1 = 0$. Show that
+$\ket{\psi(\pi,0)} = \ket{10}$ and that $C(\pi, 0) = -1.5 = E_0$.
+\emph{Hint:} $R_y(\pi)\ket{0} = \ket{1}$, $R_y(0)\ket{0} = \ket{0}$,
+and CX leaves $\ket{10}$ unchanged.
+\end{studentbox}
+
+\subsection{Gradient Computation via Parameter-Shift}
+
+For $\theta_0$:
+\begin{align}
+    \frac{\partial C}{\partial\theta_0}
+    &= \frac{1}{2}\bigl[C(\theta_0+\tfrac\pi2,\theta_1)
+       - C(\theta_0-\tfrac\pi2,\theta_1)\bigr].
+\end{align}
+The optimizer (COBYLA or L-BFGS-B) uses these gradient estimates to descend
+toward the minimum $(\pi, 0)$.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part D: QAOA — Quantum Approximate Optimization}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{From VQE to Combinatorial Optimization}
+
+VQE can be applied to \emph{any} Hamiltonian whose ground state encodes the
+optimal solution to a problem. For \emph{combinatorial} problems over binary
+variables $x \in \{0,1\}^n$, the standard encoding uses:
+\begin{equation}
+    z_i = 1 - 2x_i \in \{-1,+1\} \quad\Longleftrightarrow\quad
+    x_i = \frac{1-Z_i}{2}.
+\end{equation}
+Any quadratic binary objective function
+$\min_x\,\sum_{ij} Q_{ij} x_i x_j + \sum_i q_i x_i$
+maps to a Hamiltonian that is a sum of Pauli-$Z$ products.
+
+QAOA (Farhi et al., 2014) is a VQE with a \emph{structured} ansatz inspired
+by adiabatic quantum computing. It alternates two unitaries for $p$ layers:
+\begin{equation}
+    \ket{\boldsymbol\gamma,\boldsymbol\beta}
+    = e^{-i\beta_p H_B}\,e^{-i\gamma_p H_C}\,\cdots\,
+      e^{-i\beta_1 H_B}\,e^{-i\gamma_1 H_C}\,\ket{+}^{\otimes n},
+\end{equation}
+where:
+\begin{itemize}
+    \item $H_C$ is the \textbf{cost Hamiltonian} encoding the problem.
+    \item $H_B = \sum_i X_i$ is the \textbf{mixer Hamiltonian} promoting
+          transitions between solutions.
+    \item $(\boldsymbol\gamma, \boldsymbol\beta) \in \mathbb{R}^{2p}$ are
+          optimised classically.
+\end{itemize}
+As $p \to \infty$, QAOA converges to the exact solution.
+
+\subsection{Case Study: MaxCut on a 4-Node Cycle}
+
+\begin{defbox}[MaxCut]
+Given a graph $G = (V, E)$, partition $V$ into two sets $S$ and $\bar{S}$
+to maximise the number of edges crossing the partition
+(i.e.\ edges with one endpoint in $S$ and one in $\bar{S}$).
+\end{defbox}
+
+\noindent We use the 4-node cycle $C_4$ with edges
+$E = \{(0,1),(1,2),(2,3),(3,0)\}$ (see Figure~\ref{fig:cycle}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node/.style={circle,draw,minimum size=0.8cm,
+    inner sep=0,font=\small}]
+    \node[node,fill=ibmblue!30] (0) at (0, 1.2) {0};
+    \node[node,fill=ibmred!30]  (1) at (1.2,0)  {1};
+    \node[node,fill=ibmblue!30] (2) at (0,-1.2) {2};
+    \node[node,fill=ibmred!30]  (3) at (-1.2,0) {3};
+    \draw[thick] (0)--(1) (1)--(2) (2)--(3) (3)--(0);
+    \node[right=0.5cm of 1, font=\small, text=gray]
+        {Partition: $\cblu{\{0,2\}}$ vs $\crd{\{1,3\}}$};
+    \node[below right=0.1cm and 0.5cm of 2, font=\small, text=gray]
+        {All 4 edges cut \checkmark};
+\end{tikzpicture}
+\caption{4-node cycle $C_4$ with the optimal MaxCut partition.}
+\label{fig:cycle}
+\end{figure}
+
+\noindent The cost Hamiltonian encoding the number of cut edges:
+\begin{align}
+    H_C &= \frac{1}{2}\sum_{(i,j)\in E}\bigl(I - Z_iZ_j\bigr) \notag\\
+        &= 2\,I - \frac{1}{2}\bigl(Z_0Z_1 + Z_1Z_2 + Z_2Z_3 + Z_3Z_0\bigr).
+\end{align}
+The maximum cut value is 4, achieved by $\ket{0101}$ and $\ket{1010}$
+(alternating-spin states, corresponding to the partition
+$\{0,2\}$ vs $\{1,3\}$).
+
+\begin{mathbox}[QAOA Circuit — $p=1$, Single Layer]
+\[
+\begin{quantikz}
+    \lstick{$\ket{0}$} & \gate{H} &
+        \ctrl{1}  & \gate{R_z(2\gamma)} & \ctrl{1} & \qw &
+        \gate{R_z(2\gamma)} &
+        \gate{R_x(2\beta)} & \meter{} \\
+    \lstick{$\ket{0}$} & \gate{H} &
+        \targ{}   & \qw & \targ{} & \ctrl{1} & \qw &
+        \gate{R_x(2\beta)} & \meter{} \\
+    \lstick{$\ket{0}$} & \gate{H} &
+        \qw & \qw & \qw & \targ{} &
+        \gate{R_z(2\gamma)} &
+        \gate{R_x(2\beta)} & \meter{} \\
+    \lstick{$\ket{0}$} & \gate{H} &
+        \qw & \qw & \qw & \qw & \qw &
+        \gate{R_x(2\beta)} & \meter{}
+\end{quantikz}
+\]
+\vspace{0.2cm}
+The cost unitary $e^{-i\gamma H_C}$ decomposes as:
+for each edge $(i,j)$: \texttt{CNOT}$(i,j)$ — $R_z(2\gamma)$ on $j$ —
+\texttt{CNOT}$(i,j)$. This implements $e^{-i\gamma Z_iZ_j}$ via:
+\[
+    e^{-i\gamma Z_iZ_j} = \mathrm{CNOT}_{ij}\cdot
+    \bigl(I\otimes e^{-i\gamma Z_j}\bigr)\cdot\mathrm{CNOT}_{ij}.
+\]
+The mixer $e^{-i\beta H_B} = \bigotimes_i R_x(2\beta)$ applies a global
+$X$-rotation to all qubits.
+\end{mathbox}
+
+\subsection{Approximation Ratio and the Role of $p$}
+
+Define the \textbf{approximation ratio}:
+$r = \expect{H_C}/\mathrm{MaxCut}$.
+For $C_4$ with $p=1$, the optimal ratio is $r \approx 0.75$ (3 expected cuts
+out of 4). Increasing $p$ improves $r$:
+\begin{center}
+\begin{tabular}{ccc}
+    \hline
+    $p$ & Parameters & Approx. ratio (simulation) \\ \hline
+    1 & 2 & $\approx 0.75$ \\
+    2 & 4 & $\approx 0.94$ \\
+    3 & 6 & $\approx 0.99$ \\ \hline
+\end{tabular}
+\end{center}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part E: IBM Composer Exercises}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\textit{Platform: IBM Quantum Composer — \url{https://quantum.ibm.com/composer}}
+
+\subsection{Exercise 1: The Parameter-Shift Rule in Practice}
+
+\begin{studentbox}
+\textbf{What you are doing and why.} The parameter-shift rule states that
+the gradient of any expectation value with respect to a gate angle $\theta$
+equals $(f(\theta+\pi/2) - f(\theta-\pi/2))/2$. We verify this directly by
+evaluating the circuit at three angles: $\theta$, $\theta+\pi/2$,
+$\theta-\pi/2$.
+
+\textbf{Why $\pi/2$ as the shift?} Because $f(\theta) = a+b\cos\theta+c\sin\theta$
+(proven in the derivation), and the two evaluations at $\pm\pi/2$ are exactly
+the two quantities needed to reconstruct $df/d\theta = -b\sin\theta + c\cos\theta$
+— neither more nor less. Any other shift gives an approximation, not an
+exact result.
+
+\medskip
+\textbf{Steps:}
+\begin{enumerate}
+    \item Build $R_y(\theta)\ket{0}$ and measure $\langle Z\rangle$.
+          \emph{This is $f(\theta)=\cos\theta$.}
+    \item Evaluate at $\theta = 0.5$~rad. Expected: $f(0.5) = \cos(0.5) \approx 0.878$.
+    \item Change to $\theta = 0.5 + \pi/2 \approx 2.071$~rad. Record $f^+ \approx -0.479$.
+    \item Change to $\theta = 0.5 - \pi/2 \approx -1.071$~rad. Record $f^- \approx +0.479$.
+    \item PSR gradient $= (f^+-f^-)/2 \approx -0.479$.
+          Analytic: $-\sin(0.5) \approx -0.479$. \textbf{They match exactly.}
+\end{enumerate}
+
+\medskip
+\textbf{OpenQASM 2.0 — three circuits to run in sequence:}
+\begin{lstlisting}[language={}]
+OPENQASM 2.0;
+include "qelib1.inc";
+// Circuit 1: f(theta) at theta = 0.5 rad
+qreg q[1]; creg c[1];
+ry(0.5) q[0];
+measure q[0] -> c[0];
+// Expected <Z> = cos(0.5) ~ 0.878
+
+// Circuit 2: f(theta + pi/2) -- positive shift
+// Replace ry(0.5) with ry(2.0708)
+// ry(2.0708) q[0];  // theta + pi/2 = 0.5 + 1.5708
+
+// Circuit 3: f(theta - pi/2) -- negative shift
+// Replace ry(0.5) with ry(-1.0708)
+// ry(-1.0708) q[0];  // theta - pi/2 = 0.5 - 1.5708
+
+// PSR gradient = (result_2 - result_3) / 2 ~ -0.479
+// Analytic: -sin(0.5) ~ -0.4794  --> identical
+\end{lstlisting}
+\end{studentbox}
+
+\subsection{Exercise 2: Visualise the VQE Cost Landscape}
+
+\begin{studentbox}
+\textbf{What you are doing and why.} The Ising ansatz
+$\mathrm{CX}_{01}(R_y(\theta_0)\otimes R_y(\theta_1))\ket{00}$
+has the analytical cost $C(\theta_0,\theta_1) = \cos\theta_1 + 0.5\cos\theta_0$.
+By fixing $\theta_1=0$ and sweeping $\theta_0$ you trace a 1D slice of the
+cost landscape and verify the minimum is at $\theta_0=\pi$, i.e.\ $\ket{10}$.
+
+\textbf{Why does CX appear?} Without CX the two qubits remain unentangled
+and $\langle Z_0Z_1\rangle = \langle Z_0\rangle\langle Z_1\rangle$ — a product
+state cannot represent ground states with qubit correlations.
+The CX creates the entanglement needed to span the full Hilbert space.
+
+\textbf{Why $R_y$ rather than $R_x$ or $R_z$?} $R_y(\theta)\ket{0} =
+\cos(\theta/2)\ket{0} + \sin(\theta/2)\ket{1}$. Real coefficients only,
+which keeps the cost function real and the landscape easy to visualise.
+$R_z$ would only add phase — it cannot change measurement probabilities
+from a $\ket{0}$ start state.
+
+\medskip
+\textbf{OpenQASM 2.0 — sweep $\theta_0$, keep $\theta_1 = 0$:}
+\begin{lstlisting}[language={}]
+OPENQASM 2.0;
+include "qelib1.inc";
+// VQE ansatz: CX(Ry(t0) x Ry(t1))|00>
+// Change t0 in {0, pi/4, pi/2, 3*pi/4, pi} and run each time
+qreg q[2]; creg c[2];
+ry(0) q[0];     // theta_0: change this value each run
+ry(0) q[1];     // theta_1: keep at 0
+cx q[0],q[1];
+measure q[0] -> c[0];
+measure q[1] -> c[1];
+// Record probabilities. C(t0,0) = 0.5*cos(t0) + cos(0) = 0.5*cos(t0) + 1
+// At t0=0:    C = 1.5  (highest energy -- |00> state)
+// At t0=pi/2: C = 1.0
+// At t0=pi:   C = -1.5 (ground state -- |10> state)
+\end{lstlisting}
+\end{studentbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part F: Qiskit Python Implementation}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The full implementation is in the companion Jupyter notebook.
+Three exercises are provided:
+
+\begin{enumerate}
+    \item \textbf{Parameter-shift demo:} compute the gradient of
+          $\langle Z\rangle_\theta$ analytically and via the rule,
+          verify agreement.
+    \item \textbf{VQE on Ising:} use Qiskit's \texttt{Estimator} primitive
+          with COBYLA to minimise $C(\theta_0, \theta_1)$.
+    \item \textbf{QAOA MaxCut:} sweep $p \in \{1,2,3\}$ and compare
+          approximation ratios and convergence speed.
+\end{enumerate}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
+    title=Key Code Structure, fonttitle=\bfseries]
+\begin{lstlisting}[language=Python]
+# VQE cost function (Estimator-based)
+def cost_function(params, estimator, circuit, hamiltonian):
+    job    = estimator.run([(circuit, hamiltonian, params)])
+    result = job.result()
+    return result[0].data.evs   # expectation value
+
+# QAOA circuit for MaxCut (one p-layer)
+def build_qaoa(n, edges, p):
+    gammas = [Parameter(f'g{i}') for i in range(p)]
+    betas  = [Parameter(f'b{i}') for i in range(p)]
+    qc     = QuantumCircuit(n)
+    qc.h(range(n))
+    for k in range(p):
+        for (u, v) in edges:       # cost unitary
+            qc.cx(u, v)
+            qc.rz(2 * gammas[k], v)
+            qc.cx(u, v)
+        qc.rx(2 * betas[k], range(n))   # mixer
+    return qc, gammas + betas
+\end{lstlisting}
+\end{tcolorbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Part G: Bridge to Lab 5 and Assessment}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{bridgebox}
+\textbf{From MaxCut to Portfolio Optimization}
+
+In Lab 5, the portfolio optimization problem is formulated as:
+\[
+    \min_{x\,\in\,\{0,1\}^n}\; x^T Q x
+    \quad\text{subject to}\quad \mathbf{1}^T x = K,
+\]
+where $x_i = 1$ means "invest in asset $i$", $K$ is the target portfolio
+size, and $Q_{ij}$ encodes the risk-return trade-off (covariance minus
+expected return).
+
+This is a \textbf{QUBO} (Quadratic Unconstrained Binary Optimization) and
+maps to a Hamiltonian via $Z_i = 1 - 2x_i$:
+\[
+    H_{\text{portfolio}} = \sum_{i,j} Q_{ij}\,\frac{(I-Z_i)(I-Z_j)}{4}
+    + \lambda\!\left(\sum_i \frac{I-Z_i}{2} - K\right)^{\!2}.
+\]
+The second term is a \emph{penalty} enforcing the budget constraint.
+QAOA is then applied to $H_{\text{portfolio}}$ using \emph{exactly the
+same circuit structure} built in this lab, but with this financial
+Hamiltonian as $H_C$.
+
+The skills you need: variational loop (\S\ref{sec:vqe-form}),
+parameter-shift gradients (\S\ref{sec:psr}), QAOA circuit
+construction (\S\ref{sec:qaoa-circ}).
+\end{bridgebox}
+
+\subsection{Assessment}
+
+\textbf{Q1. Parameter-Shift Rule}\\
+Why does the parameter-shift rule require \emph{exactly two} additional
+circuit evaluations per parameter, regardless of the circuit depth?
+\begin{itemize}
+    \item[A)] Because the gradient is approximated by a finite difference.
+    \item[B)] Because $f(\theta)$ is a trigonometric polynomial of degree 1
+              in $\theta$ (for Pauli-generator gates), and its derivative
+              is uniquely determined by evaluations at $\theta \pm \pi/2$.
+    \item[C)] Because quantum circuits have only one parameter each.
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Q2. Barren Plateaus}\\
+Which strategy does \emph{not} mitigate the barren plateau problem?
+\begin{itemize}
+    \item[A)] Using problem-inspired ansätze that respect problem symmetry.
+    \item[B)] Increasing the number of qubits to improve expressibility.
+    \item[C)] Layerwise training, initialising one layer at a time.
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Q3. QAOA Structure}\\
+In QAOA, what is the role of the mixer Hamiltonian $H_B = \sum_i X_i$?
+\begin{itemize}
+    \item[A)] To encode the cost function directly into the circuit.
+    \item[B)] To create transitions between different bitstring states,
+              allowing the optimizer to escape local minima.
+    \item[C)] To initialise all qubits in the computational basis.
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Q4. QUBO Connection}\\
+A portfolio with $n=4$ assets uses a QUBO objective $x^T Q x$.
+After substituting $x_i = (1-Z_i)/2$, the resulting Hamiltonian $H_C$
+contains terms of the form $Z_iZ_j$. What gate in the QAOA circuit
+directly implements $e^{-i\gamma Z_i Z_j}$?
+\begin{itemize}
+    \item[A)] A controlled-Z gate.
+    \item[B)] CNOT\,—\,$R_z(2\gamma)$\,—\,CNOT on qubits $i$ and $j$.
+    \item[C)] Two $R_z(2\gamma)$ gates applied independently.
+\end{itemize}
+
+\vspace{1cm}
+\hrule
+\vspace{0.2cm}
+\footnotesize{%
+\textbf{Solutions:}
+Q1: B (the trigonometric form $a + b\cos\theta + c\sin\theta$ is
+    fundamental — any expectation value w.r.t.\ a Pauli generator is
+    of this form, making the two-point shift exact, not approximate);
+Q2: B (more qubits make barren plateaus \emph{worse}, not better);
+Q3: B (the mixer drives transitions, analogous to kinetic energy in
+    the adiabatic picture — without it the circuit is stuck in the
+    product state and cannot explore the solution space);
+Q4: B (the standard ZZ-rotation decomposition:
+    $e^{-i\gamma Z_i Z_j} = \mathrm{CNOT}_{ij}
+    \cdot(I\otimes e^{-i\gamma Z_j})\cdot \mathrm{CNOT}_{ij}$,
+    with $e^{-i\gamma Z} = R_z(2\gamma)$ up to global phase).
+}
+
+\end{document}
