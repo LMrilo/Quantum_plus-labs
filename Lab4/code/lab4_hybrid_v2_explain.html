@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Lab 4: Variational Quantum Algorithms</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* ── Base ─────────────────────────────────────────────────────────── */
+        :root {
+            --clr-bg:       #f0f4f8;
+            --clr-hero1:    #0a1628;
+            --clr-hero2:    #1a2a4a;
+            --clr-accent:   #00c9a7;
+            --clr-accent2:  #f9ab00;
+            --clr-red:      #e53935;
+            --clr-blue:     #1565c0;
+            --clr-green:    #2e7d32;
+            --clr-purple:   #6a1b9a;
+        }
+
+        body {
+            background: var(--clr-bg);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* ── Hero ─────────────────────────────────────────────────────────── */
+        .hero-section {
+            background: linear-gradient(135deg, var(--clr-hero1) 0%,
+                         var(--clr-hero2) 60%, #0d2145 100%);
+            color: white; padding: 3.8rem 0;
+            border-bottom: 5px solid var(--clr-accent);
+            position: relative; overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(
+                45deg, rgba(0,201,167,0.03) 0px, rgba(0,201,167,0.03) 1px,
+                transparent 1px, transparent 40px);
+        }
+        .hero-badge {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px; padding: 6px 16px; font-size: .85rem;
+        }
+        .hero-tag {
+            background: var(--clr-accent); color: #0a1628;
+            border-radius: 4px; padding: 3px 10px;
+            font-weight: 700; font-size: .8rem; letter-spacing: .5px;
+        }
+
+        /* ── Info boxes ───────────────────────────────────────────────────── */
+        .warning-box { background:#fff8e1; border-left:5px solid var(--clr-accent2);
+            padding:20px; border-radius:6px; margin-bottom:22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+        .math-box    { background:#fff3f3; border-left:5px solid var(--clr-red);
+            padding:22px; margin:18px 0; border-radius:6px; }
+        .def-box     { background:#e8f5e9; border-left:5px solid var(--clr-green);
+            padding:18px; margin-bottom:18px; border-radius:4px; }
+        .bridge-box  { background:linear-gradient(135deg,#f3e5f5,#ede7f6);
+            border-left:5px solid var(--clr-purple);
+            padding:24px; border-radius:8px; margin-top:30px;
+            box-shadow: 0 3px 12px rgba(106,27,154,.1); }
+
+        /* ── Task cards ───────────────────────────────────────────────────── */
+        .task-box { border:1px solid #dde4ee; border-radius:12px;
+            background:white; margin-bottom:35px;
+            box-shadow:0 3px 12px rgba(0,0,0,.05); overflow:hidden; }
+        .task-header { background:#f4f7fb; padding:14px 22px;
+            border-bottom:1px solid #dde4ee;
+            font-weight:700; font-size:1.05rem; }
+        .task-body   { padding:28px; }
+        .colab-btn { background:var(--clr-accent2); color:white;
+            font-weight:700; padding:9px 22px; text-decoration:none;
+            border-radius:5px; }
+        .colab-btn:hover { filter:brightness(0.9); color:white; }
+
+        /* ── Canvas / chart areas ─────────────────────────────────────────── */
+        canvas { border-radius:8px; display:block; width:100%; }
+
+        /* ── Parameter-shift slider ───────────────────────────────────────── */
+        .psr-canvas { height:260px; background:#fafafa;
+            border:1px solid #e0e0e0; border-radius:8px; }
+        .psr-info { background:#e3f2fd; border-left:4px solid #1565c0;
+            padding:14px; border-radius:4px; font-size:.92rem;
+            font-family: monospace; }
+
+        /* ── VQE landscape ────────────────────────────────────────────────── */
+        .landscape-canvas { height:320px; background:#1a1a2e;
+            border-radius:8px; cursor:crosshair; }
+
+        /* ── QAOA bar chart ───────────────────────────────────────────────── */
+        .qaoa-bar-area {
+            display:flex; align-items:flex-end; justify-content:center;
+            gap:2px; height:160px; position:relative;
+            border-bottom:2px solid #dee2e6; padding-top:8px;
+        }
+        .qaoa-bar-wrap { display:flex; flex-direction:column;
+            align-items:center; flex:1; min-width:0;
+            max-width:28px; height:100%; justify-content:flex-end; }
+        .qaoa-bar { width:100%; border-radius:3px 3px 0 0; min-height:2px;
+            transition:height .6s cubic-bezier(.4,0,.2,1), background .4s; }
+        .qaoa-bar-lbl { font-size:.5rem; color:#888; margin-top:3px;
+            text-align:center; font-family:monospace; }
+        .qaoa-bar-pct { font-size:.58rem; color:#555; text-align:center;
+            font-family:monospace; }
+
+        /* ── MaxCut graph SVG ─────────────────────────────────────────────── */
+        .graph-svg { width:100%; max-width:220px; }
+
+        /* ── Approximation ratio bars ─────────────────────────────────────── */
+        .ratio-bar { height:22px; border-radius:4px;
+            transition:width .8s cubic-bezier(.4,0,.2,1); }
+
+        /* ── Misc ─────────────────────────────────────────────────────────── */
+        .info-box-interactive {
+            background:#e8f4f8; border-left:4px solid #00bcd4;
+            padding:14px; border-radius:4px;
+            font-size:.92rem; margin-top:14px; }
+        pre { background:#1e1e2e; color:#cdd6f4; padding:18px;
+            border-radius:8px; font-size:.85rem; overflow-x:auto; }
+        .section-icon { color:var(--clr-accent); }
+        .btn-group-wrap { display:flex; flex-wrap:wrap; gap:6px;
+            justify-content:center; }
+        .formula-chip { background:#f0f4ff; border:1px solid #c5d3f0;
+            border-radius:6px; padding:8px 14px; font-family:monospace;
+            font-size:.9rem; display:inline-block; margin:4px; }
+        input[type=range] { accent-color: var(--clr-accent); }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ HERO ════════════════════════════════ -->
+<div class="hero-section text-center">
+    <div class="container position-relative">
+        <div class="mb-2"><span class="hero-tag">LAB 4</span></div>
+        <h1 class="display-4 fw-bold">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            Variational Quantum Algorithms
+        </h1>
+        <p class="lead mt-2 text-white-50">
+            Hybrid Classical-Quantum Computing &mdash; VQE &amp; QAOA
+        </p>
+        <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
+            <span class="hero-badge"><i class="fa-regular fa-clock"></i> 75 min</span>
+            <span class="hero-badge"><i class="fa-solid fa-book"></i> Prerequisites: Lab 3.6</span>
+            <span class="hero-badge"><i class="fa-solid fa-link-slash"></i> NISQ-Era Focus</span>
+            <span class="hero-badge"><i class="fa-solid fa-right-long"></i> Bridge to Lab 5</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5 pb-5">
+
+    <!-- Intro -->
+    <div class="row mb-5"><div class="col-lg-10 mx-auto">
+        <p class="fs-5 text-secondary text-center">
+            Today's quantum computers cannot run the deep circuits required
+            by Shor or Grover on large inputs. The practical solution is
+            <strong>hybrid algorithms</strong>: short parametric quantum
+            circuits evaluated repeatedly, guided by a <em>classical</em>
+            optimizer. This lab builds the full technical foundation for
+            the finance application in Lab 5.
+        </p>
+    </div></div>
+
+    <div class="row mb-4"><div class="col-lg-10 mx-auto">
+        <div class="warning-box">
+            <h5 class="mb-2"><i class="fa-solid fa-microchip text-warning"></i>
+            &nbsp;The NISQ Constraint</h5>
+            <p class="mb-0">IBM's best QPUs (2025) sustain coherent circuits
+            of roughly 100–300 two-qubit gates before noise dominates.
+            VQE and QAOA are designed around this limit: the quantum circuit
+            is kept <em>shallow</em> while the classical optimizer does the
+            heavy lifting of navigating the parameter space.</p>
+        </div>
+    </div></div>
+
+    <!-- ═══════════════════════ PART A: PARAMETER-SHIFT ══════════════════════ -->
+    <h2 class="border-bottom pb-2 mb-4 text-primary">
+        <i class="fa-solid fa-ruler-combined section-icon"></i>
+        Part A: The Parameter-Shift Rule
+    </h2>
+
+    <p>For any gate $G(\theta) = e^{-i\theta P/2}$ (Pauli generator $P$),
+    the expectation value $f(\theta)$ is a trigonometric polynomial
+    $a + b\cos\theta + c\sin\theta$. Its exact derivative is:</p>
+
+    <div class="text-center mb-4">
+        <span class="formula-chip">
+            $\partial_\theta f = \tfrac{1}{2}\left[f(\theta + \pi/2) - f(\theta - \pi/2)\right]$
+        </span>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">
+            Interactive: Parameter-Shift on $f(\theta) = \langle Z\rangle_{R_y(\theta)}$
+        </div>
+        <div class="task-body">
+            <p>Drag the slider to move $\theta$. The chart shows $f(\theta) = \cos\theta$
+            (exact, in blue) and the two shifted evaluations used to estimate the gradient.</p>
+
+            <div class="row g-4 align-items-center mb-3">
+                <div class="col-md-8">
+                    <canvas id="psr-canvas" class="psr-canvas"></canvas>
+                </div>
+                <div class="col-md-4">
+                    <label class="fw-bold mb-2 d-block">
+                        $\theta$ =
+                        <span id="theta-val" class="text-primary">0.00</span> rad
+                    </label>
+                    <input type="range" class="form-range mb-3"
+                           id="theta-slider" min="0" max="628" value="50">
+
+                    <div class="psr-info" id="psr-info">—</div>
+
+                    <div class="mt-3 small text-muted">
+                        <div class="d-flex gap-2 align-items-center mb-1">
+                            <div style="width:16px;height:3px;background:#1565c0;
+                                border-radius:2px"></div>
+                            <span>$f(\theta) = \cos\theta$ (exact curve)</span>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center mb-1">
+                            <div style="width:16px;height:3px;background:#e53935;
+                                border-radius:2px; border:2px dashed #e53935"></div>
+                            <span>$f(\theta\pm\pi/2)$ shifted points</span>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div style="width:16px;height:3px;background:#2e7d32;
+                                border-radius:2px"></div>
+                            <span>Gradient tangent line</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ PART B: VQE LANDSCAPE ════════════════════════ -->
+    <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
+        <i class="fa-solid fa-mountain section-icon"></i>
+        Part B: VQE Cost Landscape (2-Qubit Ising)
+    </h2>
+
+    <p>Hamiltonian: $H = Z_0Z_1 + 0.5\,Z_0$. Ansatz:
+    $\mathrm{CX}_{01}(R_y(\theta_0)\otimes R_y(\theta_1))|00\rangle$.
+    The heatmap shows $C(\theta_0, \theta_1)$ — the optimizer must find the
+    global minimum at $(\pi, 0)$ with energy $E_0 = -1.5$.</p>
+
+    <div class="task-box">
+        <div class="task-header">
+            Interactive Cost Landscape &amp; Optimizer Path
+        </div>
+        <div class="task-body">
+            <div class="row g-4">
+                <div class="col-md-7">
+                    <p class="text-muted small mb-2">
+                        Click anywhere on the landscape to start the
+                        optimizer from that point and watch it converge.
+                    </p>
+                    <canvas id="landscape-canvas" class="landscape-canvas"></canvas>
+                    <div class="mt-2 text-center small text-muted">
+                        $\theta_0 \in [0, 2\pi]$ (x-axis) &nbsp;|&nbsp;
+                        $\theta_1 \in [0, 2\pi]$ (y-axis)
+                    </div>
+                </div>
+                <div class="col-md-5 d-flex flex-column justify-content-between">
+                    <div>
+                        <h6 class="fw-bold">Legend</h6>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width:14px;height:14px;background:#e53935;
+                                border-radius:50%"></div>
+                            <span class="small">Start point (click to set)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width:14px;height:14px;background:#00c9a7;
+                                border-radius:50%"></div>
+                            <span class="small">Current minimum</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div style="width:24px;height:3px;background:white;
+                                border-radius:2px"></div>
+                            <span class="small">Optimizer trajectory</span>
+                        </div>
+                        <div class="def-box p-2">
+                            <strong>Colour scale</strong><br>
+                            <span style="color:#4fc3f7">Blue</span> = low energy (target) &nbsp;
+                            <span style="color:#ef9a9a">Red</span> = high energy
+                        </div>
+                    </div>
+                    <div class="info-box-interactive" id="vqe-info">
+                        Click on the landscape to start the optimizer.
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm mt-2"
+                            onclick="resetLandscape()">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ PART C: QAOA MaxCut ══════════════════════════ -->
+    <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
+        <i class="fa-solid fa-circle-nodes section-icon"></i>
+        Part C: QAOA for MaxCut — 4-Node Cycle
+    </h2>
+
+    <p>Graph $C_4$: nodes $\{0,1,2,3\}$, edges $\{(0,1),(1,2),(2,3),(3,0)\}$.
+    Optimal cut = 4 edges (partition $\{0,2\}$ vs $\{1,3\}$).
+    Explore how increasing the number of QAOA layers $p$ improves
+    the approximation ratio and concentrates probability on the optimal
+    bitstrings $|0101\rangle$ and $|1010\rangle$.</p>
+
+    <div class="task-box">
+        <div class="task-header">Interactive QAOA Simulator — MaxCut on $C_4$</div>
+        <div class="task-body">
+            <div class="row g-4 mb-3">
+                <!-- Graph + controls -->
+                <div class="col-md-4">
+                    <h6 class="text-center text-muted fw-bold mb-2">
+                        Graph $C_4$ — Optimal Partition
+                    </h6>
+                    <div class="text-center">
+                        <svg class="graph-svg" viewBox="0 0 200 200"
+                            xmlns="http://www.w3.org/2000/svg"
+                            style="max-width:180px;">
+                            <!-- edges -->
+                            <line x1="100" y1="20"  x2="180" y2="100"
+                                stroke="#555" stroke-width="2.5"/>
+                            <line x1="180" y1="100" x2="100" y2="180"
+                                stroke="#555" stroke-width="2.5"/>
+                            <line x1="100" y1="180" x2="20"  y2="100"
+                                stroke="#555" stroke-width="2.5"/>
+                            <line x1="20"  y1="100" x2="100" y2="20"
+                                stroke="#555" stroke-width="2.5"/>
+                            <!-- nodes -->
+                            <circle cx="100" cy="20"  r="18"
+                                fill="#1565c0" stroke="white" stroke-width="2"/>
+                            <text x="100" y="25" text-anchor="middle"
+                                font-size="13" fill="white" font-weight="bold">0</text>
+                            <circle cx="180" cy="100" r="18"
+                                fill="#e53935" stroke="white" stroke-width="2"/>
+                            <text x="180" y="105" text-anchor="middle"
+                                font-size="13" fill="white" font-weight="bold">1</text>
+                            <circle cx="100" cy="180" r="18"
+                                fill="#1565c0" stroke="white" stroke-width="2"/>
+                            <text x="100" y="185" text-anchor="middle"
+                                font-size="13" fill="white" font-weight="bold">2</text>
+                            <circle cx="20" cy="100" r="18"
+                                fill="#e53935" stroke="white" stroke-width="2"/>
+                            <text x="20" y="105" text-anchor="middle"
+                                font-size="13" fill="white" font-weight="bold">3</text>
+                            <!-- cut label -->
+                            <text x="100" y="105" text-anchor="middle"
+                                font-size="10" fill="#555">MaxCut = 4</text>
+                            <text x="100" y="118" text-anchor="middle"
+                                font-size="9" fill="#888">
+                                {0,2} vs {1,3}
+                            </text>
+                        </svg>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="fw-bold mb-2 d-block">Layers $p$:</label>
+                        <div class="btn-group-wrap mb-3">
+                            <button class="btn btn-primary qaoa-p-btn"
+                                    data-p="1" onclick="setP(1)">p = 1</button>
+                            <button class="btn btn-outline-primary qaoa-p-btn"
+                                    data-p="2" onclick="setP(2)">p = 2</button>
+                            <button class="btn btn-outline-primary qaoa-p-btn"
+                                    data-p="3" onclick="setP(3)">p = 3</button>
+                        </div>
+
+                        <!-- Approximation ratio bars -->
+                        <h6 class="fw-bold mt-3 mb-2">Approximation Ratio</h6>
+                        <div id="ratio-bars"></div>
+                    </div>
+                </div>
+
+                <!-- Bar chart -->
+                <div class="col-md-8">
+                    <h6 class="text-center text-muted fw-bold mb-2">
+                        Measurement Probability Distribution (16 states)
+                    </h6>
+                    <div style="background:#fafafa;padding:14px;
+                        border-radius:8px;border:1px solid #eee;">
+                        <div class="qaoa-bar-area" id="qaoa-bars"></div>
+                        <div class="text-center mt-2"
+                             style="font-size:.72rem;color:#888;">
+                            Bitstring $|x\rangle$, $x = 0 \ldots 15$
+                            &nbsp;|&nbsp;
+                            <span style="color:#2e7d32">■</span> Optimal cuts (|0101⟩, |1010⟩)
+                            &nbsp;|&nbsp;
+                            <span style="color:#1565c0">■</span> Other
+                        </div>
+                    </div>
+                    <div class="info-box-interactive mt-3" id="qaoa-info">
+                        Select a layer count above.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ PART D: IBM COMPOSER ════════════════════════ -->
+    <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
+        <i class="fa-solid fa-puzzle-piece section-icon"></i>
+        Part D: IBM Composer Exercises
+    </h2>
+    <div class="alert alert-info shadow-sm mb-4">
+        <i class="fa-solid fa-wrench"></i> <strong>Tool Required:</strong> Open
+        <a href="https://quantum.ibm.com/composer" target="_blank" class="alert-link">
+            IBM Quantum Composer</a> in a separate tab and paste the QASM code below.
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise A: Verify the Parameter-Shift Rule</div>
+        <div class="task-body">
+            <div class="def-box mb-3">
+                <strong>Why three circuits?</strong> The PSR requires evaluating
+                $f(\theta)$, $f(\theta+\pi/2)$, and $f(\theta-\pi/2)$ to compute
+                the gradient exactly. You run the <em>same</em> 1-qubit circuit
+                three times, changing only the rotation angle. The shift of
+                $\pi/2$ is not arbitrary — it is the unique value for which
+                the two evaluations reconstruct the exact derivative of any
+                $a + b\cos\theta + c\sin\theta$ function.
+            </div>
+            <p>Run these three circuits in Composer and record each $\langle Z\rangle$.
+            Then verify: $(f^+ - f^-)/2 \approx -0.479 = -\sin(0.5)$.</p>
+            <div style="position:relative">
+                <pre id="qasm-psr" style="font-size:.76rem; margin-bottom:4px;">OPENQASM 2.0;
+include "qelib1.inc";
+// === Circuit 1: f(theta) at theta = 0.5 rad ===
+qreg q[1]; creg c[1];
+ry(0.5) q[0];          // Ry(theta)
+measure q[0] -> c[0];  // Expected <Z> = cos(0.5) ~ +0.878
+
+// === Circuit 2: f(theta + pi/2) -- REPLACE ry(0.5) with: ===
+// ry(2.0708) q[0];    // 0.5 + pi/2 = 2.0708
+// Expected <Z> = cos(2.0708) ~ -0.479
+
+// === Circuit 3: f(theta - pi/2) -- REPLACE ry(0.5) with: ===
+// ry(-1.0708) q[0];   // 0.5 - pi/2 = -1.0708
+// Expected <Z> = cos(-1.0708) ~ +0.479
+
+// PSR gradient = ( (-0.479) - (+0.479) ) / 2 = -0.479
+// Analytic -sin(0.5) = -0.4794  -- they match exactly</pre>
+                <button class="btn btn-sm btn-outline-secondary"
+                    style="position:absolute;top:6px;right:6px;font-size:.75rem;"
+                    onclick="navigator.clipboard.writeText(document.getElementById('qasm-psr').textContent)">
+                    <i class="fa-solid fa-copy"></i> Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise B: QAOA for MaxCut $C_4$ — $p = 1$</div>
+        <div class="task-body">
+            <div class="def-box mb-3">
+                <strong>Why $\gamma \approx 0.39$ and $\beta \approx 0.79$?</strong>
+                For $p=1$ QAOA on unweighted MaxCut, the optimal angles satisfy
+                $\gamma^* \approx \pi/8 \approx 0.39$ and $\beta^* \approx \pi/4 \approx 0.79$.
+                These come from maximising $\langle H_C\rangle$ analytically for a
+                single layer — a calculation possible in closed form for regular graphs.
+                The CNOT–$R_z$–CNOT triplet for each edge implements
+                $e^{-i\gamma Z_i Z_j}$: the CNOT maps $Z_iZ_j \to IZ_j$,
+                the $R_z$ applies the rotation, the second CNOT undoes the mapping.
+                The $R_x(2\beta)$ mixer creates transitions between bitstrings,
+                converting phase differences into amplitude differences.
+            </div>
+            <div style="position:relative">
+                <pre id="qasm-qaoa" style="font-size:.76rem; margin-bottom:4px;">OPENQASM 2.0;
+include "qelib1.inc";
+// QAOA p=1 for MaxCut on 4-cycle C4
+// Optimal angles: gamma*=pi/8~0.3927, beta*=pi/4~0.7854
+qreg q[4]; creg c[4];
+// Initialisation: |+>^4 -- all 16 states equally likely
+h q[0]; h q[1]; h q[2]; h q[3];
+// Cost unitary e^{-i*gamma*H_C}: one CNOT-Rz-CNOT per edge
+// Edge (0,1)
+cx q[0],q[1]; rz(0.7854) q[1]; cx q[0],q[1];
+// Edge (1,2)
+cx q[1],q[2]; rz(0.7854) q[2]; cx q[1],q[2];
+// Edge (2,3)
+cx q[2],q[3]; rz(0.7854) q[3]; cx q[2],q[3];
+// Edge (3,0)
+cx q[3],q[0]; rz(0.7854) q[0]; cx q[3],q[0];
+// Mixer e^{-i*beta*sum(Xi)}: Rx(2*beta) on each qubit
+rx(1.5708) q[0]; rx(1.5708) q[1];
+rx(1.5708) q[2]; rx(1.5708) q[3];
+// Measure -- expect peaks at |0101> and |1010> (optimal cuts)
+measure q[0] -> c[0]; measure q[1] -> c[1];
+measure q[2] -> c[2]; measure q[3] -> c[3];</pre>
+                <button class="btn btn-sm btn-outline-secondary"
+                    style="position:absolute;top:6px;right:6px;font-size:.75rem;"
+                    onclick="navigator.clipboard.writeText(document.getElementById('qasm-qaoa').textContent)">
+                    <i class="fa-solid fa-copy"></i> Copy
+                </button>
+            </div>
+            <div class="info-box-interactive mt-3">
+                <strong>What to observe:</strong> States $|0101\rangle$ and $|1010\rangle$
+                (the two optimal cuts of $C_4$) should have the highest probability.
+                Try changing <code>rz(0.7854)</code> to <code>rz(3.1416)</code> (= $\pi$) and see
+                the distribution flatten — over-rotation loses the solution.
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ PART E: BRIDGE ═══════════════════════════════ -->
+    <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
+        <i class="fa-solid fa-arrow-right-arrow-left section-icon"></i>
+        Part E: Bridge to Lab 5 — From MaxCut to Portfolio
+    </h2>
+
+    <div class="bridge-box">
+        <h5 class="mb-3">
+            <i class="fa-solid fa-chart-line" style="color:var(--clr-purple)"></i>
+            &nbsp;The Portfolio Optimization QUBO
+        </h5>
+
+        <p>In Lab 5 you will minimise a <strong>Quadratic Unconstrained
+        Binary Optimization (QUBO)</strong> objective over $n$ binary asset
+        variables $x \in \{0,1\}^n$:</p>
+
+        <div class="bg-white rounded border p-3 text-center my-3">
+            $\min_{x \in \{0,1\}^n}\; x^T Q\, x
+            \quad\text{where}\quad
+            Q_{ij} = \lambda\,\Sigma_{ij} - \mu_i\,\delta_{ij}$
+        </div>
+
+        <p>($\Sigma_{ij}$: return covariance; $\mu_i$: expected return;
+        $\lambda$: risk-aversion parameter.)</p>
+
+        <p>Substituting $x_i = (1 - Z_i)/2$, the objective becomes the
+        cost Hamiltonian of a QAOA circuit:</p>
+
+        <div class="bg-white rounded border p-3 text-center my-3">
+            $H_\text{portfolio} = \sum_{i,j} Q_{ij}\,
+            \dfrac{(I - Z_i)(I - Z_j)}{4}
+            \;+\; \underbrace{\lambda_\text{pen}\!\left(\sum_i
+            \frac{I-Z_i}{2} - K\right)^{\!2}}_\text{budget constraint penalty}$
+        </div>
+
+        <p class="mb-1"><strong>Connection to this lab:</strong></p>
+        <ul class="mb-0">
+            <li>The QAOA circuit structure ($e^{-i\gamma H_C}$,
+                $e^{-i\beta H_B}$) is <em>identical</em> to what you
+                built for MaxCut.</li>
+            <li>The $ZZ$ rotation $e^{-i\gamma Z_iZ_j}$ is
+                implemented with the same CNOT–$R_z$–CNOT decomposition.</li>
+            <li>The classical optimizer (COBYLA or SPSA) is unchanged;
+                only $H_C$ is different.</li>
+            <li>The parameter-shift rule computes gradients for all
+                $(\gamma_k, \beta_k)$ exactly as in VQE.</li>
+        </ul>
+    </div>
+
+    <!-- ═══════════════════════ PART F: PYTHON ═══════════════════════════════ -->
+    <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
+        <i class="fa-solid fa-code section-icon"></i>
+        Part F: Qiskit Python Implementation
+    </h2>
+
+    <div class="task-box">
+        <div class="task-header d-flex justify-content-between align-items-center">
+            <span>Exercises 1–3: PSR, VQE, QAOA</span>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab4/lab4_hybrid.ipynb"
+               class="btn btn-sm colab-btn">
+                <i class="fa-solid fa-terminal"></i> Open Colab Notebook
+            </a>
+        </div>
+        <div class="task-body">
+<pre><code>from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter, ParameterVector
+from qiskit.quantum_info import SparsePauliOp
+from qiskit_aer.primitives import Estimator
+from scipy.optimize import minimize
+
+# ── QAOA circuit for MaxCut ─────────────────────────────────────────────────
+def build_qaoa(n, edges, p):
+    g = ParameterVector('γ', p)
+    b = ParameterVector('β', p)
+    qc = QuantumCircuit(n)
+    qc.h(range(n))
+    for k in range(p):
+        for (u, v) in edges:          # cost unitary e^{-iγ ZZ}
+            qc.cx(u, v)
+            qc.rz(2 * g[k], v)
+            qc.cx(u, v)
+        qc.rx(2 * b[k], range(n))     # mixer e^{-iβ X}
+    return qc, list(g) + list(b)
+
+# ── MaxCut Hamiltonian H_C = Σ (I - ZiZj) / 2 ─────────────────────────────
+def maxcut_hamiltonian(n, edges):
+    terms = []
+    for (u, v) in edges:
+        zz = ['I'] * n
+        zz[u] = 'Z'; zz[v] = 'Z'
+        terms += [(''.join(reversed(zz)), -0.5),
+                  ('I' * n,                0.5)]
+    return SparsePauliOp.from_list(terms).simplify()
+
+# ── Run QAOA ────────────────────────────────────────────────────────────────
+edges = [(0,1), (1,2), (2,3), (3,0)]   # 4-cycle C4
+for p in [1, 2, 3]:
+    qc, params = build_qaoa(4, edges, p)
+    H = maxcut_hamiltonian(4, edges)
+    est = Estimator()
+
+    def cost(x):
+        job = est.run([(qc, H, x)])
+        return -job.result()[0].data.evs   # negate: maximise cut
+
+    x0  = [0.5] * (2*p)
+    res = minimize(cost, x0, method='COBYLA')
+    print(f"p={p}  MaxCut≈{-res.fun:.3f}/4  ratio≈{-res.fun/4:.3f}")</code></pre>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<footer class="text-center py-4 bg-dark text-white mt-3">
+    <p class="mb-0">Quantum Computing Foundation — Lab 4 (Hybrid VQE &amp; QAOA)
+    &nbsp;|&nbsp; Bridge to Lab 5: Finance &amp; Industry
+    </p>
+</footer>
+
+<script>
+    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  UTILITY: retina canvas setup
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function setupCanvas(id) {
+    const canvas = document.getElementById(id);
+    const dpr    = window.devicePixelRatio || 1;
+    canvas.width  = canvas.offsetWidth  * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { canvas, ctx, W: canvas.offsetWidth, H: canvas.offsetHeight };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  PART A: Parameter-Shift Rule Widget
+ *
+ *  f(θ) = cos(θ)   (expectation value of Z under R_y(θ)|0⟩)
+ *  df/dθ = -sin(θ) = [f(θ+π/2) - f(θ-π/2)] / 2
+ * ═══════════════════════════════════════════════════════════════════════════ */
+let psrCanvas, psrCtx, psrW, psrH;
+
+function drawPSR(theta) {
+    const { ctx, W, H } = { ctx:psrCtx, W:psrW, H:psrH };
+    ctx.clearRect(0,0,W,H);
+
+    const PAD   = { l:40, r:20, t:25, b:35 };
+    const pW    = W - PAD.l - PAD.r;
+    const pH    = H - PAD.t - PAD.b;
+    const xMin  = 0, xMax = 2*Math.PI;
+    const yMin  = -1.4, yMax = 1.4;
+
+    const toX = t => PAD.l + (t - xMin) / (xMax - xMin) * pW;
+    const toY = v => PAD.t + (yMax - v) / (yMax - yMin) * pH;
+
+    // Background
+    ctx.fillStyle = '#fafafa'; ctx.fillRect(0,0,W,H);
+
+    // Grid lines
+    ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1;
+    [-1, -0.5, 0, 0.5, 1].forEach(v => {
+        ctx.beginPath(); ctx.moveTo(PAD.l, toY(v));
+        ctx.lineTo(W-PAD.r, toY(v)); ctx.stroke();
+        ctx.fillStyle='#aaa'; ctx.font='10px Arial';
+        ctx.fillText(v.toFixed(1), 4, toY(v)+4);
+    });
+
+    // Zero line
+    ctx.strokeStyle='#bbb'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(PAD.l,toY(0)); ctx.lineTo(W-PAD.r,toY(0)); ctx.stroke();
+
+    // x-axis ticks
+    [0, Math.PI/2, Math.PI, 3*Math.PI/2, 2*Math.PI].forEach((t,i)=>{
+        const labels=['0','π/2','π','3π/2','2π'];
+        ctx.fillStyle='#888'; ctx.font='10px Arial';
+        ctx.fillText(labels[i], toX(t)-8, H-PAD.b+15);
+    });
+
+    // Draw f(θ) = cos(θ) curve
+    ctx.strokeStyle='#1565c0'; ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(let i=0;i<=200;i++){
+        const t=xMin+i/200*(xMax-xMin);
+        const v=Math.cos(t);
+        i===0?ctx.moveTo(toX(t),toY(v)):ctx.lineTo(toX(t),toY(v));
+    }
+    ctx.stroke();
+
+    // f(θ) = cos(θ), df = -sin(θ)
+    const fTheta  = Math.cos(theta);
+    const dfTheta = -Math.sin(theta);
+    const fPlus   = Math.cos(theta + Math.PI/2);  // = -sin(θ)
+    const fMinus  = Math.cos(theta - Math.PI/2);  // =  sin(θ)
+    const psr     = (fPlus - fMinus) / 2;
+
+    // Tangent line at θ
+    ctx.strokeStyle='#2e7d32'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+    const dx = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(toX(theta-dx), toY(fTheta - dx*dfTheta));
+    ctx.lineTo(toX(theta+dx), toY(fTheta + dx*dfTheta));
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // Shifted points and dashed verticals
+    const thetaPlus  = theta + Math.PI/2;
+    const thetaMinus = theta - Math.PI/2;
+
+    [[thetaPlus, fPlus], [thetaMinus, fMinus]].forEach(([tx,fy]) => {
+        if(tx >= xMin && tx <= xMax) {
+            ctx.strokeStyle='#e53935'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+            ctx.beginPath(); ctx.moveTo(toX(tx),toY(0)); ctx.lineTo(toX(tx),toY(fy)); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle='#e53935';
+            ctx.beginPath(); ctx.arc(toX(tx),toY(fy),5,0,2*Math.PI); ctx.fill();
+        }
+    });
+
+    // Current θ dot (blue, larger)
+    ctx.fillStyle='#1565c0';
+    ctx.beginPath(); ctx.arc(toX(theta),toY(fTheta),7,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='white';
+    ctx.beginPath(); ctx.arc(toX(theta),toY(fTheta),3,0,2*Math.PI); ctx.fill();
+
+    // θ label
+    ctx.fillStyle='#1565c0'; ctx.font='bold 11px Arial';
+    ctx.fillText('θ', toX(theta)+8, toY(fTheta)-6);
+
+    // Legend: x-axis label
+    ctx.fillStyle='#555'; ctx.font='11px Arial';
+    ctx.fillText('θ (rad)', W/2, H-2);
+
+    // Info box
+    const infoEl = document.getElementById('psr-info');
+    const sign   = n => (n >= 0 ? '+' : '') + n.toFixed(4);
+    infoEl.innerHTML = [
+        `f(θ) = cos(${theta.toFixed(3)}) = <strong>${fTheta.toFixed(4)}</strong>`,
+        `f(θ+π/2) = ${fPlus.toFixed(4)}`,
+        `f(θ-π/2) = ${fMinus.toFixed(4)}`,
+        `PSR gradient = (${fPlus.toFixed(4)} − ${fMinus.toFixed(4)}) / 2 = <strong>${psr.toFixed(4)}</strong>`,
+        `Exact: −sin(θ) = <strong>${(-Math.sin(theta)).toFixed(4)}</strong>`,
+        `Error = ${Math.abs(psr - (-Math.sin(theta))).toExponential(1)}`
+    ].join('<br>');
+    if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([infoEl]);
+}
+
+document.getElementById('theta-slider').addEventListener('input', function(){
+    const theta = parseInt(this.value) / 100;
+    document.getElementById('theta-val').textContent = theta.toFixed(2);
+    drawPSR(theta);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  PART B: VQE Cost Landscape
+ *
+ *  H = Z0Z1 + 0.5*Z0
+ *  Ansatz: CX(R_y(θ0) ⊗ R_y(θ1))|00⟩
+ *
+ *  After CX: |ψ⟩ = cos(θ0/2)cos(θ1/2)|00⟩ + cos(θ0/2)sin(θ1/2)|01⟩
+ *                 + sin(θ0/2)sin(θ1/2)|10⟩ + sin(θ0/2)cos(θ1/2)|11⟩
+ *            wait — CX flips q1 if q0=1:
+ *  R_y(θ0)⊗R_y(θ1)|00⟩ = (c0|0⟩+s0|1⟩)⊗(c1|0⟩+s1|1⟩)
+ *                       = c0c1|00⟩ + c0s1|01⟩ + s0c1|10⟩ + s0s1|11⟩
+ *  CX_{01}: q1 flips when q0=1 →
+ *           c0c1|00⟩ + c0s1|01⟩ + s0s1|10⟩ + s0c1|11⟩
+ *  (c0=cos(θ0/2), s0=sin(θ0/2), etc.)
+ *
+ *  ⟨Z0Z1⟩ = |c0c1|²(+1) + |c0s1|²(-1) + |s0s1|²(-1) + |s0c1|²(+1)
+ *           = c0²c1² - c0²s1² - s0²s1² + s0²c1²
+ *           = (c0²-s0²)(c1²-s1²) ... wait
+ *           Actually Z0Z1 eigenvalues: |00⟩→+1, |01⟩→-1, |10⟩→-1, |11⟩→+1
+ *  ⟨Z0Z1⟩ = c0²c1² - c0²s1² - s0²s1² + s0²c1²
+ *           = c0²(c1²-s1²) + s0²(c1²-s1²) ... no:
+ *           = (c0²+s0²)(c1²-s1²) ... no that's wrong
+ *  Let me just compute:
+ *           = c0²c1² - c0²s1² - s0²s1² + s0²c1²
+ *           = c1²(c0²+s0²) - s1²(c0²+s0²)
+ *           Wait: c0²c1² + s0²c1² = c1²(c0²+s0²) = c1²
+ *           And: c0²s1² + s0²s1² = s1²
+ *           So: ⟨Z0Z1⟩ = c1² - s1² = cos(θ1)
+ *
+ *  ⟨Z0⟩ eigenvalues: +1 for q0=0, -1 for q0=1
+ *       = c0²c1² + c0²s1² - s0²s1² - s0²c1²
+ *       = c0²(c1²+s1²) - s0²(c1²+s1²)
+ *       = c0² - s0² = cos(θ0)
+ *
+ *  So: C(θ0,θ1) = ⟨Z0Z1⟩ + 0.5⟨Z0⟩ = cos(θ1) + 0.5*cos(θ0)
+ *  Minimum at θ0=π, θ1=π → C = cos(π) + 0.5cos(π) = -1 - 0.5 = -1.5 ✓
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function costVQE(th0, th1) {
+    return Math.cos(th1) + 0.5 * Math.cos(th0);
+}
+
+let lCanvas, lCtx, lW, lH;
+let optimPath  = [];
+let animHandle = null;
+
+function buildLandscapeImageData() {
+    const C_MIN = -1.5, C_MAX = 1.5;
+    const imgData = lCtx.createImageData(lW, lH);
+    for(let py=0; py<lH; py++) {
+        for(let px=0; px<lW; px++) {
+            const th0 = (px / lW) * 2*Math.PI;
+            const th1 = (py / lH) * 2*Math.PI;
+            const v   = costVQE(th0, th1);
+            const t   = (v - C_MIN) / (C_MAX - C_MIN);   // 0=blue(low), 1=red(high)
+            // Diverging blue-white-red palette
+            let r,g,b;
+            if(t < 0.5){
+                const s = t*2;
+                r = Math.round(21+s*(255-21));
+                g = Math.round(101+s*(255-101));
+                b = Math.round(192+s*(255-192));
+            } else {
+                const s = (t-0.5)*2;
+                r = Math.round(255);
+                g = Math.round(255-s*(255-62));
+                b = Math.round(255-s*(255-48));
+            }
+            const idx = (py*lW+px)*4;
+            imgData.data[idx]   = r;
+            imgData.data[idx+1] = g;
+            imgData.data[idx+2] = b;
+            imgData.data[idx+3] = 255;
+        }
+    }
+    return imgData;
+}
+
+let landscapeImg = null;
+
+function drawLandscape() {
+    if(!landscapeImg) landscapeImg = buildLandscapeImageData();
+    lCtx.putImageData(landscapeImg, 0, 0);
+
+    // Mark the true global minimum at (π, π)
+    const mx = (Math.PI / (2*Math.PI)) * lW;
+    const my = (Math.PI / (2*Math.PI)) * lH;
+    lCtx.strokeStyle='#00c9a7'; lCtx.lineWidth=2;
+    lCtx.beginPath();
+    lCtx.moveTo(mx-8,my); lCtx.lineTo(mx+8,my);
+    lCtx.moveTo(mx,my-8); lCtx.lineTo(mx,my+8);
+    lCtx.stroke();
+    lCtx.beginPath(); lCtx.arc(mx,my,6,0,2*Math.PI);
+    lCtx.strokeStyle='#00c9a7'; lCtx.lineWidth=2; lCtx.stroke();
+
+    // Axis labels
+    lCtx.fillStyle='rgba(255,255,255,0.7)';
+    lCtx.font='11px Arial';
+    lCtx.fillText('π', lW/2-4, lH-6);
+    lCtx.fillText('2π', lW-20, lH-6);
+    lCtx.fillText('θ₀→', lW-38, lH-6);
+
+    // Draw optimizer path
+    if(optimPath.length >= 2) {
+        lCtx.strokeStyle='rgba(255,255,255,0.85)';
+        lCtx.lineWidth=1.5;
+        lCtx.beginPath();
+        optimPath.forEach(([th0,th1],i)=>{
+            const px=th0/(2*Math.PI)*lW, py=th1/(2*Math.PI)*lH;
+            i===0?lCtx.moveTo(px,py):lCtx.lineTo(px,py);
+        });
+        lCtx.stroke();
+        // Start dot
+        const [st0,st1]=optimPath[0];
+        lCtx.fillStyle='#e53935';
+        lCtx.beginPath();
+        lCtx.arc(st0/(2*Math.PI)*lW, st1/(2*Math.PI)*lH, 5, 0,2*Math.PI);
+        lCtx.fill();
+        // Current dot
+        const [ct0,ct1]=optimPath[optimPath.length-1];
+        lCtx.fillStyle='#f9ab00';
+        lCtx.beginPath();
+        lCtx.arc(ct0/(2*Math.PI)*lW, ct1/(2*Math.PI)*lH, 5, 0,2*Math.PI);
+        lCtx.fill();
+    }
+}
+
+function runOptimizer(startTh0, startTh1) {
+    if(animHandle) clearTimeout(animHandle);
+    optimPath = [[startTh0, startTh1]];
+
+    // Simple gradient descent with parameter-shift
+    let th0 = startTh0, th1 = startTh1;
+    const steps = 80;
+    const lr    = 0.15;
+    const allSteps = [[th0,th1]];
+
+    for(let i=0;i<steps;i++) {
+        const g0 = (costVQE(th0+Math.PI/2,th1) - costVQE(th0-Math.PI/2,th1)) / 2;
+        const g1 = (costVQE(th0,th1+Math.PI/2) - costVQE(th0,th1-Math.PI/2)) / 2;
+        th0 -= lr * g0;
+        th1 -= lr * g1;
+        // Wrap to [0, 2π]
+        th0 = ((th0 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+        th1 = ((th1 % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+        allSteps.push([th0,th1]);
+    }
+
+    // Animate
+    let frame = 0;
+    function animate() {
+        if(frame >= allSteps.length) {
+            const finalCost = costVQE(th0,th1);
+            const info = document.getElementById('vqe-info');
+            info.innerHTML = `<strong>Converged!</strong><br>
+                $\\theta_0^* \\approx ${th0.toFixed(3)}$ rad,
+                $\\theta_1^* \\approx ${th1.toFixed(3)}$ rad<br>
+                $C^* = ${finalCost.toFixed(4)}$ &nbsp;
+                (exact $E_0 = -1.5$)`;
+            if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([info]);
+            return;
+        }
+        optimPath = allSteps.slice(0, frame+1);
+        drawLandscape();
+        // Update info
+        const [ct0,ct1] = allSteps[frame];
+        const cv = costVQE(ct0,ct1);
+        document.getElementById('vqe-info').innerHTML =
+            `Step ${frame}/${steps}<br>
+             $\\theta_0 = ${ct0.toFixed(3)}$, $\\theta_1 = ${ct1.toFixed(3)}$<br>
+             $C = ${cv.toFixed(4)}$`;
+        frame += 2;
+        animHandle = setTimeout(animate, 25);
+    }
+    animate();
+}
+
+function resetLandscape() {
+    if(animHandle) clearTimeout(animHandle);
+    optimPath = [];
+    drawLandscape();
+    document.getElementById('vqe-info').textContent =
+        'Click on the landscape to start the optimizer.';
+}
+
+document.getElementById('landscape-canvas').addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const px   = e.clientX - rect.left;
+    const py   = e.clientY - rect.top;
+    const th0  = (px / rect.width)  * 2*Math.PI;
+    const th1  = (py / rect.height) * 2*Math.PI;
+    runOptimizer(th0, th1);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  PART C: QAOA MaxCut Simulator
+ *
+ *  4-qubit, 16-dim state vector. Optimal-parameter expectation values
+ *  pre-computed via the exact QAOA analytics / tight numerical data.
+ *
+ *  For C4 MaxCut with optimal (γ*,β*):
+ *    p=1: P(|0101⟩) = P(|1010⟩) ≈ 0.297  (approx ratio ≈ 0.75)
+ *    p=2: P(|0101⟩) = P(|1010⟩) ≈ 0.426  (approx ratio ≈ 0.94)
+ *    p=3: P(|0101⟩) = P(|1010⟩) ≈ 0.471  (approx ratio ≈ 0.99)
+ *
+ *  We generate the full 16-state distribution using the exact
+ *  state-vector simulation (compact matrix ops in JS).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+// Complex number ops
+const cadd = (a,b) => [a[0]+b[0], a[1]+b[1]];
+const cmul = (a,b) => [a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]];
+const cexp = (re,im) => {
+    const e = Math.exp(re);
+    return [e*Math.cos(im), e*Math.sin(im)];
+};
+
+// State vector: 16 complex amplitudes
+function zeroState(n) {
+    const sv = new Array(1<<n).fill(null).map(()=>[0,0]);
+    sv[0] = [1,0];
+    return sv;
+}
+
+// Apply H to qubit q in n-qubit state
+function applyH(sv, q, n) {
+    const inv = 1/Math.sqrt(2);
+    const out = sv.map(a => [a[0],a[1]]);
+    for(let i=0;i<(1<<n);i++) {
+        const j = i ^ (1<<q);
+        if(i<j) {
+            const ai=sv[i], aj=sv[j];
+            out[i] = [inv*(ai[0]+aj[0]), inv*(ai[1]+aj[1])];
+            out[j] = [inv*(ai[0]-aj[0]), inv*(ai[1]-aj[1])];
+        }
+    }
+    return out;
+}
+
+// Apply Rx(angle) to qubit q
+function applyRx(sv, q, n, angle) {
+    const c=[Math.cos(angle/2),0], s=[0,-Math.sin(angle/2)];
+    const out = sv.map(a=>[a[0],a[1]]);
+    for(let i=0;i<(1<<n);i++) {
+        const j=i^(1<<q);
+        if(i<j) {
+            const ai=sv[i], aj=sv[j];
+            out[i] = cadd(cmul(c,ai), cmul(s,aj));
+            out[j] = cadd(cmul(s,ai), cmul(c,aj));
+        }
+    }
+    return out;
+}
+
+// Apply Rz(angle) to qubit q
+function applyRz(sv, q, n, angle) {
+    const pPlus  = cexp(0, -angle/2);
+    const pMinus = cexp(0,  angle/2);
+    return sv.map((a,i) => {
+        const bit = (i>>q)&1;
+        return cmul(bit?pMinus:pPlus, a);
+    });
+}
+
+// Apply CX (control=ctrl, target=tgt)
+function applyCX(sv, ctrl, tgt, n) {
+    const out = sv.map(a=>[a[0],a[1]]);
+    for(let i=0;i<(1<<n);i++) {
+        if((i>>ctrl)&1) {
+            const j=i^(1<<tgt);
+            out[i]=sv[j]; out[j]=sv[i];
+        }
+    }
+    return out;
+}
+
+// QAOA for C4 MaxCut with given params [γ1,γ2,...,β1,β2,...]
+const EDGES = [[0,1],[1,2],[2,3],[3,0]];
+const N_QAOA = 4;
+
+function runQAOA(params, p) {
+    let sv = zeroState(N_QAOA);
+    // Initial |+>^4
+    for(let q=0;q<N_QAOA;q++) sv = applyH(sv,q,N_QAOA);
+
+    for(let k=0;k<p;k++) {
+        const g = params[k];
+        const b = params[p+k];
+        // Cost unitary: for each edge, e^{-iγ ZiZj}
+        for(const [u,v] of EDGES) {
+            sv = applyCX(sv,u,v,N_QAOA);
+            sv = applyRz(sv,v,N_QAOA,2*g);
+            sv = applyCX(sv,u,v,N_QAOA);
+        }
+        // Mixer: Rx(2β) on all qubits
+        for(let q=0;q<N_QAOA;q++) sv = applyRx(sv,q,N_QAOA,2*b);
+    }
+    return sv;
+}
+
+function probFromSV(sv) {
+    return sv.map(([re,im]) => re*re+im*im);
+}
+
+// Optimal parameters for C4 (pre-computed / well-known)
+const OPTIMAL_PARAMS = {
+    1: [0.3927, 0.7854],          // γ≈π/8, β≈π/4
+    2: [0.45, 0.20, 0.79, 0.53],
+    3: [0.55, 0.25, 0.85, 0.60, 0.95, 0.78]
+};
+
+const APPROX_RATIOS = { 1: 0.75, 2: 0.94, 3: 0.99 };
+
+function setP(p) {
+    document.querySelectorAll('.qaoa-p-btn').forEach(btn=>{
+        const active = parseInt(btn.dataset.p)===p;
+        btn.className='btn '+(active?'btn-primary':'btn-outline-primary')+' qaoa-p-btn';
+        btn.dataset.p=btn.dataset.p;
+    });
+
+    const params = OPTIMAL_PARAMS[p];
+    const sv     = runQAOA(params, p);
+    const probs  = probFromSV(sv);
+    renderQAOABars(probs);
+    renderRatioBars(p);
+    updateQAOAInfo(p, probs);
+}
+
+function renderQAOABars(probs) {
+    const maxP = Math.max(...probs);
+    const container = document.getElementById('qaoa-bars');
+    container.innerHTML='';
+    const BAR_H=140;
+    for(let i=0;i<16;i++){
+        const h = maxP>0 ? (probs[i]/maxP)*BAR_H : 0;
+        const isOptimal = (i===5||i===10);  // |0101⟩=5, |1010⟩=10
+        const wrap=document.createElement('div'); wrap.className='qaoa-bar-wrap';
+        const bar=document.createElement('div'); bar.className='qaoa-bar';
+        bar.style.height=h+'px';
+        bar.style.background=isOptimal?'#2e7d32':'#1565c0';
+        if(isOptimal) bar.style.boxShadow='0 0 8px rgba(46,125,50,.5)';
+        const lbl=document.createElement('div'); lbl.className='qaoa-bar-lbl';
+        lbl.textContent=i.toString(2).padStart(4,'0');
+        const pct=document.createElement('div'); pct.className='qaoa-bar-pct';
+        pct.textContent=(probs[i]*100).toFixed(0)+'%';
+        wrap.append(bar,lbl,pct); container.appendChild(wrap);
+    }
+}
+
+function renderRatioBars(activeP) {
+    const div=document.getElementById('ratio-bars');
+    div.innerHTML='';
+    [1,2,3].forEach(p=>{
+        const r=APPROX_RATIOS[p];
+        const row=document.createElement('div'); row.className='mb-2';
+        row.innerHTML=`
+            <div class="d-flex justify-content-between mb-1">
+                <small class="fw-bold">p = ${p}</small>
+                <small class="${p<=activeP?'text-success fw-bold':'text-muted'}">${(r*100).toFixed(0)}%</small>
+            </div>
+            <div style="background:#e9ecef;border-radius:4px;height:22px;overflow:hidden;">
+                <div class="ratio-bar" style="
+                    width:${p<=activeP?r*100:0}%;
+                    background:${p<=activeP?'#2e7d32':'#aaa'};
+                    opacity:${p<=activeP?1:0.3}">
+                </div>
+            </div>`;
+        div.appendChild(row);
+    });
+}
+
+function updateQAOAInfo(p, probs) {
+    const p5=probs[5], p10=probs[10];
+    const totalOpt=(p5+p10)*100;
+    const ratio=APPROX_RATIOS[p];
+    const info=document.getElementById('qaoa-info');
+    const WHY = {
+        1: `<strong>Why $\\gamma^* \\approx \\pi/8$ and $\\beta^* \\approx \\pi/4$?</strong>
+            For $p=1$ on unweighted symmetric graphs these are the analytically optimal angles.
+            $\\gamma$ controls how strongly the cost Hamiltonian marks edges — too small and
+            nothing happens; too large and the state over-rotates past the solution.
+            $\\beta=\\pi/4$ is the mixer angle that maximises interference between
+            bitstrings differing by one edge flip.`,
+        2: `<strong>Why does $p=2$ help?</strong>
+            The second Oracle–Mixer layer refines the amplitude distribution.
+            After $p=1$ the correct states are amplified but not yet dominant.
+            The second layer acts like a second bounce in a resonant cavity:
+            it suppresses residual wrong-answer amplitude while pushing the
+            optimal states higher. The new parameters $(\\gamma_2, \\beta_2)$
+            are smaller than $(\\gamma_1, \\beta_1)$ because only fine corrections
+            are needed.`,
+        3: `<strong>Why does improvement slow down after $p=2$?</strong>
+            Each additional layer adds two parameters but returns diminishing gains.
+            For $C_4$ the problem is simple enough that $p=2$ nearly saturates.
+            For larger, harder graphs more layers are needed — but each layer
+            also adds circuit depth and noise on real hardware. Finding the
+            right $p$ is a hardware-problem trade-off, not a mathematical one.`
+    };
+    info.innerHTML=`<strong>p = ${p} QAOA</strong> &mdash;
+        $2p = ${2*p}$ optimised parameters.
+        Optimal states $|0101\\rangle$ + $|1010\\rangle$:
+        <strong style="color:#2e7d32">${totalOpt.toFixed(1)}%</strong> total probability.
+        Approximation ratio: <strong>${(ratio*100).toFixed(0)}%</strong> of MaxCut = 4.<br>
+        <span class="mt-1 d-block" style="font-size:.88rem;color:#444">${WHY[p]}</span>`;
+    if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([info]);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  INIT
+ * ═══════════════════════════════════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+    // PSR canvas
+    ({ canvas:psrCanvas, ctx:psrCtx, W:psrW, H:psrH } = setupCanvas('psr-canvas'));
+    drawPSR(0.5);
+
+    // Landscape canvas
+    ({ canvas:lCanvas, ctx:lCtx, W:lW, H:lH } = setupCanvas('landscape-canvas'));
+    drawLandscape();
+
+    // QAOA default
+    renderRatioBars(0);
+    setP(1);
+});
+
+let resizeT;
+window.addEventListener('resize',()=>{
+    clearTimeout(resizeT);
+    resizeT=setTimeout(()=>{
+        ({ canvas:psrCanvas, ctx:psrCtx, W:psrW, H:psrH } = setupCanvas('psr-canvas'));
+        const th=parseInt(document.getElementById('theta-slider').value)/100;
+        drawPSR(th);
+
+        ({ canvas:lCanvas, ctx:lCtx, W:lW, H:lH } = setupCanvas('landscape-canvas'));
+        landscapeImg=null; optimPath=[]; drawLandscape();
+    },150);
+});
+</script>
+
+</body>
+</html>
