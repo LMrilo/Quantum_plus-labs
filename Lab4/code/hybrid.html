@@ -315,6 +315,24 @@
     the approximation ratio and concentrates probability on the optimal
     bitstrings $|0101\rangle$ and $|1010\rangle$.</p>
 
+    <div class="theory-box">
+        <strong>From graph to Hamiltonian — derivation</strong>
+        <p class="mt-2">The MaxCut objective counts the number of edges $(i,j)$ where nodes $i$ and $j$ are in
+        <em>different</em> partitions. Assign $x_i \in \{0,1\}$ to each node. Edge $(i,j)$ is cut iff
+        $x_i \neq x_j$, i.e., $x_i + x_j - 2x_ix_j = 1$. So:</p>
+        $$\text{MaxCut}(x) = \sum_{(i,j)\in E} (x_i + x_j - 2x_ix_j)$$
+        <p>Substituting $x_k = \frac{1-Z_k}{2}$ (so $x_k=0 \leftrightarrow Z_k=+1$, $x_k=1 \leftrightarrow Z_k=-1$):</p>
+        $$x_i + x_j - 2x_ix_j = \frac{1-Z_i}{2} + \frac{1-Z_j}{2} - 2\cdot\frac{1-Z_i}{2}\cdot\frac{1-Z_j}{2}
+        = 1 - \frac{1+Z_iZ_j}{2} = \frac{1-Z_iZ_j}{2}$$
+        <p>Therefore the <strong>cost Hamiltonian</strong> is:</p>
+        $$H_C = \sum_{(i,j)\in E} \frac{I - Z_iZ_j}{2}$$
+        <p><em>Intuition:</em> $Z_iZ_j$ has eigenvalue $+1$ when both qubits are equal (not cut), and $-1$ when
+        they differ (cut). So $\frac{I-Z_iZ_j}{2}$ equals 1 for a cut edge and 0 otherwise — exactly what we want.</p>
+        <p>The <strong>mixer Hamiltonian</strong> $H_B = \sum_i X_i$ creates transitions between bit strings.
+        The $X$ gate flips $|0\rangle \leftrightarrow |1\rangle$, so $e^{-i\beta H_B}$ allows the optimizer
+        to explore different node assignments — without it, the algorithm would stay stuck in its initial state.</p>
+    </div>
+
     <div class="task-box">
         <div class="task-header">Interactive QAOA Simulator — MaxCut on $C_4$</div>
         <div class="task-body">

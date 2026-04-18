@@ -168,10 +168,23 @@
 
             <p class="mt-4"><strong>Step 2 — The Grover Operator $G = U_s\,U_\omega$.</strong></p>
             <ul>
-                <li>The <strong>Oracle</strong> $U_\omega = I - 2|\omega\rangle\langle\omega|$ reflects the state across the $|s'\rangle$ axis, negating only the target amplitude.</li>
+                <li>The <strong>Oracle</strong> $U_\omega = I - 2|\omega\rangle\langle\omega|$ reflects the state
+                across the $|s'\rangle$ axis: $U_\omega|\omega\rangle = -|\omega\rangle$ (flip sign of target),
+                $U_\omega|x\rangle = |x\rangle$ for all $x\neq\omega$.</li>
                 <li>The <strong>Diffuser</strong> $U_s = 2|s\rangle\langle s| - I$ reflects the state across the initial superposition $|s\rangle$.</li>
             </ul>
-            <p>Two successive reflections compose into a <em>rotation</em>. Each application of $G$ rotates the state vector by $2\theta$ towards $|\omega\rangle$. After $k$ iterations:</p>
+            <div class="bg-white p-3 rounded border mb-3">
+                <strong>Why $U_s$ implements "inversion about the mean":</strong>
+                If the current amplitudes are $\{\alpha_x\}$ with mean $\mu = \frac{1}{N}\sum_x \alpha_x$, then:
+                $$(U_s|\psi\rangle)_x = 2\langle s|\psi\rangle \cdot \frac{1}{\sqrt{N}} - \alpha_x
+                = 2\mu - \alpha_x$$
+                Each amplitude is reflected around the mean $\mu$. Large amplitudes get pushed down; below-mean
+                amplitudes get boosted. After the oracle flips the target amplitude negative, $\mu$ drops slightly
+                below the mean of the rest — so inversion about $\mu$ boosts the target dramatically.
+            </div>
+            <p>Two successive reflections (first across $|s'\rangle$, then across $|s\rangle$) compose into a
+            <em>rotation</em> by $2\theta$ in the 2D plane spanned by $|\omega\rangle$ and $|s'\rangle$.
+            Each application of $G$ rotates the state vector by $2\theta$ towards $|\omega\rangle$. After $k$ iterations:</p>
             <div class="bg-white p-2 text-center rounded border mb-3">
                 $$ |\psi_k\rangle = G^k|s\rangle = \sin\!\bigl((2k+1)\theta\bigr)\,|\omega\rangle + \cos\!\bigl((2k+1)\theta\bigr)\,|s'\rangle $$
             </div>
