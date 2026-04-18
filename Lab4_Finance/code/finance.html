@@ -263,7 +263,7 @@
     </h2>
     <p>Step through the QAOA algorithm for the portfolio Hamiltonian.
     The histogram shows how probability concentrates from a uniform
-    distribution (Step 1) to the optimal portfolio $|1100\rangle$
+    distribution (Step 1) to the optimal portfolio $|0011\rangle$
     (AAPL + MSFT) after optimisation (Step 4).</p>
 
     <div class="task-box">
@@ -291,7 +291,7 @@
                             Bitstring $|q_3 q_2 q_1 q_0\rangle$, $x_0$=AAPL, $x_1$=MSFT,
                             $x_2$=JPM, $x_3$=XOM
                             &ensp;
-                            <span style="color:#2e7d32">■</span> Optimal $|1100\rangle$
+                            <span style="color:#2e7d32">■</span> Optimal $|0011\rangle$
                             &ensp;
                             <span style="color:#1565c0">■</span> Feasible ($K=2$)
                             &ensp;
@@ -393,7 +393,19 @@ for combo in itertools.combinations(range(4), 2):
 </footer>
 
 <script>
-    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+    window.MathJax = {
+        tex: { inlineMath: [['$','$'],['\\(','\\)']] },
+        startup: {
+            ready() {
+                MathJax.startup.defaultReady();
+                // Re-typeset dynamic content inserted before MathJax loaded
+                MathJax.startup.promise.then(() => {
+                    const els = ['qaoa-info','qubo-optimal-note','portfolio-legend'];
+                    MathJax.typesetPromise(els.map(id => document.getElementById(id)).filter(Boolean));
+                });
+            }
+        }
+    };
 </script>
 <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -445,23 +457,32 @@ function portfolioStats(x) {
     return { ret: ret/K, variance: variance, risk: Math.sqrt(variance) };
 }
 
-/* ── Build QUBO ────────────────────────────────────────────────────────── */
+/* ── Build QUBO (symmetric form: Q_ij = lam*Sig_ij + LAM_PEN for i≠j) ── */
 function buildQ(lam) {
     const Q = Array.from({length:N}, () => new Array(N).fill(0));
     for(let i=0;i<N;i++) for(let j=0;j<N;j++) {
         if(i===j) {
             Q[i][j] = lam*SIGMA[i][j] - MU[i] + LAM_PEN*(1-2*K);
         } else {
-            Q[i][j] = lam*SIGMA[i][j] + 2*LAM_PEN;
+            Q[i][j] = lam*SIGMA[i][j] + LAM_PEN;  // correct: LAM_PEN, not 2*LAM_PEN
         }
     }
     return Q;
 }
 
+/* QUBO cost x^T Q x. For feasible solutions: = financialCost - K²·LAM_PEN */
 function portfolioCost(x, Q) {
     let cost = 0;
     for(let i=0;i<N;i++) for(let j=0;j<N;j++) cost += x[i]*Q[i][j]*x[j];
     return cost;
+}
+
+/* Financial cost λ·x^T Σ x − μ^T x  (penalty = 0 for feasible solutions) */
+function financialCost(x, lam) {
+    let risk = 0, ret = 0;
+    for(let i=0;i<N;i++) { ret += x[i]*MU[i]; }
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) risk += x[i]*SIGMA[i][j]*x[j];
+    return lam*risk - ret;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -490,10 +511,10 @@ function renderQUBO(lam) {
     html += '</tbody>';
     tbl.innerHTML = html;
 
-    // Portfolio ranking
+    // Portfolio ranking — use financial cost (= QUBO cost for feasible solutions)
     const costs = PORTFOLIOS.map((x,i) => ({
         name: PORT_NAMES[i], x,
-        cost: portfolioCost(x, Q),
+        cost: financialCost(x, lam),
         idx: i
     }));
     costs.sort((a,b) => a.cost - b.cost);
@@ -504,7 +525,6 @@ function renderQUBO(lam) {
         const pct = (Math.abs(p.cost)/maxAbsCost*100).toFixed(0);
         const cls = rank===0?'optimal':rank===1?'second':'other';
         const bg  = rank===0?'#2e7d32':rank===1?'#1565c0':'#757575';
-        const icon = rank===0?'⭐':rank===1?'2':'';
         const stats = portfolioStats(p.x);
         return `<div class="portfolio-row ${cls}">
             <div class="d-flex align-items-center gap-2">
@@ -536,7 +556,7 @@ function renderQUBO(lam) {
         ${opt.name}</strong><br>
         Return ${(stats.ret*100).toFixed(1)}% &nbsp;|&nbsp;
         Risk ${(stats.risk*100).toFixed(1)}% &nbsp;|&nbsp;
-        QUBO cost ${opt.cost.toFixed(4)}`;
+        Portfolio cost ${opt.cost.toFixed(4)}`;
     if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([note]);
 }
 
@@ -805,10 +825,9 @@ function setQAOAStep(step) {
 // Build portfolio legend
 function buildPortfolioLegend() {
     const legDiv = document.getElementById('portfolio-legend');
-    const Q = buildQ(1.0);
     const items = PORTFOLIOS.map((x,i)=>({
         name:PORT_NAMES[i], idx:PORT_IDX[i],
-        cost:portfolioCost(x,Q), stats:portfolioStats(x)
+        cost:financialCost(x,1.0), stats:portfolioStats(x)
     })).sort((a,b)=>a.cost-b.cost);
 
     legDiv.innerHTML = items.map((p,rank)=>`
