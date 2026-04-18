@@ -222,6 +222,39 @@
 
         <h2 class="border-bottom pb-2 mb-4 text-primary"><i class="fa-solid fa-eye"></i> Part A: Visual Intuition
             (Composer)</h2>
+
+        <div class="math-box">
+            <strong>Gate Matrices — Reference</strong>
+            <p style="margin-top:10px">
+                Every single-qubit gate is a 2×2 unitary matrix. A qubit state
+                $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ is the column vector
+                $\begin{pmatrix}\alpha\\\beta\end{pmatrix}$.
+                Applying a gate means matrix multiplication:
+                $$G|\psi\rangle = G\begin{pmatrix}\alpha\\\beta\end{pmatrix}$$
+            </p>
+            <div class="row text-center" style="font-size:0.9rem">
+                <div class="col-md-4">
+                    <strong>X gate (bit flip)</strong>
+                    $$X = \begin{pmatrix}0&1\\1&0\end{pmatrix}$$
+                    $X|0\rangle = |1\rangle,\quad X|1\rangle = |0\rangle$
+                </div>
+                <div class="col-md-4">
+                    <strong>H gate (Hadamard)</strong>
+                    $$H = \frac{1}{\sqrt{2}}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$$
+                    $H|0\rangle = |{+}\rangle,\quad H|1\rangle = |{-}\rangle$
+                </div>
+                <div class="col-md-4">
+                    <strong>Z gate (phase flip)</strong>
+                    $$Z = \begin{pmatrix}1&0\\0&-1\end{pmatrix}$$
+                    $Z|0\rangle = |0\rangle,\quad Z|1\rangle = -|1\rangle$
+                </div>
+            </div>
+            <p style="margin-top:10px">
+                Notice: $H = \frac{X+Z}{\sqrt{2}}$. You can verify this by adding the matrices.
+                Also: applying H twice returns to the original state ($H^2 = I$).
+            </p>
+        </div>
+
         <div class="alert alert-info">
             <strong>Tool:</strong> Open <a href="https://quantum.ibm.com/composer" target="_blank"
                 class="alert-link">IBM Quantum Composer</a> in a separate tab.
@@ -346,18 +379,25 @@
                     <div class="col-md-8">
                         <div class="context-box">
                             <strong>Scenario:</strong>
-                            This is the hardest concept for beginners.
-                            Imagine the spinning coin from Exercise 2. If you look at it from above, it looks identical
-                            whether it spins clockwise or counter-clockwise.
-                            Similarly, the Z gate changes the "spin direction" (Phase) without changing the "shape"
-                            (Probability).
+                            This is the hardest concept for beginners. The Z gate does <strong>NOT flip</strong>
+                            the qubit like X does. Instead, it adds a minus sign to the $|1\rangle$ component only.
+                            The probabilities stay 50/50, but the <em>phase relationship</em> between the two
+                            components changes — and that affects future gates.
                         </div>
 
                         <div class="theory-box">
-                            <strong>Theory [QC04]:</strong>
-                            The Z gate creates the state $|-\rangle = \frac{|0\rangle - |1\rangle}{\sqrt{2}}$.
-                            The minus sign is on the $|1\rangle$ component. This corresponds to a phase of $\pi$
-                            ($e^{i\pi} = -1$).
+                            <strong>Theory [QC04] — What Z does step by step:</strong>
+                            <br>The Z gate matrix is:
+                            $$Z = \begin{pmatrix}1 & 0 \\ 0 & -1\end{pmatrix}$$
+                            Applied to basis states: $Z|0\rangle = |0\rangle$ (unchanged),
+                            $Z|1\rangle = -|1\rangle$ (sign flipped).
+                            <br><br>
+                            Applied <strong>after H</strong> (starting from $|0\rangle$):
+                            $$Z\Bigl(H|0\rangle\Bigr) = Z\left(\frac{|0\rangle+|1\rangle}{\sqrt{2}}\right)
+                            = \frac{Z|0\rangle + Z|1\rangle}{\sqrt{2}}
+                            = \frac{|0\rangle - |1\rangle}{\sqrt{2}} = |-\rangle$$
+                            The $|0\rangle$ component keeps its $+$ sign; only the $|1\rangle$ component flips sign.
+                            Both coefficients have the same magnitude $\frac{1}{\sqrt{2}}$, so probabilities remain 50/50.
                         </div>
 
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>

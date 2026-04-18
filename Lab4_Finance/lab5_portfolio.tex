@@ -245,7 +245,31 @@ solution (wrong number of assets) is always worse than any feasible one.
 A safe choice is $\lambda_\text{pen} > \max_{x,\text{feasible}} |C(x)|$.
 
 Expanding and collecting, equation~\eqref{eq:qubo-full} takes the
-standard QUBO form:
+standard QUBO form.
+
+\begin{warningbox}[QUBO Derivation — step by step]
+Since $x_i \in \{0,1\}$, we have $x_i^2 = x_i$.
+Expand the budget penalty (dropping the constant $K^2$):
+\[
+    \lambda_\text{pen}\!\left(\sum_i x_i - K\right)^{\!2}
+    \;\longrightarrow\;
+    \lambda_\text{pen}(1-2K)\!\sum_i x_i
+    \;+\; 2\lambda_\text{pen}\!\sum_{i<j} x_i x_j.
+\]
+Adding the financial objective and grouping:
+\begin{itemize}
+  \item \textbf{Diagonal} ($i=j$): coefficient of $x_i$ is
+        $\lambda\Sigma_{ii} - \mu_i + \lambda_\text{pen}(1-2K)$.
+  \item \textbf{Off-diagonal} ($i<j$, one occurrence): coefficient of $x_ix_j$ is
+        $2\lambda\Sigma_{ij} + 2\lambda_\text{pen}$.
+\end{itemize}
+Convention note: the symmetric matrix entry $Q_{ij}$ ($i\neq j$) in
+equation~\eqref{eq:Q} is defined as $\lambda\Sigma_{ij}+2\lambda_\text{pen}$
+so that the full product $x^TQx = \sum_{i,j}Q_{ij}x_ix_j$ (which counts each
+pair twice) equals the financial cost plus a constant shift
+$-\lambda_\text{pen}K$ for all feasible portfolios.
+The shift is the same for every feasible $x$, so it does not affect the ranking.
+\end{warningbox}
 
 \begin{equation}
     \min_{x\in\{0,1\}^n}\; x^T Q\, x,
@@ -278,10 +302,10 @@ into equation~\eqref{eq:Q} with $\lambda_\text{pen}(1-2K) = 3(1-4) = -9$:
 \]
 \[
     Q = \begin{pmatrix}
-        -\crd{8.8259} & 6.1764 & 6.0939 & 6.0609 \\
-        6.1764 & -\crd{8.9571} & 6.0816 & 6.0510 \\
-        6.0939 & 6.0816 & -\crd{9.0324} & 6.0882 \\
-        6.0609 & 6.0510 & 6.0882 & -\crd{8.7575}
+        -\crd{9.2559} & 6.0588 & 6.0313 & 6.0203 \\
+        6.0588 & -\crd{9.1971} & 6.0272 & 6.0170 \\
+        6.0313 & 6.0272 & -\crd{9.0924} & 6.0294 \\
+        6.0203 & 6.0170 & 6.0294 & -\crd{9.0975}
     \end{pmatrix}.
 \]
 The large off-diagonal terms reflect the strong budget penalty;
@@ -291,16 +315,20 @@ the negative diagonal terms reflect the return incentive.
 \subsection{Classical Brute-Force Baseline}
 
 For $n=4$, $K=2$ we can enumerate all $\binom{4}{2}=6$ portfolios
-exactly. Table~\ref{tab:bf} shows the cost $x^T Qx$ and the
-corresponding financial interpretation.
+exactly. Table~\ref{tab:bf} shows the financial cost
+$C(x)=\lambda x^T\Sigma x - \boldsymbol\mu^T x$ for each feasible
+portfolio. (All feasible portfolios satisfy the budget constraint, so the
+penalty term is zero and $C(x)$ equals the QUBO cost up to the constant
+$\lambda_\text{pen}K^2=12$; only differences matter for ranking.)
 
 \begin{table}[H]
 \centering
-\caption{Brute-force enumeration of all 2-asset portfolios ($\lambda=1$).}
+\caption{Brute-force enumeration of all 2-asset portfolios ($\lambda=1$).
+Portfolio vector $x=[x_0,x_1,x_2,x_3]$ shown in AAPL/MSFT/JPM/XOM order.}
 \label{tab:bf}
 \begin{tabular}{clcc}
     \toprule
-    Bitstring $x$ & Assets selected & Cost $x^TQx$ & Rank \\
+    Portfolio vector $x$ & Assets selected & Financial cost $C(x)$ & Rank \\
     \midrule
     $\cblu{1100}$ & \cblu{AAPL + MSFT} & $\cblu{-0.335}$ & \cblu{1 (optimal)} \\
     $1001$ & AAPL + XOM        & $-0.313$ & 2 \\
@@ -328,17 +356,26 @@ and eventually toward JPM + XOM (defensive, low correlation).
 
 \subsection{QUBO $\to$ Ising Hamiltonian}
 
-Substituting $x_i = (1 - Z_i)/2$ into equation~\eqref{eq:qubo}:
+Substituting $x_i = (1 - Z_i)/2$ into equation~\eqref{eq:qubo}.
+Note that the eigenvalue of $Z_i$ on state $|q_i\rangle$ is $+1$ if $q_i=0$ and
+$-1$ if $q_i=1$, so $x_i=(1-Z_i)/2$ maps $x_i=0\leftrightarrow Z_i=+1$ and
+$x_i=1\leftrightarrow Z_i=-1$ consistently.
 
 \begin{align}
     x^T Q\, x &= \sum_{i,j} Q_{ij} x_i x_j
     = \sum_{i,j} Q_{ij} \frac{(1-Z_i)(1-Z_j)}{4} \notag\\
     &= \frac{1}{4}\sum_{i,j} Q_{ij}
-    \bigl(I - Z_i - Z_j + Z_iZ_j\bigr) \notag\\
+    \underbrace{\bigl(I - Z_i - Z_j + Z_iZ_j\bigr)}_{\text{expand: }(1-Z_i)(1-Z_j)}
+    \notag\\
     &\equiv H_\text{portfolio} \;+\; \text{const.}
     \label{eq:ising-map}
 \end{align}
 
+To collect terms, use: (a) $Z_i^2 = I$ (constant, absorbed into ``const'');
+(b) the $-Z_i$ and $-Z_j$ pieces with symmetric $Q$ give $-\frac{1}{2}\sum_j Q_{ij}$
+as coefficient of $Z_i$; (c) cross terms $Z_iZ_j$ with $i\neq j$ give coefficient
+$Q_{ij}/2$ after accounting for the $1/4$ prefactor and the factor 2 from
+$\sum_{i\neq j} = 2\sum_{i<j}$ (since $Q$ is symmetric).
 Collecting terms, the cost Hamiltonian is:
 
 \begin{equation}
@@ -371,19 +408,33 @@ the following non-trivial Pauli terms (omitting the constant):
     \toprule
     Pauli term & Coefficient & Origin \\
     \midrule
-    $Z_0 Z_1$ & $+3.0882$ & AAPL--MSFT covariance + penalty \\
-    $Z_0 Z_2$ & $+3.0470$ & AAPL--JPM covariance + penalty \\
-    $Z_0 Z_3$ & $+3.0305$ & AAPL--XOM covariance + penalty \\
-    $Z_1 Z_2$ & $+3.0408$ & MSFT--JPM covariance + penalty \\
-    $Z_1 Z_3$ & $+3.0255$ & MSFT--XOM covariance + penalty \\
-    $Z_2 Z_3$ & $+3.0441$ & JPM--XOM covariance + penalty \\
-    $Z_0$     & $+0.1568$ & AAPL diagonal term \\
-    $Z_1$     & $+0.0929$ & MSFT diagonal term \\
-    $Z_2$     & $-0.0474$ & JPM diagonal term \\
-    $Z_3$     & $+0.1238$ & XOM diagonal term \\
+    $Z_0 Z_1$ & $+3.0294$ & AAPL--MSFT: $Q_{01}/2 = 6.0588/2$ \\
+    $Z_0 Z_2$ & $+3.0157$ & AAPL--JPM:  $Q_{02}/2 = 6.0313/2$ \\
+    $Z_0 Z_3$ & $+3.0102$ & AAPL--XOM:  $Q_{03}/2 = 6.0203/2$ \\
+    $Z_1 Z_2$ & $+3.0136$ & MSFT--JPM:  $Q_{12}/2 = 6.0272/2$ \\
+    $Z_1 Z_3$ & $+3.0085$ & MSFT--XOM:  $Q_{13}/2 = 6.0170/2$ \\
+    $Z_2 Z_3$ & $+3.0147$ & JPM--XOM:   $Q_{23}/2 = 6.0294/2$ \\
+    $Z_0$     & \crd{?} & $h_0 = -\tfrac{1}{2}\sum_j Q_{0j}$ — see note below \\
+    $Z_1$     & \crd{?} & $h_1 = -\tfrac{1}{2}\sum_j Q_{1j}$ — see note below \\
+    $Z_2$     & \crd{?} & $h_2 = -\tfrac{1}{2}\sum_j Q_{2j}$ — see note below \\
+    $Z_3$     & \crd{?} & $h_3 = -\tfrac{1}{2}\sum_j Q_{3j}$ — see note below \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\begin{warningbox}[Computing single-qubit $Z$ coefficients]
+The $Z_i$ coefficient is $h_i = -\tfrac{1}{2}\sum_{j=0}^{3} Q_{ij}$.
+Using the corrected $Q$ matrix above:
+\[
+h_0 = -\tfrac{1}{2}(-9.2559 + 6.0588 + 6.0313 + 6.0203) = -\tfrac{1}{2}(8.8545) = -4.4273
+\]
+Similarly for $h_1,h_2,h_3$.  These large negative values arise because the dominant
+contribution is the off-diagonal penalty ($2\lambda_\text{pen} = 6$ per pair times 3
+pairs = $+9$ per row, partially offset by the diagonal $\approx -9.2$).
+The Colab notebook computes these coefficients directly via
+\texttt{SparsePauliOp.from\_list} from the $Q$ matrix; students should verify
+the code output against these formulas rather than the values in a table.
+\end{warningbox}
 
 \subsection{QAOA Circuit Structure ($p=1$)}
 
@@ -410,20 +461,30 @@ for $p=1$: $\mathcal{O}(n^2)$ gates.
 
 After QAOA optimisation, we sample the circuit $M$ times and obtain a
 histogram over $2^n = 16$ bitstrings. The \emph{technical} interpretation:
-the state $\ket{1100}$ (AAPL=1, MSFT=1, JPM=0, XOM=0, in Qiskit
-little-endian) should have the highest probability.
+the state $\ket{0011}$ (q$_0$=AAPL=1, q$_1$=MSFT=1, q$_2$=JPM=0,
+q$_3$=XOM=0) should have the highest probability.
 
-\begin{finbox}[Technical $\to$ Business Translation]
+\begin{warningbox}[Qiskit Bitstring Convention]
+Qiskit uses \emph{little-endian} ordering: the rightmost bit in the
+output string is qubit 0. Qubit assignment: q$_0$=AAPL, q$_1$=MSFT,
+q$_2$=JPM, q$_3$=XOM. Therefore the Qiskit bitstring
+$\ket{q_3 q_2 q_1 q_0}$ for ``AAPL and MSFT selected'' is
+$\ket{0011}$, \emph{not} $\ket{1100}$. The portfolio vector notation
+$x = [x_0, x_1, x_2, x_3] = [1,1,0,0]$ uses the opposite (left-to-right)
+order and appears in the tables above; do not confuse the two.
+\end{warningbox}
+
+\begin{finbox}[Technical $\to$ Business Translation (Qiskit bitstrings)]
 \begin{center}
-\begin{tabular}{cl}
+\begin{tabular}{cll}
     \toprule
-    Bitstring & Business meaning \\
+    Qiskit bitstring $\ket{q_3 q_2 q_1 q_0}$ & Portfolio vector $x$ & Business meaning \\
     \midrule
-    $\ket{1100}$ & Invest in AAPL and MSFT \\
-    $\ket{1001}$ & Invest in AAPL and XOM \\
-    $\ket{0011}$ & Invest in JPM and XOM \\
-    $\ket{0000}$ & Infeasible (no assets) \\
-    $\ket{1111}$ & Infeasible (all assets, $K \neq 2$) \\
+    $\ket{0011}$ & $[1,1,0,0]$ & Invest in AAPL and MSFT \\
+    $\ket{1001}$ & $[1,0,0,1]$ & Invest in AAPL and XOM \\
+    $\ket{1100}$ & $[0,0,1,1]$ & Invest in JPM and XOM \\
+    $\ket{0000}$ & $[0,0,0,0]$ & Infeasible (no assets) \\
+    $\ket{1111}$ & $[1,1,1,1]$ & Infeasible (all assets, $K \neq 2$) \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -434,7 +495,7 @@ they should appear with near-zero probability after optimisation.
 \subsection{Approximation Quality and Business Risk}
 
 QAOA with $p=1$ does not always find the exact optimum. Define the
-\emph{success probability} $P^* = P(\ket{1100})$: the probability
+\emph{success probability} $P^* = P(\ket{0011})$: the probability
 the circuit returns the exact optimal portfolio. For $n=4$, $p=1$:
 $P^* \approx 40$--$60\%$. For production use, we would:
 

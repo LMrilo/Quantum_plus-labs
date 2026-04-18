@@ -313,19 +313,31 @@
                             <li><strong>Observe the Q-Sphere</strong> before and after you drop the CNOT gate.</li>
                         </ol>
 
-                        <div class="qsphere-box">
-                            <strong><i class="fa-solid fa-circle-nodes"></i> Q-Sphere Analysis: The Physics of the "Red
-                                Dot"</strong>
-                            <p class="mt-2 mb-0">
-                                Normally, a CNOT flips the target. But observe $q_1$: it remains strictly $|-\rangle$.
-                                Why? Because applying an X gate to $|-\rangle$ yields $-|-\rangle$ (it is an eigenstate
-                                with eigenvalue -1).
-                                <br><br>
-                                This global minus sign is factored out and "absorbed" by the $|1\rangle$ component of
-                                the control qubit $q_0$. You will see the dot for $q_0$'s $|1\rangle$ state turn <span
-                                    class="text-danger fw-bold">Red</span>. <strong>The action of the target kicked back
-                                    to alter the phase of the control!</strong>
+                        <div class="theory-box">
+                            <strong>Phase Kickback — step-by-step derivation:</strong>
+                            <p class="mt-2">
+                                Key fact: $X|-\rangle = -|-\rangle$ (verify: $X\frac{|0\rangle-|1\rangle}{\sqrt{2}}
+                                = \frac{|1\rangle-|0\rangle}{\sqrt{2}} = -|-\rangle$). So $|-\rangle$ is an
+                                <em>eigenstate</em> of X with eigenvalue $-1$.
                             </p>
+                            <p>Now trace the CNOT on the state $|+\rangle_{q_0} \otimes |-\rangle_{q_1}$:</p>
+                            $$\frac{|0\rangle+|1\rangle}{\sqrt{2}} \otimes |-\rangle
+                            \xrightarrow{\text{CNOT}}
+                            \frac{|0\rangle \otimes \underbrace{X^0|-\rangle}_{=|-\rangle}
+                               + |1\rangle \otimes \underbrace{X^1|-\rangle}_{=-|-\rangle}}{\sqrt{2}}
+                            = \frac{|0\rangle|-\rangle - |1\rangle|-\rangle}{\sqrt{2}}$$
+                            $$= \frac{|0\rangle - |1\rangle}{\sqrt{2}} \otimes |-\rangle
+                            = |-\rangle_{q_0} \otimes |-\rangle_{q_1}$$
+                            <p>
+                                The target $q_1$ is <strong>unchanged</strong> ($|-\rangle$ throughout). The phase $-1$
+                                moved to the $|1\rangle$ coefficient of $q_0$, turning $|+\rangle \to |-\rangle$.
+                                <strong>The phase "kicked back" from target to control.</strong>
+                            </p>
+                        </div>
+                        <div class="qsphere-box">
+                            <strong><i class="fa-solid fa-circle-nodes"></i> Q-Sphere view:</strong>
+                            The dot for $q_0$'s $|1\rangle$ state turns <span class="text-danger fw-bold">Red</span>
+                            (phase $\pi$). The target qubit stays $|-\rangle$ — unchanged. Only the control's phase changed.
                         </div>
                     </div>
 
@@ -410,16 +422,22 @@
                                     \frac{(-1)^{f(0)}|0\rangle + (-1)^{f(1)}|1\rangle}{\sqrt{2}} \right) |-\rangle$$
                                 </div>
                             </li>
-                            <li class="mb-2"><strong>Interference (Final H gate):</strong> We apply a final H gate
-                                to the
-                                input qubit. This is where the magic happens:
+                            <li class="mb-2"><strong>Interference (Final H gate):</strong> Apply H to the input qubit.
+                                Recall $H|+\rangle = |0\rangle$ and $H|-\rangle = |1\rangle$.
                                 <ul class="mt-2">
-                                    <li>If $f(0) = f(1)$ (<strong>Constant</strong>), the phases are identical. They
-                                        interfere constructively back to $|0\rangle$.</li>
-                                    <li>If $f(0) \neq f(1)$ (<strong>Balanced</strong>), the phases are opposite.
-                                        They
-                                        interfere destructively on 0, and constructively on $|1\rangle$.</li>
+                                    <li><strong>Constant</strong> ($f(0)=f(1)=c$): phases are equal, so
+                                        $|\psi_2\rangle_\text{input} = (-1)^c\frac{|0\rangle+|1\rangle}{\sqrt{2}} = (-1)^c|+\rangle$.
+                                        Then $H\bigl[(-1)^c|+\rangle\bigr] = (-1)^c|0\rangle$. Measure $\mathbf{0}$.
+                                        (The global phase $(-1)^c$ is invisible.)
+                                    </li>
+                                    <li><strong>Balanced</strong> ($f(0)\neq f(1)$): phases are opposite, so
+                                        $|\psi_2\rangle_\text{input} = \pm\frac{|0\rangle-|1\rangle}{\sqrt{2}} = \pm|-\rangle$.
+                                        Then $H\bigl[\pm|-\rangle\bigr] = \pm|1\rangle$. Measure $\mathbf{1}$.
+                                    </li>
                                 </ul>
+                                <em>Key insight:</em> The H gate is its own inverse ($H^2=I$), so it converts phase
+                                information back into a probability difference — phase $0$ vs $\pi$ becomes
+                                $|0\rangle$ vs $|1\rangle$ with 100% certainty.
                             </li>
                         </ol>
                         <div class="p-3 bg-danger text-white rounded mt-4 text-center fw-bold fs-5 shadow-sm">

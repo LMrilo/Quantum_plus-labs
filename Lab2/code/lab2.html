@@ -234,11 +234,21 @@
                     <div class="col-md-8">
                         <div class="context-box">
                             <strong>Context [QC05]:</strong>
-                            The CNOT gate acts on two qubits: a <em>Control</em> and a <em>Target</em>. It flips the
-                            Target qubit <strong>ONLY IF</strong> the Control qubit is in state $|1\rangle$.
+                            The CNOT gate acts on two qubits: a <em>Control</em> ($q_0$) and a <em>Target</em>
+                            ($q_1$). Rule: <strong>flip the target if and only if the control is $|1\rangle$</strong>.
                             <br><br>
-                            <code>CNOT |00⟩ &rarr; |00⟩</code><br>
-                            <code>CNOT |10⟩ &rarr; |11⟩</code>
+                            <strong>Complete truth table (all 4 basis states):</strong>
+                            <table class="table table-sm table-bordered mt-2" style="font-family:monospace; width:auto">
+                                <thead class="table-dark"><tr><th>Input</th><th>Control $q_0$</th><th>Target $q_1$</th><th>Output</th><th>Action</th></tr></thead>
+                                <tbody>
+                                    <tr><td>$|00\rangle$</td><td>0</td><td>0</td><td>$|00\rangle$</td><td>control=0, no flip</td></tr>
+                                    <tr><td>$|01\rangle$</td><td>0</td><td>1</td><td>$|01\rangle$</td><td>control=0, no flip</td></tr>
+                                    <tr class="table-warning"><td>$|10\rangle$</td><td>1</td><td>0</td><td>$|11\rangle$</td><td>control=1, flip target</td></tr>
+                                    <tr class="table-warning"><td>$|11\rangle$</td><td>1</td><td>1</td><td>$|10\rangle$</td><td>control=1, flip target</td></tr>
+                                </tbody>
+                            </table>
+                            In formula: CNOT$|q_0, q_1\rangle = |q_0,\; q_1 \oplus q_0\rangle$
+                            where $\oplus$ is XOR (addition mod 2). This ensures the gate is reversible.
                         </div>
 
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
@@ -276,11 +286,31 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="context-box">
-                            <strong>Context [QC05]:</strong>
-                            Entanglement is a state where two particles become inextricably linked. The most famous
-                            example is the <strong>Bell State</strong> $|\Phi^+\rangle$:
-                            $$ |\Phi^+\rangle = \frac{|00\rangle + |11\rangle}{\sqrt{2}} $$
-                            This state is created by applying a Hadamard gate followed by a CNOT.
+                            <strong>Context [QC05] — Entanglement:</strong>
+                            A two-qubit state is <em>entangled</em> if it <strong>cannot</strong> be written as
+                            a product $|\psi\rangle \otimes |\phi\rangle$. For example,
+                            $\frac{|00\rangle + |11\rangle}{\sqrt{2}}$ cannot be factored — measuring one qubit
+                            instantly determines the other.
+                        </div>
+
+                        <div class="theory-box">
+                            <strong>Step-by-step derivation of $|\Phi^+\rangle$:</strong>
+                            <ol style="margin-top:8px">
+                                <li><strong>Start:</strong> $|00\rangle = |0\rangle_{q_0} \otimes |0\rangle_{q_1}$</li>
+                                <li><strong>Apply H to $q_0$:</strong>
+                                    $H|0\rangle_{q_0} \otimes |0\rangle_{q_1}
+                                    = \frac{|0\rangle+|1\rangle}{\sqrt{2}} \otimes |0\rangle
+                                    = \frac{|00\rangle + |10\rangle}{\sqrt{2}}$
+                                </li>
+                                <li><strong>Apply CNOT ($q_0$ control, $q_1$ target):</strong>
+                                    $$\frac{|00\rangle + |10\rangle}{\sqrt{2}}
+                                    \xrightarrow{\text{CNOT}}
+                                    \frac{|00\rangle + |11\rangle}{\sqrt{2}} = |\Phi^+\rangle$$
+                                    ($|00\rangle$ stays unchanged; $|10\rangle$ becomes $|11\rangle$ because control=1)
+                                </li>
+                            </ol>
+                            <strong>Why is this entangled?</strong> If you measure $q_0$ and get 0, the state collapses
+                            to $|00\rangle$ — you <em>know</em> $q_1 = 0$ without measuring it. They are correlated.
                         </div>
 
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
@@ -292,7 +322,21 @@
                             <li>Check the <strong>Probabilities</strong>.</li>
                         </ol>
 
-                        <div class="qsphere-box">
+                        <div class="theory-box" style="margin-top:12px">
+                            <strong>The 4 Bell States (complete set):</strong>
+                            <table class="table table-sm table-bordered mt-2" style="font-size:0.85rem">
+                                <thead class="table-dark"><tr><th>State</th><th>Formula</th><th>How to prepare</th></tr></thead>
+                                <tbody>
+                                    <tr class="table-primary"><td>$|\Phi^+\rangle$</td><td>$\frac{|00\rangle+|11\rangle}{\sqrt{2}}$</td><td>H on $q_0$, then CNOT ← <em>this exercise</em></td></tr>
+                                    <tr><td>$|\Phi^-\rangle$</td><td>$\frac{|00\rangle-|11\rangle}{\sqrt{2}}$</td><td>H + CNOT, then Z on $q_0$</td></tr>
+                                    <tr><td>$|\Psi^+\rangle$</td><td>$\frac{|01\rangle+|10\rangle}{\sqrt{2}}$</td><td>X on $q_0$, then H + CNOT</td></tr>
+                                    <tr><td>$|\Psi^-\rangle$</td><td>$\frac{|01\rangle-|10\rangle}{\sqrt{2}}$</td><td>X + Z on $q_0$, then H + CNOT</td></tr>
+                                </tbody>
+                            </table>
+                            All 4 are maximally entangled and form a complete orthonormal basis for 2-qubit space.
+                        </div>
+
+                        <div class="qsphere-box" style="margin-top:12px">
                             <strong><i class="fa-solid fa-circle-nodes"></i> Q-Sphere Visualization:</strong>
                             <br>Look at the Q-Sphere. You will see two dots connected or symmetric.
                             <br>Unlike two separate qubits in superposition (which would show 4 dots: 00, 01, 10, 11),
@@ -379,11 +423,25 @@ qc.measure([0, 1], [0, 1])</code></pre>
                     <div class="task-body">
                         <p>We expand to 3 qubits to create the <strong>GHZ State</strong>:</p>
                         $$ |GHZ\rangle = \frac{|000\rangle + |111\rangle}{\sqrt{2}} $$
+                        <p><strong>Why does this circuit work?</strong></p>
+                        <ol style="font-size:0.9rem">
+                            <li>Start: $|000\rangle$</li>
+                            <li>H on $q_0$: $\frac{|0\rangle+|1\rangle}{\sqrt{2}} \otimes |0\rangle \otimes |0\rangle
+                                = \frac{|000\rangle+|100\rangle}{\sqrt{2}}$</li>
+                            <li>CNOT($q_0 \to q_1$): $\frac{|000\rangle+|110\rangle}{\sqrt{2}}$
+                                ($|100\rangle \to |110\rangle$ because $q_0=1$ flips $q_1$)</li>
+                            <li>CNOT($q_1 \to q_2$): $\frac{|000\rangle+|111\rangle}{\sqrt{2}}$
+                                ($|110\rangle \to |111\rangle$ because $q_1=1$ flips $q_2$)</li>
+                        </ol>
+                        <pre class="bg-dark text-white p-3 rounded mt-2"><code>qc = QuantumCircuit(3, 3)
+qc.h(0)
+qc.cx(0, 1)   # q0 controls q1
+qc.cx(1, 2)   # q1 controls q2
+qc.measure([0,1,2],[0,1,2])</code></pre>
                         <div class="alert alert-warning py-2 mb-0 mt-3 small">
-                            <strong><i class="fa-solid fa-bolt"></i> Concept Preview: Decoherence.</strong><br>
-                            As confirmed by recent benchmarks, maintaining coherence across multiple qubits is
-                            exponentially harder due to environmental noise. You might start seeing errors like '001' in
-                            real systems!
+                            <strong><i class="fa-solid fa-bolt"></i> Concept: Decoherence.</strong><br>
+                            More qubits = more contact with the environment = faster decoherence.
+                            On real hardware you may see error states like '001' or '010'.
                         </div>
                     </div>
                 </div>
