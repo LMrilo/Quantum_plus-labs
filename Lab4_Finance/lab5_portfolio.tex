@@ -462,104 +462,7 @@ The optimal QAOA parameters $(\gamma^*,\beta^*)$ also shift.
 \end{mathbox}
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{Part E: IBM Composer Exercise}
-% ══════════════════════════════════════════════════════════════════════════════
-
-\textit{Platform: IBM Quantum Composer ---
-\url{https://quantum.ibm.com/composer}}
-
-\begin{studentbox}
-\textbf{Goal:} Build a $p=1$ QAOA circuit for the portfolio and observe
-how the cost unitary and mixer work together to suppress infeasible states
-and amplify the optimal portfolio $\ket{0011}$ (AAPL + MSFT).
-
-\medskip
-\textbf{Why these specific angles?}
-\begin{itemize}
-    \item $\gamma = 0.39$ is close to the analytically optimal $\gamma^* \approx \pi/8$
-    for symmetric MaxCut-like problems with $p=1$. It controls how strongly the
-    cost Hamiltonian ``marks'' good vs.\ bad solutions: too small and nothing
-    happens; too large and the state over-rotates past the optimum.
-    \item $\beta = 0.79 \approx \pi/4$ is the mixer angle that maximises the
-    probability transfer from marked to unmarked states for $p=1$. It is
-    related to the TFIM (transverse-field Ising model) critical angle.
-    These values are reasonable starting points; in practice COBYLA refines
-    them further.
-\end{itemize}
-
-\textbf{Why CNOT\,--\,$R_z$\,--\,CNOT for a $ZZ$ term?}
-The operator $e^{-i\gamma J\, Z_i Z_j}$ cannot be applied with a single
-gate. The identity:
-$e^{-i\gamma J\, Z_iZ_j} = \mathrm{CNOT}_{ij}\cdot(I\otimes e^{-i\gamma J\,Z_j})\cdot\mathrm{CNOT}_{ij}$
-holds because CNOT maps $Z_iZ_j \to IZ_j$, letting us apply the rotation
-as a single $R_z$, then undo the mapping.
-
-\medskip
-\textbf{Steps:}
-\begin{enumerate}
-    \item \textbf{$H^{\otimes 4}$.} Creates equal superposition of all 16 bitstrings.
-          Without this step the circuit starts in $\ket{0000}$ and no optimisation
-          is possible — we need all candidate portfolios simultaneously present.
-
-    \item \textbf{First $ZZ$ term (AAPL--MSFT, coeff $\approx 3.09$).}
-          CNOT$(q_0,q_1)$ → $R_z(2 \cdot 0.39 \cdot 3.09) = R_z(2.41)$ on $q_1$
-          → CNOT$(q_0,q_1)$.
-          \emph{This rotates the phase of states where both AAPL and MSFT are
-          selected — encoding the covariance risk between them.}
-
-    \item \textbf{$Z_0$ single-qubit term (AAPL, coeff $\approx +0.16$).}
-          $R_z(2 \cdot 0.39 \cdot 0.16) = R_z(0.12)$ on $q_0$.
-          \emph{This encodes the return contribution of AAPL alone.}
-
-    \item \textbf{Mixer: $R_x(2\beta) = R_x(1.57)$ on all qubits.}
-          \emph{This creates transitions between bitstrings, converting
-          the accumulated phase differences into amplitude differences
-          (quantum interference).}
-
-    \item \textbf{Measure.} The states with exactly two 1s (feasible portfolios)
-          should appear more often than infeasible ones.
-\end{enumerate}
-
-\textbf{Key experiment:} Run the full circuit, then remove the $R_z$ gates and
-re-run. Without the cost unitary all feasible and infeasible states remain
-equally probable — the $R_z$ terms are the only source of discrimination.
-
-\medskip
-\textbf{OpenQASM 2.0 — paste directly into Composer:}
-\begin{lstlisting}[language={}]
-OPENQASM 2.0;
-include "qelib1.inc";
-// QAOA p=1 for portfolio (simplified: 1 ZZ term + 1 Z term)
-// q[0]=AAPL, q[1]=MSFT, q[2]=JPM, q[3]=XOM
-// gamma=0.39, beta=0.79  (approximate optimal for p=1)
-qreg q[4];
-creg c[4];
-// Initialisation: uniform superposition
-h q[0]; h q[1]; h q[2]; h q[3];
-// Cost unitary -- ZZ term for AAPL-MSFT (coeff=3.09)
-// e^{-i*gamma*3.09*Z0Z1} via CNOT-Rz-CNOT
-cx q[0],q[1];
-rz(2*0.39*3.09) q[1];   // rz(2.41)
-cx q[0],q[1];
-// Cost unitary -- single Z term for AAPL (coeff=0.16)
-rz(2*0.39*0.16) q[0];   // rz(0.12)
-// Mixer: Rx(2*beta) on all qubits
-rx(2*0.79) q[0];
-rx(2*0.79) q[1];
-rx(2*0.79) q[2];
-rx(2*0.79) q[3];
-// Measure
-measure q[0] -> c[0];
-measure q[1] -> c[1];
-measure q[2] -> c[2];
-measure q[3] -> c[3];
-// Observe: states 0011 (AAPL+MSFT) and 1001 (AAPL+XOM) should dominate
-// Infeasible states (0000, 1111, 0001...) should be suppressed
-\end{lstlisting}
-\end{studentbox}
-
-% ══════════════════════════════════════════════════════════════════════════════
-\section{Part F: Qiskit Python Implementation}
+\section{Part E: Qiskit Python Implementation}
 % ══════════════════════════════════════════════════════════════════════════════
 
 The full implementation is in the companion notebook. Three exercises
@@ -597,7 +500,7 @@ def build_portfolio_hamiltonian(Q: np.ndarray) -> SparsePauliOp:
 \end{tcolorbox}
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{Part G: Scaling and Outlook}
+\section{Part F: Scaling and Outlook}
 % ══════════════════════════════════════════════════════════════════════════════
 
 \subsection{Scaling to Larger Portfolios}
@@ -644,7 +547,7 @@ only $1225$ two-qubit gates per layer — within reach of near-term hardware.
 \end{itemize}
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{Part H: Assessment}
+\section{Part G: Assessment}
 % ══════════════════════════════════════════════════════════════════════════════
 
 \textbf{Q1.\ QUBO Formulation}\\
