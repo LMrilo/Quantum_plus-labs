@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Lab 5: Quantum Measurements</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --clr-bg:      #f0f2f8;
+            --clr-hero1:   #0d0221;
+            --clr-hero2:   #1a0a4e;
+            --clr-accent:  #f59e0b;
+            --clr-accent2: #6d28d9;
+            --clr-teal:    #0d9488;
+            --clr-blue:    #1d4ed8;
+        }
+
+        body {
+            background-color: var(--clr-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* ── Hero ────────────────────────────────────────────────────────────── */
+        .hero-section {
+            background: linear-gradient(135deg, var(--clr-hero1) 0%, var(--clr-hero2) 55%, #2e1065 100%);
+            color: white;
+            padding: 3.8rem 0;
+            border-bottom: 5px solid var(--clr-accent);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(245,158,11,0.04) 0px,
+                rgba(245,158,11,0.04) 1px,
+                transparent 1px,
+                transparent 50px
+            );
+        }
+        .hero-badge {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 30px;
+            padding: 5px 16px;
+            font-size: .82rem;
+            display: inline-block;
+            margin: 3px 4px;
+        }
+        .hero-tag {
+            background: var(--clr-accent);
+            color: #1a0a4e;
+            border-radius: 4px;
+            padding: 3px 10px;
+            font-weight: 700;
+            font-size: .8rem;
+            letter-spacing: .5px;
+            display: inline-block;
+            margin: 3px 4px;
+        }
+
+        /* ── Info Boxes ──────────────────────────────────────────────────────── */
+        .theory-box {
+            background-color: #eff6ff;
+            border-left: 5px solid var(--clr-blue);
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .context-box {
+            background-color: #fffbeb;
+            border-left: 5px solid var(--clr-accent);
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .warning-box {
+            background-color: #fff7ed;
+            border-left: 5px solid #f97316;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .outcome-box {
+            background-color: #f5f3ff;
+            border-left: 5px solid var(--clr-accent2);
+            padding: 18px 20px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+        .outcome-number {
+            background: var(--clr-accent2);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .9rem;
+            flex-shrink: 0;
+        }
+        .deepdive-box {
+            background-color: #f0fdfa;
+            border-left: 5px solid var(--clr-teal);
+            padding: 18px 20px;
+            margin-top: 18px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .report-box {
+            background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+            border-left: 5px solid var(--clr-accent2);
+            padding: 22px 26px;
+            border-radius: 8px;
+            margin-bottom: 22px;
+            box-shadow: 0 3px 12px rgba(109,40,217,.08);
+        }
+
+        /* ── Task Cards ──────────────────────────────────────────────────────── */
+        .task-box {
+            border: 1px solid #dde4ee;
+            border-radius: 12px;
+            background: white;
+            margin-bottom: 35px;
+            transition: transform 0.2s;
+            box-shadow: 0 3px 12px rgba(0,0,0,.05);
+            overflow: hidden;
+        }
+        .task-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.10);
+        }
+        .task-header {
+            background-color: #f8f5ff;
+            padding: 14px 22px;
+            border-bottom: 1px solid #dde4ee;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-body {
+            padding: 26px;
+        }
+
+        /* ── Activity Badges ─────────────────────────────────────────────────── */
+        .activity-badge {
+            font-family: monospace;
+            font-size: 0.85em;
+            padding: 4px 12px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .badge-bloch    { background-color: #4f46e5; color: white; }
+        .badge-basis    { background-color: #0891b2; color: white; }
+        .badge-photon   { background-color: #16a34a; color: white; }
+        .badge-spin     { background-color: #dc2626; color: white; }
+        .badge-seq      { background-color: #d97706; color: white; }
+
+        /* ── Simulator Link Cards ────────────────────────────────────────────── */
+        .sim-card {
+            border: 1px solid #e0e7ff;
+            border-radius: 10px;
+            background: white;
+            padding: 20px 22px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        }
+        .sim-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.10);
+            border-color: var(--clr-accent2);
+        }
+        .sim-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .sim-icon-quvis   { background: #ede9fe; color: #6d28d9; }
+        .sim-icon-phet    { background: #fef9c3; color: #a16207; }
+        .sim-icon-flytrap { background: #d1fae5; color: #065f46; }
+        .sim-icon-ibm     { background: #dbeafe; color: #1e40af; }
+        .sim-title { font-weight: 700; font-size: 1rem; margin-bottom: 3px; }
+        .sim-desc  { font-size: .87rem; color: #6b7280; }
+        .sim-tag   { font-size: .75rem; font-weight: 600; padding: 2px 8px;
+                     border-radius: 10px; background: #f3f4f6; color: #374151; }
+
+        /* ── Feedback (quiz) ─────────────────────────────────────────────────── */
+        .feedback {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        .wrong {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+            border: 1px solid #fca5a5;
+        }
+
+        /* ── Section Headers ─────────────────────────────────────────────────── */
+        .section-title {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            margin-bottom: 28px;
+            color: #2e1065;
+        }
+
+        /* ── Math styling (MathJax fallback) ────────────────────────────────── */
+        .math-display {
+            text-align: center;
+            padding: 8px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .sim-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!--  HERO                                                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <div class="hero-section text-center">
+        <div class="container position-relative">
+            <p class="mb-2" style="font-size:.8rem;letter-spacing:2px;text-transform:uppercase;opacity:.7;">
+                Quantum Computing Foundation
+            </p>
+            <h1 class="display-4 fw-bold mb-2">
+                <i class="fa-solid fa-bullseye"></i> Lab 5: Quantum Measurements
+            </h1>
+            <p class="lead mb-4 opacity-75">
+                Superposition, State Collapse, Spin &amp; Polarization on the Bloch Sphere
+            </p>
+            <div>
+                <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisite: Fundamental Concepts of Quantum Technologies</span>
+                <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
+                <span class="hero-badge"><i class="fa-solid fa-globe me-1"></i>Mode: Online Simulators</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!--  RATIONALE                                                              -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <div class="container mt-5">
+
+        <div class="row mb-5">
+            <div class="col-lg-9 mx-auto">
+                <h2 class="section-title"><i class="fa-solid fa-microscope text-warning me-2"></i>Rationale</h2>
+                <p class="fs-5 text-secondary lh-lg">
+                    This laboratory offers an <strong>experimental verification and visualization</strong> of the
+                    fundamental quantum concepts presented in the
+                    <em>Fundamental Concepts of Quantum Technologies</em> course. Students will explore
+                    <strong>superposition</strong>, <strong>quantum measurement</strong>,
+                    <strong>photon polarization</strong>, and <strong>electron spin</strong> represented
+                    on the Bloch sphere. Through guided simulations, students will analyze how measurement
+                    affects quantum states, how probabilistic outcomes emerge, and how spin and polarization
+                    can be used to encode and manipulate quantum information.
+                </p>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  LEARNING OUTCOMES                                                  -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title"><i class="fa-solid fa-star text-warning me-2"></i>Learning Outcomes</h2>
+        <div class="col-lg-9 mx-auto mb-5">
+
+            <div class="outcome-box">
+                <div class="outcome-number">1</div>
+                <div>
+                    <strong>Connect</strong> abstract quantum principles to measurable physical phenomena.
+                </div>
+            </div>
+
+            <div class="outcome-box">
+                <div class="outcome-number">2</div>
+                <div>
+                    <strong>Describe</strong> how measurement defines and changes information in quantum systems.
+                </div>
+            </div>
+
+            <div class="outcome-box">
+                <div class="outcome-number">3</div>
+                <div>
+                    <strong>Interpret</strong> visual representations of qubit states on the Bloch sphere using
+                    spherical coordinates $(\theta, \varphi)$.
+                </div>
+            </div>
+
+            <div class="outcome-box">
+                <div class="outcome-number">4</div>
+                <div>
+                    <strong>Explain</strong> how polarization and spin illustrate superposition and state collapse.
+                </div>
+            </div>
+
+            <div class="outcome-box">
+                <div class="outcome-number">5</div>
+                <div>
+                    <strong>Develop</strong> conceptual intuition about the probabilistic nature of quantum
+                    measurement and the Born rule
+                    $P(m) = |\langle m | \psi \rangle|^2$.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  THEORETICAL BACKGROUND                                             -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title"><i class="fa-solid fa-square-root-variable text-warning me-2"></i>
+            Theoretical Background</h2>
+
+        <div class="col-lg-9 mx-auto mb-5">
+            <div class="theory-box">
+                <strong><i class="fa-solid fa-atom me-1"></i>The Measurement Postulate</strong>
+                <p class="mt-2 mb-1">
+                    For a qubit in state $|\psi\rangle$ measured in basis $\{|m\rangle\}$,
+                    the probability of outcome $m$ and the post-measurement state are:
+                    $$P(m) = |\langle m | \psi \rangle|^2 \qquad |\psi\rangle \xrightarrow{\text{measure}} |m\rangle$$
+                    This irreversible projection is <strong>state collapse</strong>.
+                </p>
+            </div>
+
+            <div class="theory-box">
+                <strong><i class="fa-solid fa-globe me-1"></i>Bloch Sphere Parametrization</strong>
+                <p class="mt-2 mb-1">
+                    Any single-qubit pure state can be written as:
+                    $$|\psi\rangle = \cos\!\left(\frac{\theta}{2}\right)|0\rangle
+                    + e^{i\varphi}\sin\!\left(\frac{\theta}{2}\right)|1\rangle,
+                    \qquad \theta \in [0,\pi],\; \varphi \in [0, 2\pi)$$
+                    The six cardinal states are:
+                    $|0\rangle$ (North), $|1\rangle$ (South),
+                    $|{+}\rangle$ ($+X$), $|{-}\rangle$ ($-X$),
+                    $|{i}\rangle$ ($+Y$), $|{-i}\rangle$ ($-Y$).
+                </p>
+            </div>
+
+            <div class="theory-box">
+                <strong><i class="fa-solid fa-table me-1"></i>Pauli Operators &amp; Eigenstates</strong>
+                <p class="mt-2 mb-0">
+                    $$\hat{X} = \begin{pmatrix}0&1\\1&0\end{pmatrix},\quad
+                      \hat{Y} = \begin{pmatrix}0&-i\\i&0\end{pmatrix},\quad
+                      \hat{Z} = \begin{pmatrix}1&0\\0&-1\end{pmatrix}$$
+                    Measuring in the $Z$-basis collapses to $|0\rangle$ or $|1\rangle$.
+                    Measuring in the $X$-basis collapses to $|{+}\rangle$ or $|{-}\rangle$.
+                    Since $[\hat{X}, \hat{Z}] = \hat{X}\hat{Z} - \hat{Z}\hat{X} \neq 0$,
+                    these observables are <strong>incompatible</strong> — sequential measurements
+                    in different bases destroy prior information.
+                </p>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  ACTIVITIES                                                          -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title"><i class="fa-solid fa-flask text-warning me-2"></i>Activities</h2>
+
+        <!-- Activity 1 -->
+        <div class="task-box">
+            <div class="task-header">
+                <span><i class="fa-solid fa-globe me-2"></i>Activity 1: State Preparation &amp; Bloch Sphere</span>
+                <span class="activity-badge badge-bloch">BLOCH SPHERE</span>
+            </div>
+            <div class="task-body">
+                <div class="context-box">
+                    <strong>Goal:</strong>
+                    Build visual intuition for qubit states by placing them on the Bloch sphere and understanding
+                    the spherical coordinate parametrization $(\theta, \varphi)$.
+                </div>
+
+                <div class="theory-box">
+                    <strong>Theory:</strong> The six standard basis states and their Bloch coordinates:
+                    <div class="row text-center mt-2" style="font-size:.9rem">
+                        <div class="col-6 col-md-2 mb-2"><span class="badge bg-primary">|0⟩</span><br><small>$\theta=0$</small></div>
+                        <div class="col-6 col-md-2 mb-2"><span class="badge bg-danger">|1⟩</span><br><small>$\theta=\pi$</small></div>
+                        <div class="col-6 col-md-2 mb-2"><span class="badge bg-success">|+⟩</span><br><small>$\theta=\frac{\pi}{2}, \varphi=0$</small></div>
+                        <div class="col-6 col-md-2 mb-2"><span class="badge bg-warning text-dark">|−⟩</span><br><small>$\theta=\frac{\pi}{2}, \varphi=\pi$</small></div>
+                        <div class="col-6 col-md-2 mb-2"><span class="badge bg-info">|i⟩</span><br><small>$\theta=\frac{\pi}{2}, \varphi=\frac{\pi}{2}$</small></div>
+                        <div class="col-6 col-md-2 mb-2"><span class="badge bg-secondary">|−i⟩</span><br><small>$\theta=\frac{\pi}{2}, \varphi=\frac{3\pi}{2}$</small></div>
+                    </div>
+                </div>
+
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (QuVis Bloch Sphere Simulator):</h6>
+                <ol>
+                    <li>Open the <strong>QuVis Bloch Sphere Simulator</strong> (link below).</li>
+                    <li>Prepare each of the six states above by adjusting $\theta$ and $\varphi$ sliders.</li>
+                    <li>Observe how the Bloch vector moves to the poles (for $|0\rangle$, $|1\rangle$) and the equator (for $|{+}\rangle$, $|{-}\rangle$, $|i\rangle$, $|{-i}\rangle$).</li>
+                    <li>Note that <strong>global phase</strong> is not visible on the Bloch sphere.</li>
+                </ol>
+
+                <div class="deepdive-box">
+                    <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
+                    Why do $|{+}\rangle$ and $|{-}\rangle$ both have $\theta = \pi/2$ but lie on opposite sides of the equator?
+                    What does $\varphi$ physically represent?
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity 2 -->
+        <div class="task-box">
+            <div class="task-header">
+                <span><i class="fa-solid fa-ruler me-2"></i>Activity 2: Measurement in Different Bases</span>
+                <span class="activity-badge badge-basis">BORN RULE</span>
+            </div>
+            <div class="task-body">
+                <div class="context-box">
+                    <strong>Goal:</strong>
+                    Measure the same state in the $Z$, $X$, and $Y$ bases and observe how the measurement
+                    basis entirely determines the outcome probability distribution.
+                </div>
+
+                <div class="theory-box">
+                    <strong>Theory — Born Rule in Practice:</strong>
+                    <br>Prepare $|\psi\rangle = |{+}\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle)$.
+                    <br>Measuring in the <strong>Z-basis</strong>: $P(0) = P(1) = 50\%$.
+                    <br>Measuring in the <strong>X-basis</strong>: $P({+}) = 100\%$, $P({-}) = 0\%$.
+                    <br>Why? Because $\langle{+}|{+}\rangle = 1$ and $\langle{-}|{+}\rangle = 0$.
+                </div>
+
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions:</h6>
+                <ol>
+                    <li>In the QuVis simulator, prepare the state $|{+}\rangle$ ($\theta=\pi/2$, $\varphi=0$).</li>
+                    <li>Select measurement in the <strong>Z-basis</strong>. Click "Measure" multiple times. Record the outcomes.</li>
+                    <li>Repeat, now selecting the <strong>X-basis</strong>. Observe that the result is always $|{+}\rangle$.</li>
+                    <li>Repeat with the <strong>Y-basis</strong>. Verify that outcomes are again 50/50.</li>
+                    <li>For each trial, record: <em>initial state → basis chosen → outcome probabilities → observed outcome</em>.</li>
+                </ol>
+
+                <div class="deepdive-box">
+                    <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
+                    Why does measuring $|{+}\rangle$ in the X-basis always give the same result?
+                    How does this change if you instead prepare $|{-}\rangle$?
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity 3 -->
+        <div class="task-box">
+            <div class="task-header">
+                <span><i class="fa-solid fa-wave-square me-2"></i>Activity 3: Photon Polarization</span>
+                <span class="activity-badge badge-photon">POLARIZATION</span>
+            </div>
+            <div class="task-body">
+                <div class="context-box">
+                    <strong>Goal:</strong>
+                    Map classical photon polarization to qubit states. Observe how a polarizer acts as a
+                    quantum measurement device and causes state collapse.
+                </div>
+
+                <div class="theory-box">
+                    <strong>Theory — Polarization as Qubit Encoding:</strong>
+                    <br>Horizontal polarization $\leftrightarrow |0\rangle$,&nbsp;
+                    Vertical polarization $\leftrightarrow |1\rangle$.
+                    <br>Diagonal ($45°$) polarization $\leftrightarrow |{+}\rangle = \frac{|0\rangle+|1\rangle}{\sqrt{2}}$.
+                    <br>A polarizer oriented at angle $\alpha$ measures in the basis
+                    $\{|\alpha\rangle, |\alpha+90°\rangle\}$.
+                    A photon passes or is blocked according to $P(\text{pass}) = \cos^2(\alpha - \theta_\text{initial})$
+                    (Malus's Law — the classical limit of the Born rule).
+                </div>
+
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (Quantum Flytrap Virtual Lab):</h6>
+                <ol>
+                    <li>Open Quantum Flytrap (link below). Select a single-photon polarization experiment.</li>
+                    <li>Prepare a <strong>horizontally polarized</strong> photon and pass it through a <strong>vertical</strong> polarizer. Note: 0% transmission.</li>
+                    <li>Prepare a <strong>diagonally polarized</strong> photon ($45°$) and measure with a vertical polarizer. Note: 50% transmission.</li>
+                    <li>After passing a $45°$ photon through a vertical polarizer (which gives $|1\rangle$ upon passing), measure again with a horizontal polarizer. Note: 50% again — the state has been reset to $|1\rangle$, not $|{+}\rangle$.</li>
+                    <li>Record each measurement and explain what state the photon is in before and after each polarizer.</li>
+                </ol>
+
+                <div class="deepdive-box">
+                    <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
+                    Why does inserting a polarizer at $45°$ between two crossed polarizers allow light through,
+                    even though the crossed polarizers alone block 100% of the light?
+                    (Hint: state collapse resets the photon's information.)
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity 4 -->
+        <div class="task-box">
+            <div class="task-header">
+                <span><i class="fa-solid fa-magnet me-2"></i>Activity 4: Electron Spin &amp; Stern-Gerlach</span>
+                <span class="activity-badge badge-spin">SPIN</span>
+            </div>
+            <div class="task-body">
+                <div class="context-box">
+                    <strong>Goal:</strong>
+                    Use the Stern-Gerlach apparatus to observe spin quantization. Understand how spin-up
+                    and spin-down states along different axes map to qubit states and Bloch sphere positions.
+                </div>
+
+                <div class="theory-box">
+                    <strong>Theory — Spin and the Bloch Sphere:</strong>
+                    <br>The electron spin observable along axis $\hat{n} = (\sin\theta\cos\varphi,\sin\theta\sin\varphi,\cos\theta)$ is:
+                    $$\hat{S}_{\hat{n}} = \frac{\hbar}{2}\hat{\sigma}_{\hat{n}}
+                    = \frac{\hbar}{2}(\sin\theta\cos\varphi\,\hat{X} + \sin\theta\sin\varphi\,\hat{Y} + \cos\theta\,\hat{Z})$$
+                    The Stern-Gerlach apparatus oriented along $\hat{n}$ splits the beam into
+                    spin-up ($+\hbar/2$) and spin-down ($-\hbar/2$) outputs.
+                </div>
+
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (PhET Stern-Gerlach):</h6>
+                <ol>
+                    <li>Open the PhET Stern-Gerlach simulation (link below).</li>
+                    <li>Send atoms through a <strong>Z-oriented</strong> apparatus. Observe the beam splitting into two.</li>
+                    <li>Select only the spin-up output ($|\uparrow_z\rangle = |0\rangle$). Send it through a <strong>second Z apparatus</strong>. Observe: 100% spin-up. The state is known.</li>
+                    <li>Now send the spin-up beam through an <strong>X-oriented</strong> apparatus instead. Observe: 50/50 split. Why? $|0\rangle = \frac{1}{\sqrt{2}}(|{+}\rangle + |{-}\rangle)$.</li>
+                    <li>Select only $|{+}\rangle$ from the X apparatus, then send through a third <strong>Z apparatus</strong>. Observe: 50/50 again — the X measurement erased the Z information.</li>
+                </ol>
+
+                <div class="deepdive-box">
+                    <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
+                    How does this sequential Stern-Gerlach experiment demonstrate that $[\hat{S}_x, \hat{S}_z] \neq 0$?
+                    What would you expect if $\hat{S}_x$ and $\hat{S}_z$ commuted?
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity 5 -->
+        <div class="task-box">
+            <div class="task-header">
+                <span><i class="fa-solid fa-shuffle me-2"></i>Activity 5: Sequential Measurements &amp; State Collapse</span>
+                <span class="activity-badge badge-seq">NON-COMMUTATIVITY</span>
+            </div>
+            <div class="task-body">
+                <div class="context-box">
+                    <strong>Goal:</strong>
+                    Demonstrate that measuring in $Z$, then $X$, then $Z$ again produces random outcomes
+                    in the final $Z$ measurement, even if the first $Z$ gave a definite result.
+                    This builds concrete intuition for $[\hat{X}, \hat{Z}] \neq 0$.
+                </div>
+
+                <div class="theory-box">
+                    <strong>Theory — Non-Commutativity Proof:</strong>
+                    $$[\hat{X}, \hat{Z}] = \hat{X}\hat{Z} - \hat{Z}\hat{X}
+                    = \begin{pmatrix}0&1\\1&0\end{pmatrix}\begin{pmatrix}1&0\\0&-1\end{pmatrix}
+                    - \begin{pmatrix}1&0\\0&-1\end{pmatrix}\begin{pmatrix}0&1\\1&0\end{pmatrix}
+                    = \begin{pmatrix}0&-2\\2&0\end{pmatrix} \neq 0$$
+                    This means $\hat{X}$ and $\hat{Z}$ cannot be simultaneously diagonalized — they have no common eigenstates.
+                </div>
+
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (IBM Quantum Composer):</h6>
+                <ol>
+                    <li>Open IBM Quantum Composer (link below). Start with $|0\rangle$.</li>
+                    <li><strong>First Z-measurement:</strong> Add a measurement gate. Run. Note the outcome is always $0$.</li>
+                    <li><strong>X-measurement:</strong> After the first circuit, apply $H$ then measure. The outcome is 50/50.</li>
+                    <li><strong>Second Z-measurement:</strong> After step 3, apply $H$ again then measure. The outcome is again 50/50 — the X-measurement destroyed the $Z$ information.</li>
+                    <li>Compare to Z→Z→Z: Start fresh. Measure $Z$ twice in sequence. Outcome is always the same (no destruction).</li>
+                </ol>
+
+                <div class="warning-box">
+                    <strong><i class="fa-solid fa-triangle-exclamation me-1"></i>Qiskit Convention:</strong>
+                    Qiskit uses <strong>Little Endian</strong> ordering. In a bitstring like <code>|10⟩</code>,
+                    the rightmost bit is qubit 0. Keep this in mind when reading circuit measurement results.
+                </div>
+
+                <div class="deepdive-box">
+                    <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
+                    Express the sequence Z→X→Z algebraically using projection operators.
+                    Why does the intermediate X measurement introduce irreducible randomness into the
+                    final Z outcome, regardless of the initial state?
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  SIMULATORS                                                          -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title mt-2">
+            <i class="fa-solid fa-computer text-warning me-2"></i>Simulator Tools
+        </h2>
+
+        <p class="text-secondary mb-4">
+            Open each simulator in a separate browser tab. You do not need to install any software.
+        </p>
+
+        <a href="https://www.st-andrews.ac.uk/physics/quvis/" target="_blank" class="sim-card">
+            <div class="sim-icon sim-icon-quvis"><i class="fa-solid fa-globe"></i></div>
+            <div class="flex-grow-1">
+                <div class="sim-title">QuVis — Bloch Sphere &amp; Measurement Simulator</div>
+                <div class="sim-desc">
+                    University of St Andrews. Interactive Bloch sphere with adjustable $(\theta, \varphi)$ sliders,
+                    measurement in Z/X/Y bases, and state collapse visualization.
+                </div>
+                <div class="mt-1">
+                    <span class="sim-tag me-1">Activity 1</span>
+                    <span class="sim-tag me-1">Activity 2</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
+        </a>
+
+        <a href="https://phet.colorado.edu/en/simulations/stern-gerlach" target="_blank" class="sim-card">
+            <div class="sim-icon sim-icon-phet"><i class="fa-solid fa-magnet"></i></div>
+            <div class="flex-grow-1">
+                <div class="sim-title">PhET — Stern-Gerlach Experiment</div>
+                <div class="sim-desc">
+                    University of Colorado Boulder. Simulate electrons through sequential Stern-Gerlach
+                    apparatuses oriented along arbitrary axes. Observe beam splitting and spin-state collapse.
+                </div>
+                <div class="mt-1">
+                    <span class="sim-tag me-1">Activity 4</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
+        </a>
+
+        <a href="https://lab.quantumflytrap.com/" target="_blank" class="sim-card">
+            <div class="sim-icon sim-icon-flytrap"><i class="fa-solid fa-wave-square"></i></div>
+            <div class="flex-grow-1">
+                <div class="sim-title">Quantum Flytrap — Virtual Lab</div>
+                <div class="sim-desc">
+                    Interactive photon polarization experiments with beam splitters, wave plates, and
+                    polarizers. Drag-and-drop optical table for photon path visualization and state readout.
+                </div>
+                <div class="mt-1">
+                    <span class="sim-tag me-1">Activity 3</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
+        </a>
+
+        <a href="https://quantum.ibm.com/composer" target="_blank" class="sim-card">
+            <div class="sim-icon sim-icon-ibm"><i class="fa-solid fa-microchip"></i></div>
+            <div class="flex-grow-1">
+                <div class="sim-title">IBM Quantum Composer</div>
+                <div class="sim-desc">
+                    Drag-and-drop quantum circuit builder. Use for single-qubit circuits with sequential
+                    measurements to demonstrate non-commutativity and state collapse statistics.
+                </div>
+                <div class="mt-1">
+                    <span class="sim-tag me-1">Activity 5</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
+        </a>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  REPORT GUIDELINES                                                  -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title mt-5">
+            <i class="fa-solid fa-file-lines text-warning me-2"></i>Report Guidelines
+        </h2>
+
+        <div class="report-box">
+            <h5 class="mb-3"><i class="fa-solid fa-pencil me-2"></i>Laboratory Report</h5>
+            <p class="mb-3">
+                Produce a <strong>PDF report (10–15 pages)</strong> documenting your work for each activity.
+                Submit within <strong>15 days</strong> of the lab session.
+            </p>
+
+            <h6>For each activity, include:</h6>
+            <ul>
+                <li><strong>Screenshots</strong> of the simulator at each key step.</li>
+                <li>
+                    A <strong>measurement table</strong>: initial state | basis used | theoretical probabilities
+                    (Born rule) | observed outcome(s).
+                </li>
+                <li>Brief explanation of each result in your own words.</li>
+            </ul>
+
+            <h6 class="mt-3">Reflection Questions to Answer:</h6>
+            <ol>
+                <li>
+                    <em>"Why does measuring $|{+}\rangle$ in the X-basis always give the same result?"</em><br>
+                    <small class="text-muted">Hint: compute $\langle{+}|\hat{X}|{+}\rangle$ and $|\langle{+}|{+}\rangle|^2$.</small>
+                </li>
+                <li>
+                    <em>"What happens to the Bloch vector after a Z-basis measurement?"</em><br>
+                    <small class="text-muted">Describe the geometric transformation of an arbitrary equatorial state under measurement.</small>
+                </li>
+                <li>
+                    <em>"How does the Stern-Gerlach experiment demonstrate state collapse?"</em><br>
+                    <small class="text-muted">Use the sequence Z→X→Z to build your argument. Relate to the non-commutativity of $\hat{S}_x$ and $\hat{S}_z$.</small>
+                </li>
+            </ol>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  RESOURCES                                                           -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title mt-2">
+            <i class="fa-solid fa-book text-warning me-2"></i>Resources &amp; Further Reading
+        </h2>
+
+        <div class="row g-3 mb-5">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary"><i class="fa-solid fa-book-open me-1"></i>Textbooks</h6>
+                        <ul class="small text-secondary mb-0">
+                            <li>Nielsen &amp; Chuang, <em>Quantum Computation and Quantum Information</em>, Ch. 2.2 (Measurement postulate)</li>
+                            <li>Griffiths, <em>Introduction to Quantum Mechanics</em>, Ch. 1 (The statistical interpretation)</li>
+                            <li>Preskill, <em>Lecture Notes on Quantum Information</em>, Ch. 2 (Foundations)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary"><i class="fa-solid fa-link me-1"></i>Online References</h6>
+                        <ul class="small text-secondary mb-0">
+                            <li><a href="https://qiskit.org/documentation/" target="_blank">Qiskit Documentation</a> — Statevector &amp; measurement simulation</li>
+                            <li>IBM Quantum Learning — "Basics of Quantum Information"</li>
+                            <li>QuVis Learning Modules — Bloch sphere and measurement tutorials</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary"><i class="fa-solid fa-file-pdf me-1"></i>Course Support Material</h6>
+                        <ul class="small text-secondary mb-0">
+                            <li><code>support_material/quantum_interference.pdf</code> — Interference and phase</li>
+                            <li><code>support_material/phase_kickback_proof.pdf</code> — Phase relationship proofs</li>
+                            <li><code>support_material/amplitude_amplification.pdf</code> — Amplification formalism</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary"><i class="fa-solid fa-code me-1"></i>Companion Notebook</h6>
+                        <p class="small text-secondary mb-2">
+                            The Jupyter notebook companion for this lab provides Qiskit-based analytical tools:
+                            Bloch sphere visualization, Born rule computation, and sequential measurement statistics.
+                        </p>
+                        <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab5/lab5_quantum_measurements.ipynb"
+                           target="_blank"
+                           class="btn btn-sm"
+                           style="background:#f9ab00;color:white;font-weight:700;">
+                            <i class="fa-solid fa-rocket me-1"></i>Launch Notebook
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  ASSESSMENT QUIZ                                                    -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title">
+            <i class="fa-solid fa-clipboard-check text-warning me-2"></i>Self-Assessment
+        </h2>
+
+        <p class="text-muted mb-4">
+            Check your understanding before submitting the report.
+        </p>
+
+        <div class="card mb-3 border-light shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">1. The Born Rule</h5>
+                <p>
+                    A qubit is prepared in state $|\psi\rangle = \frac{\sqrt{3}}{2}|0\rangle + \frac{1}{2}|1\rangle$.
+                    What is the probability of measuring $|1\rangle$ in the Z-basis?
+                </p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q1" id="q1a" value="wrong">
+                    <label class="form-check-label" for="q1a">$\frac{\sqrt{3}}{2}$</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q1" id="q1b" value="correct">
+                    <label class="form-check-label" for="q1b">$\frac{1}{4}$</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q1" id="q1c" value="wrong">
+                    <label class="form-check-label" for="q1c">$\frac{1}{2}$</label>
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q1','q1b')">Check Answer</button>
+                <div id="feedback-q1" class="feedback"></div>
+            </div>
+        </div>
+
+        <div class="card mb-3 border-light shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">2. State Collapse</h5>
+                <p>
+                    After measuring $|\psi\rangle = |{+}\rangle$ in the Z-basis and obtaining outcome $0$,
+                    what is the post-measurement state?
+                </p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q2" id="q2a" value="wrong">
+                    <label class="form-check-label" for="q2a">$|{+}\rangle = \frac{|0\rangle+|1\rangle}{\sqrt{2}}$</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q2" id="q2b" value="correct">
+                    <label class="form-check-label" for="q2b">$|0\rangle$</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q2" id="q2c" value="wrong">
+                    <label class="form-check-label" for="q2c">$\frac{1}{2}|0\rangle + \frac{1}{2}|1\rangle$ (renormalized)</label>
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q2','q2b')">Check Answer</button>
+                <div id="feedback-q2" class="feedback"></div>
+            </div>
+        </div>
+
+        <div class="card mb-5 border-light shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">3. Non-Commutativity</h5>
+                <p>
+                    You prepare $|0\rangle$, measure in Z (get $0$), measure in X (get ${+}$), then measure in Z again.
+                    What are the probabilities for the final Z measurement?
+                </p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q3" id="q3a" value="wrong">
+                    <label class="form-check-label" for="q3a">100% outcome $0$ — the initial Z measurement fixed the state.</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q3" id="q3b" value="correct">
+                    <label class="form-check-label" for="q3b">50% / 50% — the X measurement collapsed the state to $|{+}\rangle$, which is an equal superposition in the Z-basis.</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="q3" id="q3c" value="wrong">
+                    <label class="form-check-label" for="q3c">0% outcome $0$ — measuring X always flips the Z information.</label>
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAnswer('q3','q3b')">Check Answer</button>
+                <div id="feedback-q3" class="feedback"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!--  FOOTER                                                                 -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <footer class="text-center py-4 mt-2 bg-light border-top">
+        <p class="text-muted mb-0">Quantum Computing Foundation — Lab Module 5: Quantum Measurements</p>
+    </footer>
+
+    <!-- MathJax -->
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Quiz Logic -->
+    <script>
+        function checkAnswer(questionName, correctId) {
+            let selected = document.querySelector(`input[name="${questionName}"]:checked`);
+            let feedback = document.getElementById(`feedback-${questionName}`);
+
+            if (!selected) { alert("Please select an answer first."); return; }
+
+            if (selected.id === correctId) {
+                feedback.innerHTML = "<strong>Correct!</strong> <i class='fa-solid fa-check'></i>";
+                if (questionName === 'q1') feedback.innerHTML += " $P(1) = |\\langle 1|\\psi\\rangle|^2 = (1/2)^2 = 1/4$.";
+                if (questionName === 'q2') feedback.innerHTML += " Measurement collapses to the eigenstate corresponding to the observed outcome.";
+                if (questionName === 'q3') feedback.innerHTML += " The X measurement collapsed |0⟩ to |+⟩, destroying the Z information. This is the essence of non-commutativity.";
+                feedback.className = "feedback correct d-block";
+            } else {
+                feedback.innerHTML = "<strong>Incorrect.</strong> <i class='fa-solid fa-xmark'></i>";
+                if (questionName === 'q1') feedback.innerHTML += " Apply the Born rule: $P(m) = |\\langle m|\\psi\\rangle|^2$. What is $\\langle 1|\\psi\\rangle$?";
+                if (questionName === 'q2') feedback.innerHTML += " After measurement, the state collapses to the measured eigenstate — regardless of what it was before.";
+                if (questionName === 'q3') feedback.innerHTML += " Think about what state the X measurement left the qubit in, then compute the Z probabilities from there.";
+                feedback.className = "feedback wrong d-block";
+            }
+        }
+    </script>
+</body>
+
+</html>

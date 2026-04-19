@@ -1,0 +1,471 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{braket}
+\usepackage{physics}
+
+% Page geometry
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% Custom colours
+\definecolor{ibmblue}{RGB}{0, 45, 156}
+\definecolor{ibmred}{RGB}{250, 75, 76}
+\definecolor{purpleaccent}{RGB}{109, 40, 217}
+\definecolor{amberaccent}{RGB}{245, 158, 11}
+\definecolor{tealaccent}{RGB}{13, 148, 136}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Python code style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Custom boxes
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,title=Student Activity}
+\newtcolorbox{theorybox}{colback=gray!5!white,colframe=gray!50!black,title=Theory Recap}
+\newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title=Important}
+\newtcolorbox{simulatorbox}{colback=purple!5!white,colframe=purple!75!black,title=Simulator}
+\newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title=Reflection Questions}
+\newtcolorbox{reportbox}{colback=violet!5!white,colframe=violet!60!black,title=Report Requirement}
+
+% Bra-ket shorthands (fallback if braket/physics not available)
+\providecommand{\ket}[1]{|#1\rangle}
+\providecommand{\bra}[1]{\langle#1|}
+\providecommand{\braket}[2]{\langle#1|#2\rangle}
+\providecommand{\ketbra}[2]{|#1\rangle\langle#2|}
+
+\title{\textbf{Laboratory Guide 5: Quantum Measurements}\\
+\large Superposition, State Collapse, Spin \& Polarization on the Bloch Sphere}
+\author{Course: Fundamental Concepts of Quantum Technologies}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction and Objectives}
+
+This laboratory offers an \textbf{experimental verification and visualization} of the fundamental quantum
+concepts presented in the \textit{Fundamental Concepts of Quantum Technologies} course. Unlike previous labs
+that used Qiskit circuit execution, this laboratory uses \textbf{visual online simulators} to build physical
+intuition for quantum measurement before introducing the algebraic formalism.
+
+Students will explore superposition, quantum measurement, photon polarization, and electron spin as
+represented on the Bloch sphere. Through guided simulations, they will analyze how measurement affects
+quantum states, how probabilistic outcomes emerge, and how spin and polarization encode and manipulate
+quantum information.
+
+\vspace{0.3cm}
+\noindent\textbf{Prerequisites:}
+\begin{itemize}
+    \item \textit{Fundamental Concepts of Quantum Technologies} (lecture series)
+    \item Familiarity with Dirac notation: $\ket{\psi}$, $\bra{\phi}$, $\braket{\phi}{\psi}$
+    \item Lab 1: \textit{Introduction to Qiskit} (optional, for companion notebook)
+\end{itemize}
+
+\noindent\textbf{Mode:} Online Simulators \quad\textbf{Credits:} 1 ECTS \quad\textbf{Deliverable:} PDF Report (10--15 pages, within 15 days)
+
+\vspace{0.3cm}
+\noindent\textbf{Learning Objectives:}
+\begin{enumerate}
+    \item Connect abstract quantum principles to measurable physical phenomena.
+    \item Describe how measurement defines and changes information in quantum systems.
+    \item Interpret visual representations of qubit states on the Bloch sphere.
+    \item Explain how polarization and spin illustrate superposition and state collapse.
+    \item Develop conceptual intuition about the probabilistic nature of quantum measurement.
+\end{enumerate}
+
+\newpage
+
+\section{Theoretical Background}
+
+\subsection{The Measurement Postulate}
+
+Let $\ket{\psi}$ be a normalized qubit state and $\{|m\rangle\}_{m \in \{0,1\}}$ be an orthonormal
+measurement basis. The \textbf{Born rule} gives the probability of obtaining outcome $m$:
+
+\begin{equation}
+    P(m) = |\braket{m}{\psi}|^2
+    \label{eq:born}
+\end{equation}
+
+After the measurement, the state \textbf{collapses} to the corresponding eigenstate:
+
+\begin{equation}
+    |\psi\rangle \;\xrightarrow{\;\text{measure, outcome }m\;}\; |m\rangle
+    \label{eq:collapse}
+\end{equation}
+
+This projection is \textbf{irreversible}: information about the pre-measurement state is generally lost.
+
+\subsection{Bloch Sphere Parametrization}
+
+Any single-qubit pure state can be written as:
+
+\begin{equation}
+    |\psi\rangle = \cos\!\left(\frac{\theta}{2}\right)|0\rangle
+                 + e^{i\varphi}\sin\!\left(\frac{\theta}{2}\right)|1\rangle,
+    \qquad \theta \in [0,\pi],\quad \varphi \in [0, 2\pi)
+    \label{eq:bloch}
+\end{equation}
+
+The parameter $\theta$ is the polar angle from the north pole ($|0\rangle$) and $\varphi$ is the
+azimuthal angle. The six cardinal states are:
+
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{State} & \textbf{$(\theta,\varphi)$} & \textbf{Position} \\
+\hline
+$|0\rangle$ & $(0,\text{any})$ & North Pole \\
+$|1\rangle$ & $(\pi,\text{any})$ & South Pole \\
+$|{+}\rangle = \frac{|0\rangle+|1\rangle}{\sqrt{2}}$ & $(\pi/2, 0)$ & $+X$ axis \\
+$|{-}\rangle = \frac{|0\rangle-|1\rangle}{\sqrt{2}}$ & $(\pi/2, \pi)$ & $-X$ axis \\
+$|{i}\rangle = \frac{|0\rangle+i|1\rangle}{\sqrt{2}}$ & $(\pi/2, \pi/2)$ & $+Y$ axis \\
+$|{-i}\rangle = \frac{|0\rangle-i|1\rangle}{\sqrt{2}}$ & $(\pi/2, 3\pi/2)$ & $-Y$ axis \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Pauli Operators and Their Eigenstates}
+
+The three Pauli operators are the fundamental single-qubit observables:
+
+\begin{equation}
+    \hat{X} = \begin{pmatrix}0&1\\1&0\end{pmatrix},\qquad
+    \hat{Y} = \begin{pmatrix}0&-i\\i&0\end{pmatrix},\qquad
+    \hat{Z} = \begin{pmatrix}1&0\\0&-1\end{pmatrix}
+    \label{eq:paulis}
+\end{equation}
+
+\noindent Measuring in the $Z$-basis collapses the state to $|0\rangle$ or $|1\rangle$ (north/south poles).\\
+Measuring in the $X$-basis collapses the state to $|{+}\rangle$ or $|{-}\rangle$ (equatorial $\pm X$).\\
+Measuring in the $Y$-basis collapses the state to $|{i}\rangle$ or $|{-i}\rangle$ (equatorial $\pm Y$).
+
+\subsection{Non-Commutativity of Pauli Observables}
+
+\begin{theorybox}
+The commutator $[\hat{X}, \hat{Z}]$ quantifies how much the order of operations matters:
+\begin{align}
+    [\hat{X}, \hat{Z}] &= \hat{X}\hat{Z} - \hat{Z}\hat{X}
+    = \begin{pmatrix}0&1\\1&0\end{pmatrix}\begin{pmatrix}1&0\\0&-1\end{pmatrix}
+    - \begin{pmatrix}1&0\\0&-1\end{pmatrix}\begin{pmatrix}0&1\\1&0\end{pmatrix} \nonumber\\
+    &= \begin{pmatrix}0&-1\\1&0\end{pmatrix} - \begin{pmatrix}0&1\\-1&0\end{pmatrix}
+    = \begin{pmatrix}0&-2\\2&0\end{pmatrix} \neq 0
+    \label{eq:commutator}
+\end{align}
+Since $[\hat{X}, \hat{Z}] \neq 0$, the observables $\hat{X}$ and $\hat{Z}$ are \textbf{incompatible}: they
+share no common eigenstates and cannot be simultaneously measured without disturbing each other.
+This is the algebraic root of the sequential measurement randomness observed in Activity 5.
+\end{theorybox}
+
+\subsection{Photon Polarization as a Qubit}
+
+A photon's polarization degree of freedom maps directly to a qubit:
+\begin{align}
+    \text{Horizontal } H &\;\leftrightarrow\; |0\rangle, \\
+    \text{Vertical } V &\;\leftrightarrow\; |1\rangle, \\
+    \text{Diagonal } (+45°) &\;\leftrightarrow\; |{+}\rangle = \tfrac{1}{\sqrt{2}}(|0\rangle+|1\rangle).
+\end{align}
+A polarizer at angle $\alpha$ performs a projective measurement in the basis
+$\{|\alpha\rangle, |\alpha+90°\rangle\}$. The transmission probability for a photon
+in polarization state $|\theta_0\rangle$ is:
+\begin{equation}
+    P(\text{pass}) = |\langle\alpha|\theta_0\rangle|^2 = \cos^2(\alpha - \theta_0)
+    \qquad \text{(Malus's Law / Born rule)}
+    \label{eq:malus}
+\end{equation}
+
+\subsection{Electron Spin and the Stern-Gerlach Experiment}
+
+The spin-$\frac{1}{2}$ observable along direction $\hat{n} = (\sin\theta\cos\varphi, \sin\theta\sin\varphi, \cos\theta)$ is:
+\begin{equation}
+    \hat{S}_{\hat{n}} = \frac{\hbar}{2}
+    \bigl(\sin\theta\cos\varphi\,\hat{X} + \sin\theta\sin\varphi\,\hat{Y} + \cos\theta\,\hat{Z}\bigr)
+    \label{eq:spin}
+\end{equation}
+The Stern-Gerlach apparatus oriented along $\hat{n}$ produces two spatially separated beams corresponding
+to eigenvalues $+\hbar/2$ (spin-up) and $-\hbar/2$ (spin-down). This provides a direct physical
+realization of quantum measurement.
+
+\newpage
+
+\section{Simulator Tools}
+
+\begin{simulatorbox}
+The following external simulators are used. Open each in a browser tab — no installation required.
+\begin{itemize}
+    \item \textbf{QuVis Bloch Sphere} (Activities 1--2): \\
+          \url{https://www.st-andrews.ac.uk/physics/quvis/}
+    \item \textbf{Quantum Flytrap Virtual Lab} (Activity 3): \\
+          \url{https://lab.quantumflytrap.com/}
+    \item \textbf{PhET Stern-Gerlach} (Activity 4): \\
+          \url{https://phet.colorado.edu/en/simulations/stern-gerlach}
+    \item \textbf{IBM Quantum Composer} (Activity 5): \\
+          \url{https://quantum.ibm.com/composer}
+\end{itemize}
+\end{simulatorbox}
+
+\newpage
+
+\section{Activities}
+
+\subsection{Activity 1: State Preparation \& Bloch Sphere}
+
+\textbf{Learning goal:} Build visual intuition for qubit states by placing them on the Bloch sphere
+and understanding the spherical coordinate parametrization $(\theta,\varphi)$.
+
+\begin{studentbox}
+\textbf{Tool:} QuVis Bloch Sphere Simulator.
+
+\begin{enumerate}
+    \item Prepare each of the six cardinal states
+          ($|0\rangle$, $|1\rangle$, $|{+}\rangle$, $|{-}\rangle$, $|i\rangle$, $|{-i}\rangle$)
+          by adjusting the $\theta$ and $\varphi$ sliders.
+    \item Observe how the Bloch vector moves to the poles for $|0\rangle$ and $|1\rangle$,
+          and to the equator for the remaining four states.
+    \item Attempt to prepare the state
+          $|\psi\rangle = \cos(30°)|0\rangle + e^{i\pi/3}\sin(30°)|1\rangle$ ($\theta = 60°$, $\varphi = 60°$).
+    \item Note that rotating $\varphi$ while keeping $\theta = \pi/2$ traces a circle on the equator.
+          This corresponds to changing the relative phase without changing measurement probabilities in the $Z$-basis.
+\end{enumerate}
+
+\textbf{Expected observation:} Global phase is not visible on the Bloch sphere.
+The state $e^{i\delta}|\psi\rangle$ looks identical to $|\psi\rangle$.
+\end{studentbox}
+
+\begin{reflectionbox}
+\textbf{Question 1:} Why do $|{+}\rangle$ and $|{-}\rangle$ both lie on the equator ($\theta = \pi/2$)
+but on opposite sides ($\varphi = 0$ vs $\varphi = \pi$)?
+What does $\varphi$ physically represent?
+\end{reflectionbox}
+
+\subsection{Activity 2: Measurement in Different Bases}
+
+\textbf{Learning goal:} Measure the same state in the $Z$, $X$, and $Y$ bases and observe how the
+measurement basis determines the outcome probability distribution.
+
+\begin{studentbox}
+\textbf{Tool:} QuVis Bloch Sphere Simulator.
+
+\begin{enumerate}
+    \item Prepare the state $|{+}\rangle$ ($\theta = \pi/2$, $\varphi = 0$).
+    \item Select the \textbf{Z-basis} and click ``Measure'' 10 times. Record the outcomes.
+          Verify: approximately $P(0) = P(1) = 50\%$.
+    \item Reset the state to $|{+}\rangle$. Select the \textbf{X-basis} and measure.
+          Verify: $P({+}) = 100\%$ every time. \textit{Why?} Because
+          $|\langle{+}|{+}\rangle|^2 = 1$.
+    \item Reset to $|{+}\rangle$. Select the \textbf{Y-basis}.
+          Verify: $P({i}) = P({-i}) = 50\%$.
+    \item Repeat the entire sequence for the state $|{-}\rangle$.
+\end{enumerate}
+
+\textbf{For each trial, record:}
+\[
+\text{Initial state} \;\longrightarrow\; \text{Basis} \;\longrightarrow\; P(0), P(1) \;\longrightarrow\; \text{Observed outcome}
+\]
+\end{studentbox}
+
+\begin{reflectionbox}
+\textbf{Question 2:} Why does measuring $|{+}\rangle$ in the X-basis always give the same result?
+Compute $|\langle{+}|{+}\rangle|^2$ and $|\langle{-}|{+}\rangle|^2$ explicitly using equation~\eqref{eq:born}.
+\end{reflectionbox}
+
+\subsection{Activity 3: Photon Polarization}
+
+\textbf{Learning goal:} Map classical photon polarization to qubit states. Observe how a polarizer acts
+as a quantum measurement device and causes state collapse.
+
+\begin{studentbox}
+\textbf{Tool:} Quantum Flytrap Virtual Lab.
+
+\begin{enumerate}
+    \item Prepare a \textbf{horizontally polarized} photon ($|0\rangle$) and pass it through a
+          \textbf{vertical} polarizer ($|1\rangle$ basis). Observe: 0\% transmission.
+    \item Prepare a \textbf{diagonally polarized} photon ($|{+}\rangle$) and measure with a
+          vertical polarizer. Observe: 50\% transmission (each photon either passes or does not).
+    \item Take a photon that \textit{passed} through the vertical polarizer in step~2 (now in state $|1\rangle$).
+          Measure again with a \textbf{horizontal} polarizer. Observe: 0\% — the state collapsed to $|1\rangle$.
+    \item Insert a $45°$ polarizer \textit{between} two crossed ($H$/$V$) polarizers.
+          Observe that some light now passes through the final $V$ polarizer.
+          Explain why using state collapse.
+\end{enumerate}
+\end{studentbox}
+
+\begin{reflectionbox}
+\textbf{Question 3:} A diagonally polarized photon hits a vertical polarizer and passes through.
+What is its polarization state immediately after the polarizer?
+Use equation~\eqref{eq:collapse} to justify your answer.
+\\[4pt]
+\textbf{Question 4:} Using equation~\eqref{eq:malus} (Malus's Law / Born rule), compute the
+transmission probability for a $45°$ photon through a $30°$ polarizer.
+\end{reflectionbox}
+
+\subsection{Activity 4: Electron Spin \& Stern-Gerlach}
+
+\textbf{Learning goal:} Use the Stern-Gerlach apparatus to observe spin quantization and understand
+how spin-up and spin-down states along different axes map to Bloch sphere positions.
+
+\begin{studentbox}
+\textbf{Tool:} PhET Stern-Gerlach Simulation.
+
+\begin{enumerate}
+    \item Send atoms through a \textbf{Z-oriented} apparatus. Observe two output beams.
+    \item Select only the spin-up output ($|\!\uparrow_z\rangle = |0\rangle$) and feed it
+          into a \textbf{second Z apparatus}. Observe: 100\% spin-up every time.
+          \textit{The state is now definite in $Z$.}
+    \item Instead, feed the spin-up beam into an \textbf{X-oriented} apparatus.
+          Observe: 50/50 split. Why? Expand:
+          \[
+          |0\rangle = \frac{|{+}\rangle + |{-}\rangle}{\sqrt{2}}
+          \]
+    \item Select only $|{+}\rangle$ from the X apparatus. Feed into a \textbf{third Z apparatus}.
+          Observe: 50/50 again — the X measurement erased the Z information.
+    \item Document each step with a sketch of the apparatus and the outcome fractions.
+\end{enumerate}
+\end{studentbox}
+
+\begin{reflectionbox}
+\textbf{Question 5:} Use the commutator result from equation~\eqref{eq:commutator} to explain
+algebraically why the X measurement in step~3 destroys the Z information established in step~2.
+
+\textbf{Question 6:} What would you observe in step~4 if $[\hat{S}_x, \hat{S}_z] = 0$?
+\end{reflectionbox}
+
+\subsection{Activity 5: Sequential Measurements \& State Collapse}
+
+\textbf{Learning goal:} Demonstrate that the sequence $Z \to X \to Z$ produces random outcomes in
+the final Z measurement, even when the first Z gave a definite result. This concretizes $[\hat{X},\hat{Z}] \neq 0$.
+
+\begin{studentbox}
+\textbf{Tool:} IBM Quantum Composer.
+
+\begin{enumerate}
+    \item Start with $|0\rangle$. Add a measurement gate. Run 1000 shots.
+          Verify: 100\% outcome $0$.
+    \item Reset. Add $H$, then measure ($X$-basis equivalent). Observe: 50/50.
+    \item Reset. Start with $|0\rangle$, add $H$ then measure (X), then $H$ again then measure (Z).
+          Observe: the final Z measurement gives 50/50.
+          Interpretation: measuring in X collapses the state to $|{+}\rangle$ or $|{-}\rangle$;
+          applying $H$ converts these to $|0\rangle$ or $|1\rangle$ — each with probability $\frac{1}{2}$.
+    \item \textbf{Control experiment:} $Z \to Z \to Z$. Start from $|0\rangle$, measure three times in $Z$.
+          Observe: always $0$. The Z basis is stable under Z measurements.
+\end{enumerate}
+
+\begin{warningbox}
+\textbf{Qiskit / IBM Composer Convention (Little Endian):}
+In a bitstring like $|10\rangle$, the \textbf{rightmost} bit represents qubit $q_0$ and the \textbf{leftmost}
+bit represents qubit $q_1$. Keep this in mind when reading multi-qubit measurement results.
+\end{warningbox}
+\end{studentbox}
+
+\begin{reflectionbox}
+\textbf{Question 7:} Express the Z$\to$X$\to$Z sequence using projection operators.
+Let $\Pi_0^Z = |0\rangle\langle 0|$, $\Pi_+^X = |{+}\rangle\langle{+}|$.
+Show that the probability of obtaining $0$ in the final Z measurement, starting from $|0\rangle$, is $\frac{1}{2}$.
+
+\textbf{Question 8:} Why does the intermediate X measurement introduce irreducible randomness into
+the final Z outcome, regardless of the initial state?
+\end{reflectionbox}
+
+\newpage
+
+\section{Report Guidelines}
+
+\begin{reportbox}
+Produce a \textbf{PDF report (10--15 pages)} documenting your work for each activity.
+Submit within \textbf{15 days} of the lab session.
+\end{reportbox}
+
+\subsection*{Report Structure}
+
+For each of the five activities, include:
+\begin{enumerate}
+    \item \textbf{Screenshots} of the simulator at key steps (minimum 2 per activity).
+    \item A \textbf{measurement table} with columns:
+          \textit{Initial State} $|$ \textit{Basis} $|$ \textit{Theoretical $P(m)$} (Born rule) $|$ \textit{Observed Outcome(s)}.
+    \item A brief explanation (2--4 sentences) of each result in your own words.
+\end{enumerate}
+
+\subsection*{Reflection Questions to Answer in the Report}
+
+Answer the following in clear, concise paragraphs (half a page each):
+
+\begin{itemize}
+    \item[\textbf{Q1}] \textit{``Why does measuring $|{+}\rangle$ in the X-basis always give the same result?''}\\
+          Support with an explicit Born rule calculation: $|\langle{+}|\hat{X}|{+}\rangle|^2$.
+    \item[\textbf{Q2}] \textit{``What happens to the Bloch vector after a Z-basis measurement?''}\\
+          Describe the geometric transformation of an arbitrary equatorial state $|\psi\rangle$
+          ($\theta = \pi/2$, arbitrary $\varphi$) under Z measurement.
+    \item[\textbf{Q3}] \textit{``How does the Stern-Gerlach experiment demonstrate state collapse?''}\\
+          Use the Z$\to$X$\to$Z sequence. Relate to the non-commutativity
+          $[\hat{S}_x, \hat{S}_z] \neq 0$.
+\end{itemize}
+
+\section{Assessment}
+
+\textbf{Question A (Born Rule):}
+A qubit is prepared in state $|\psi\rangle = \frac{\sqrt{3}}{2}|0\rangle + \frac{1}{2}|1\rangle$.
+Compute:
+\begin{enumerate}
+    \item $P(|0\rangle)$ and $P(|1\rangle)$ for a Z-basis measurement.
+    \item $P(|{+}\rangle)$ and $P(|{-}\rangle)$ for an X-basis measurement.
+    \item Verify that probabilities sum to 1 in each case.
+\end{enumerate}
+
+\textbf{Question B (State Collapse):}
+After measuring $|\psi\rangle = |{+}\rangle$ in the Z-basis and obtaining outcome $0$:
+\begin{enumerate}
+    \item What is the post-measurement state?
+    \item If the same qubit is immediately measured again in the Z-basis, what is $P(0)$?
+    \item If instead it is measured in the X-basis, what is $P({+})$?
+\end{enumerate}
+
+\textbf{Question C (Non-Commutativity):}
+You prepare $|0\rangle$, measure in Z (outcome: 0), measure in X (outcome: ${+}$), then measure in Z.
+\begin{enumerate}
+    \item What is the state after each measurement?
+    \item What are the final Z probabilities? Show with the Born rule.
+    \item Explain why Z$\to$Z$\to$Z gives a deterministic result but Z$\to$X$\to$Z does not.
+\end{enumerate}
+
+\section{Resources}
+
+\begin{itemize}
+    \item Nielsen \& Chuang, \textit{Quantum Computation and Quantum Information}, Ch.~2.2 (Measurement Postulate).
+    \item Griffiths, \textit{Introduction to Quantum Mechanics}, Ch.~1 (Statistical Interpretation).
+    \item Preskill, \textit{Lecture Notes on Quantum Information}, Ch.~2 (Foundations).
+    \item Qiskit Documentation: \url{https://qiskit.org/documentation/} — Statevector \& measurement simulation.
+    \item Course support material: \texttt{support\_material/quantum\_interference.pdf},
+          \texttt{support\_material/phase\_kickback\_proof.pdf}.
+    \item Companion Jupyter notebook: \texttt{quantum-labs-2026/lab5/lab5\_quantum\_measurements.ipynb}.
+\end{itemize}
+
+\end{document}
