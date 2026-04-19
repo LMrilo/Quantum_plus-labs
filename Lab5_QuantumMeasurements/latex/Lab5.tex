@@ -53,7 +53,7 @@
 \newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title=Important}
 \newtcolorbox{simulatorbox}{colback=purple!5!white,colframe=purple!75!black,title=Simulator}
 \newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title=Reflection Questions}
-\newtcolorbox{reportbox}{colback=violet!5!white,colframe=violet!60!black,title=Report Requirement}
+\newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title=Connections to Previous Labs}
 
 % Bra-ket shorthands (fallback if braket/physics not available)
 \providecommand{\ket}[1]{|#1\rangle}
@@ -90,7 +90,22 @@ quantum information.
     \item Lab 1: \textit{Introduction to Qiskit} (optional, for companion notebook)
 \end{itemize}
 
-\noindent\textbf{Mode:} Online Simulators \quad\textbf{Credits:} 1 ECTS \quad\textbf{Deliverable:} PDF Report (10--15 pages, within 15 days)
+\begin{connectionbox}
+\begin{itemize}
+    \item \textbf{Lab 1 — Bloch Sphere:} In Lab 1 you watched the Bloch vector move when X, H, and Z gates were applied.
+          Lab 5 revisits those same states, asking a different question: what happens when we \emph{observe} them?
+    \item \textbf{Lab 1 — Exercise 3 (Phase \& Z gate):} The Z gate turned the Q-Sphere dot red but left
+          the 50/50 probabilities unchanged. That phase was invisible because the measurement was in the Z-basis.
+          Activity 2 here reveals why: the measurement basis determines which differences are detectable.
+    \item \textbf{Lab 1 — Exercise 5 (Interference):} The H–Z–H sequence produced 100\% outcome $|1\rangle$
+          by converting a phase into a measurable bit flip. Activity 5 shows that inserting a measurement
+          between the H gates destroys that interference.
+    \item \textbf{Lab 2 — Entanglement \& Measurement:} Measuring one qubit of a Bell state instantly
+          determined the other. That correlation is the same state collapse studied here, applied to two qubits.
+\end{itemize}
+\end{connectionbox}
+
+\noindent\textbf{Mode:} Online Simulators \quad\textbf{Credits:} 1 ECTS
 
 \vspace{0.3cm}
 \noindent\textbf{Learning Objectives:}
@@ -205,15 +220,24 @@ in polarization state $|\theta_0\rangle$ is:
 
 \subsection{Electron Spin and the Stern-Gerlach Experiment}
 
-The spin-$\frac{1}{2}$ observable along direction $\hat{n} = (\sin\theta\cos\varphi, \sin\theta\sin\varphi, \cos\theta)$ is:
-\begin{equation}
-    \hat{S}_{\hat{n}} = \frac{\hbar}{2}
-    \bigl(\sin\theta\cos\varphi\,\hat{X} + \sin\theta\sin\varphi\,\hat{Y} + \cos\theta\,\hat{Z}\bigr)
-    \label{eq:spin}
-\end{equation}
-The Stern-Gerlach apparatus oriented along $\hat{n}$ produces two spatially separated beams corresponding
-to eigenvalues $+\hbar/2$ (spin-up) and $-\hbar/2$ (spin-down). This provides a direct physical
-realization of quantum measurement.
+An electron's spin-$\frac{1}{2}$ is a two-level quantum system — identical in structure to a qubit.
+The correspondence with the Bloch sphere is:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Spin state} & \textbf{Qubit state} & \textbf{Bloch position}\\
+\hline
+Spin-up along $Z$ & $|0\rangle$ & North Pole \\
+Spin-down along $Z$ & $|1\rangle$ & South Pole \\
+Spin-up along $X$ & $|{+}\rangle$ & $+X$ equator \\
+Spin-up along $Y$ & $|i\rangle$ & $+Y$ equator \\
+\hline
+\end{tabular}
+\end{center}
+The Stern-Gerlach apparatus oriented along a given axis measures the spin component along that axis,
+splitting the beam into two outputs (spin-up and spin-down). The probability of each output follows
+the Born rule: $P(\uparrow_{\hat{n}}) = |\langle\uparrow_{\hat{n}}|\psi\rangle|^2$.
+This provides a direct physical realization of quantum measurement and state collapse.
 
 \newpage
 
@@ -241,6 +265,10 @@ The following external simulators are used. Open each in a browser tab — no in
 
 \textbf{Learning goal:} Build visual intuition for qubit states by placing them on the Bloch sphere
 and understanding the spherical coordinate parametrization $(\theta,\varphi)$.
+
+\textit{Connection to Lab 1: In Lab 1, X, H, and Z gates moved the Bloch vector between specific positions.
+Here you will explore those positions directly, without any gate, understanding the coordinates $(\theta,\varphi)$
+of the states you already encountered.}
 
 \begin{studentbox}
 \textbf{Tool:} QuVis Bloch Sphere Simulator.
@@ -271,6 +299,11 @@ What does $\varphi$ physically represent?
 
 \textbf{Learning goal:} Measure the same state in the $Z$, $X$, and $Y$ bases and observe how the
 measurement basis determines the outcome probability distribution.
+
+\textit{Connection to Lab 1 — Exercise 3: Applying the Z gate after H left the 50/50 probabilities
+unchanged, even though the Q-Sphere dot turned red. That phase change was invisible because the
+measurement was in the Z-basis, which cannot distinguish $|{+}\rangle$ from $|{-}\rangle$ by probabilities.
+Measuring in the X-basis makes that difference fully visible.}
 
 \begin{studentbox}
 \textbf{Tool:} QuVis Bloch Sphere Simulator.
@@ -364,6 +397,10 @@ algebraically why the X measurement in step~3 destroys the Z information establi
 \textbf{Learning goal:} Demonstrate that the sequence $Z \to X \to Z$ produces random outcomes in
 the final Z measurement, even when the first Z gave a definite result. This concretizes $[\hat{X},\hat{Z}] \neq 0$.
 
+\textit{Connection to Lab 1 — Exercise 5: The H–Z–H sequence gave 100\% outcome $|1\rangle$ because
+the two H gates converted the invisible phase into a measurable bit flip. Inserting a measurement
+between the H gates (as in this activity) breaks that interference and reintroduces randomness.}
+
 \begin{studentbox}
 \textbf{Tool:} IBM Quantum Composer.
 
@@ -387,47 +424,15 @@ bit represents qubit $q_1$. Keep this in mind when reading multi-qubit measureme
 \end{studentbox}
 
 \begin{reflectionbox}
-\textbf{Question 7:} Express the Z$\to$X$\to$Z sequence using projection operators.
-Let $\Pi_0^Z = |0\rangle\langle 0|$, $\Pi_+^X = |{+}\rangle\langle{+}|$.
-Show that the probability of obtaining $0$ in the final Z measurement, starting from $|0\rangle$, is $\frac{1}{2}$.
+\textbf{Question 7:} After the X measurement, the state has collapsed to either $|{+}\rangle$ or $|{-}\rangle$.
+Both are equal superpositions of $|0\rangle$ and $|1\rangle$.
+Can the subsequent Z measurement ever recover the original Z information? Why not?
 
-\textbf{Question 8:} Why does the intermediate X measurement introduce irreducible randomness into
-the final Z outcome, regardless of the initial state?
+\textbf{Question 8:} Compare Z$\to$Z$\to$Z with Z$\to$X$\to$Z.
+Why does the first sequence give a deterministic final Z result, while the second does not?
 \end{reflectionbox}
 
 \newpage
-
-\section{Report Guidelines}
-
-\begin{reportbox}
-Produce a \textbf{PDF report (10--15 pages)} documenting your work for each activity.
-Submit within \textbf{15 days} of the lab session.
-\end{reportbox}
-
-\subsection*{Report Structure}
-
-For each of the five activities, include:
-\begin{enumerate}
-    \item \textbf{Screenshots} of the simulator at key steps (minimum 2 per activity).
-    \item A \textbf{measurement table} with columns:
-          \textit{Initial State} $|$ \textit{Basis} $|$ \textit{Theoretical $P(m)$} (Born rule) $|$ \textit{Observed Outcome(s)}.
-    \item A brief explanation (2--4 sentences) of each result in your own words.
-\end{enumerate}
-
-\subsection*{Reflection Questions to Answer in the Report}
-
-Answer the following in clear, concise paragraphs (half a page each):
-
-\begin{itemize}
-    \item[\textbf{Q1}] \textit{``Why does measuring $|{+}\rangle$ in the X-basis always give the same result?''}\\
-          Support with an explicit Born rule calculation: $|\langle{+}|\hat{X}|{+}\rangle|^2$.
-    \item[\textbf{Q2}] \textit{``What happens to the Bloch vector after a Z-basis measurement?''}\\
-          Describe the geometric transformation of an arbitrary equatorial state $|\psi\rangle$
-          ($\theta = \pi/2$, arbitrary $\varphi$) under Z measurement.
-    \item[\textbf{Q3}] \textit{``How does the Stern-Gerlach experiment demonstrate state collapse?''}\\
-          Use the Z$\to$X$\to$Z sequence. Relate to the non-commutativity
-          $[\hat{S}_x, \hat{S}_z] \neq 0$.
-\end{itemize}
 
 \section{Assessment}
 
@@ -463,8 +468,6 @@ You prepare $|0\rangle$, measure in Z (outcome: 0), measure in X (outcome: ${+}$
     \item Griffiths, \textit{Introduction to Quantum Mechanics}, Ch.~1 (Statistical Interpretation).
     \item Preskill, \textit{Lecture Notes on Quantum Information}, Ch.~2 (Foundations).
     \item Qiskit Documentation: \url{https://qiskit.org/documentation/} — Statevector \& measurement simulation.
-    \item Course support material: \texttt{support\_material/quantum\_interference.pdf},
-          \texttt{support\_material/phase\_kickback\_proof.pdf}.
     \item Companion Jupyter notebook: \texttt{quantum-labs-2026/lab5/lab5\_quantum\_measurements.ipynb}.
 \end{itemize}
 

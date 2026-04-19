@@ -7,6 +7,8 @@
     <title>Quantum Lab 5: Quantum Measurements</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <style>
         :root {
@@ -232,6 +234,80 @@
             border: 1px solid #fca5a5;
         }
 
+        /* ── Bloch Sphere Simulator ──────────────────────────────────────────── */
+        #bloch-wrap { position: relative; width: 100%; }
+        #bloch-canvas-container {
+            width: 100%; height: 380px;
+            border-radius: 10px;
+            background: linear-gradient(160deg, #0f0230 0%, #1a0a4e 100%);
+            overflow: hidden;
+        }
+        #bloch-canvas-container canvas { display: block; width: 100% !important; height: 100% !important; }
+        .bloch-ovl {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            font-weight: 700;
+            font-size: .8rem;
+            text-shadow: 0 0 5px #000, 0 0 10px #000;
+            white-space: nowrap;
+        }
+        #sim-outcome {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(245,158,11,.92);
+            color: #1a0a4e;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: .85rem;
+            opacity: 0;
+            transition: opacity .3s;
+            pointer-events: none;
+        }
+        .sim-section {
+            background: white;
+            border: 1px solid #dde4ee;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            box-shadow: 0 3px 12px rgba(0,0,0,.06);
+        }
+        .sim-header {
+            background: linear-gradient(135deg, #0d0221 0%, #2e1065 100%);
+            color: white;
+            padding: 14px 22px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sim-badge { background: #f59e0b; color: #1a0a4e; border-radius: 4px; padding: 3px 10px; font-size: .78rem; font-weight: 700; }
+        .prob-bar-wrap { height: 10px; background: #f3f4f6; border-radius: 5px; overflow: hidden; margin-bottom: 4px; }
+        .prob-bar-fill { height: 100%; border-radius: 5px; transition: width .35s ease; }
+        #sim-history { min-height: 26px; }
+
+        /* ── Lab Connection Banner ───────────────────────────────────────────── */
+        .connection-box {
+            background-color: #f0fdf4;
+            border-left: 5px solid #16a34a;
+            padding: 16px 20px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-size: 0.92rem;
+        }
+        .connection-box .lab-link {
+            display: inline-block;
+            background: #16a34a;
+            color: white;
+            border-radius: 4px;
+            padding: 1px 8px;
+            font-size: .78rem;
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
         /* ── Section Headers ─────────────────────────────────────────────────── */
         .section-title {
             border-bottom: 2px solid #e5e7eb;
@@ -289,12 +365,56 @@
                     This laboratory offers an <strong>experimental verification and visualization</strong> of the
                     fundamental quantum concepts presented in the
                     <em>Fundamental Concepts of Quantum Technologies</em> course. Students will explore
-                    <strong>superposition</strong>, <strong>quantum measurement</strong>,
-                    <strong>photon polarization</strong>, and <strong>electron spin</strong> represented
-                    on the Bloch sphere. Through guided simulations, students will analyze how measurement
-                    affects quantum states, how probabilistic outcomes emerge, and how spin and polarization
-                    can be used to encode and manipulate quantum information.
+                    the phenomena of <strong>superposition</strong>, <strong>quantum measurement</strong>,
+                    <strong>photon polarization</strong>, and <strong>electron spin</strong>, represented
+                    on the Bloch sphere.
                 </p>
+                <p class="fs-5 text-secondary lh-lg">
+                    Through guided simulations, students will analyze how measurement affects quantum states,
+                    how probabilistic outcomes emerge, and how spin and polarization can be used to encode and
+                    manipulate quantum information. The visual interface of the simulator allows learners to build
+                    strong intuition about the geometry of quantum states and the meaning of measurement in
+                    different bases.
+                </p>
+                <p class="fs-5 text-secondary lh-lg mb-0">
+                    By the end of the lab, students will be able to connect abstract quantum principles to
+                    measurable phenomena, describe how measurement defines information in quantum systems, and
+                    interpret visual representations of qubit states in terms of real physical quantities.
+                </p>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  CONNECTIONS TO PREVIOUS LABS                                       -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <div class="col-lg-9 mx-auto mb-5">
+            <h5 class="mb-3"><i class="fa-solid fa-link text-success me-2"></i>Connections to Previous Labs</h5>
+            <div class="connection-box">
+                <span class="lab-link">Lab 1</span>
+                <strong>The Bloch sphere is not new.</strong>
+                In Lab 1 you used IBM Composer to watch the state vector move as you applied X, H, and Z gates.
+                Lab 5 picks up from there: instead of asking <em>"how do gates move the state?"</em>, we now ask
+                <em>"what happens when we observe it?"</em>
+            </div>
+            <div class="connection-box">
+                <span class="lab-link">Lab 1 — Ex. 3</span>
+                <strong>Remember the Red Dot?</strong>
+                Applying Z after H turned the Q-Sphere dot red but left the 50/50 probabilities unchanged.
+                That happened because you were measuring in the Z-basis, which is blind to that phase change.
+                Activity 2 here explains exactly why: the measurement basis determines what differences between states are detectable.
+            </div>
+            <div class="connection-box">
+                <span class="lab-link">Lab 1 — Ex. 5</span>
+                <strong>Interference vs. measurement.</strong>
+                The H–Z–H sequence gave 100% outcome $|1\rangle$ by converting an invisible phase into a measurable bit flip.
+                Activity 5 shows what happens if you insert a measurement in the middle:
+                the interference breaks down and the final outcome becomes random again.
+            </div>
+            <div class="connection-box">
+                <span class="lab-link">Lab 2</span>
+                <strong>Measurement on entangled systems.</strong>
+                In Lab 2 you saw that measuring one qubit of a Bell state instantly determined the other.
+                That "spooky" correlation is the same state collapse mechanism studied here — applied to two qubits at once.
             </div>
         </div>
 
@@ -391,6 +511,146 @@
         </div>
 
         <!-- ══════════════════════════════════════════════════════════════════ -->
+        <!--  INTERACTIVE SIMULATOR                                               -->
+        <!-- ══════════════════════════════════════════════════════════════════ -->
+        <h2 class="section-title">
+            <i class="fa-solid fa-cube text-warning me-2"></i>Interactive Bloch Sphere Simulator
+        </h2>
+
+        <div class="sim-section mb-5">
+            <div class="sim-header">
+                <span><i class="fa-solid fa-bullseye me-2"></i>Bloch Sphere — Live Simulator</span>
+                <span class="sim-badge">INTERACTIVE</span>
+            </div>
+            <div class="p-3 p-md-4">
+                <div class="row g-4 align-items-start">
+
+                    <!-- ── 3-D canvas ── -->
+                    <div class="col-lg-7">
+                        <div id="bloch-wrap">
+                            <div id="bloch-canvas-container"></div>
+                            <!-- Axis labels -->
+                            <div id="sim-lbl-z"  class="bloch-ovl" style="color:#93c5fd;">Z</div>
+                            <div id="sim-lbl-nz" class="bloch-ovl" style="color:#64748b;">−Z</div>
+                            <div id="sim-lbl-x"  class="bloch-ovl" style="color:#fca5a5;">X</div>
+                            <div id="sim-lbl-y"  class="bloch-ovl" style="color:#86efac;">Y</div>
+                            <!-- Cardinal state labels -->
+                            <div id="cs-k0"  class="bloch-ovl" style="color:#60a5fa;">|0⟩</div>
+                            <div id="cs-k1"  class="bloch-ovl" style="color:#f87171;">|1⟩</div>
+                            <div id="cs-kp"  class="bloch-ovl" style="color:#4ade80;">|+⟩</div>
+                            <div id="cs-km"  class="bloch-ovl" style="color:#facc15;">|−⟩</div>
+                            <div id="cs-ki"  class="bloch-ovl" style="color:#c084fc;">|i⟩</div>
+                            <div id="cs-kni" class="bloch-ovl" style="color:#67e8f9;">|−i⟩</div>
+                            <!-- Outcome flash -->
+                            <div id="sim-outcome"></div>
+                        </div>
+                        <p class="text-muted small text-center mt-2 mb-0">
+                            <i class="fa-solid fa-hand-pointer me-1"></i>Drag to rotate &nbsp;·&nbsp;
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>Scroll to zoom
+                        </p>
+                    </div>
+
+                    <!-- ── Controls ── -->
+                    <div class="col-lg-5">
+
+                        <!-- State formula -->
+                        <div class="theory-box py-2 px-3 mb-3">
+                            <small class="text-muted d-block mb-1">Current state</small>
+                            <code id="sim-formula" style="font-size:.95rem;color:#6d28d9;">|ψ⟩ = |0⟩</code>
+                        </div>
+
+                        <!-- Preset buttons -->
+                        <div class="mb-3">
+                            <div class="fw-semibold small mb-2">Quick States</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-sm btn-outline-primary"  data-bloch-state="0">|0⟩</button>
+                                <button class="btn btn-sm btn-outline-danger"   data-bloch-state="1">|1⟩</button>
+                                <button class="btn btn-sm btn-outline-success"  data-bloch-state="+">|+⟩</button>
+                                <button class="btn btn-sm btn-outline-warning"  data-bloch-state="-">|−⟩</button>
+                                <button class="btn btn-sm btn-outline-secondary" data-bloch-state="i">|i⟩</button>
+                                <button class="btn btn-sm btn-outline-info"     data-bloch-state="-i">|−i⟩</button>
+                            </div>
+                        </div>
+
+                        <!-- θ slider -->
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold mb-1">
+                                θ (polar) = <span id="sim-theta-val">0°</span>
+                            </label>
+                            <input type="range" class="form-range" id="sim-theta" min="0" max="3.14159" step="0.01" value="0">
+                            <div class="d-flex justify-content-between" style="font-size:.72rem;color:#9ca3af;margin-top:-4px;">
+                                <span>0° = |0⟩</span><span>90°</span><span>180° = |1⟩</span>
+                            </div>
+                        </div>
+
+                        <!-- φ slider -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold mb-1">
+                                φ (azimuthal) = <span id="sim-phi-val">0°</span>
+                            </label>
+                            <input type="range" class="form-range" id="sim-phi" min="0" max="6.28318" step="0.02" value="0">
+                            <div class="d-flex justify-content-between" style="font-size:.72rem;color:#9ca3af;margin-top:-4px;">
+                                <span>0°</span><span>180°</span><span>360°</span>
+                            </div>
+                        </div>
+
+                        <!-- Measurement panel -->
+                        <div class="deepdive-box py-3 px-3">
+                            <div class="fw-semibold small mb-2">Measurement Basis</div>
+                            <div class="d-flex gap-3 mb-3">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="radio" name="sim-basis" id="sim-bz" value="Z" checked>
+                                    <label class="form-check-label small" for="sim-bz">Z-basis</label>
+                                </div>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="radio" name="sim-basis" id="sim-bx" value="X">
+                                    <label class="form-check-label small" for="sim-bx">X-basis</label>
+                                </div>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="radio" name="sim-basis" id="sim-by" value="Y">
+                                    <label class="form-check-label small" for="sim-by">Y-basis</label>
+                                </div>
+                            </div>
+
+                            <!-- Prob bars -->
+                            <div class="mb-1">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span id="sim-lbl-0">P(|0⟩)</span>
+                                    <strong id="sim-pct-0">100%</strong>
+                                </div>
+                                <div class="prob-bar-wrap">
+                                    <div id="sim-bar-0" class="prob-bar-fill" style="background:#3b82f6;width:100%;"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span id="sim-lbl-1">P(|1⟩)</span>
+                                    <strong id="sim-pct-1">0%</strong>
+                                </div>
+                                <div class="prob-bar-wrap">
+                                    <div id="sim-bar-1" class="prob-bar-fill" style="background:#ef4444;width:0%;"></div>
+                                </div>
+                            </div>
+
+                            <button id="sim-measure" class="btn btn-warning btn-sm w-100 fw-bold">
+                                <i class="fa-solid fa-bolt me-1"></i>Measure!
+                            </button>
+                        </div>
+
+                        <!-- History -->
+                        <div class="mt-3">
+                            <div class="small fw-semibold text-muted mb-1">Outcome history</div>
+                            <div id="sim-history">
+                                <span class="text-muted small">— no measurements yet —</span>
+                            </div>
+                        </div>
+
+                    </div><!-- /controls -->
+                </div><!-- /row -->
+            </div><!-- /p-4 -->
+        </div><!-- /sim-section -->
+
+        <!-- ══════════════════════════════════════════════════════════════════ -->
         <!--  ACTIVITIES                                                          -->
         <!-- ══════════════════════════════════════════════════════════════════ -->
         <h2 class="section-title"><i class="fa-solid fa-flask text-warning me-2"></i>Activities</h2>
@@ -406,6 +666,7 @@
                     <strong>Goal:</strong>
                     Build visual intuition for qubit states by placing them on the Bloch sphere and understanding
                     the spherical coordinate parametrization $(\theta, \varphi)$.
+                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ Lab 1:</span> You already moved this vector with X, H, and Z gates. Here you'll see exactly where each state sits on the sphere, and why.</small>
                 </div>
 
                 <div class="theory-box">
@@ -420,12 +681,12 @@
                     </div>
                 </div>
 
-                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (QuVis Bloch Sphere Simulator):</h6>
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (use the simulator above):</h6>
                 <ol>
-                    <li>Open the <strong>QuVis Bloch Sphere Simulator</strong> (link below).</li>
-                    <li>Prepare each of the six states above by adjusting $\theta$ and $\varphi$ sliders.</li>
-                    <li>Observe how the Bloch vector moves to the poles (for $|0\rangle$, $|1\rangle$) and the equator (for $|{+}\rangle$, $|{-}\rangle$, $|i\rangle$, $|{-i}\rangle$).</li>
-                    <li>Note that <strong>global phase</strong> is not visible on the Bloch sphere.</li>
+                    <li>Use the <strong>interactive Bloch Sphere Simulator</strong> on this page. Click each Quick State button and observe where the vector lands.</li>
+                    <li>Then use the $\theta$ slider: drag it from 0 to 180° and watch the vector travel from the north pole to the south pole.</li>
+                    <li>Fix $\theta = 90°$ and drag the $\varphi$ slider from 0° to 360°. Observe the vector tracing the equator — passing through $|{+}\rangle$, $|i\rangle$, $|{-}\rangle$, $|{-i}\rangle$ and back.</li>
+                    <li>Note that changing $\varphi$ alone does not change the Z-basis probabilities. This is the <strong>global phase</strong> principle — invisible to measurement in that basis.</li>
                 </ol>
 
                 <div class="deepdive-box">
@@ -447,6 +708,7 @@
                     <strong>Goal:</strong>
                     Measure the same state in the $Z$, $X$, and $Y$ bases and observe how the measurement
                     basis entirely determines the outcome probability distribution.
+                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ Lab 1 — Ex. 3:</span> The Z gate made the dot go red but probabilities stayed 50/50. That phase was invisible because you measured in the Z-basis. This activity shows how changing the basis reveals it.</small>
                 </div>
 
                 <div class="theory-box">
@@ -457,13 +719,13 @@
                     <br>Why? Because $\langle{+}|{+}\rangle = 1$ and $\langle{-}|{+}\rangle = 0$.
                 </div>
 
-                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions:</h6>
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (use the simulator above):</h6>
                 <ol>
-                    <li>In the QuVis simulator, prepare the state $|{+}\rangle$ ($\theta=\pi/2$, $\varphi=0$).</li>
-                    <li>Select measurement in the <strong>Z-basis</strong>. Click "Measure" multiple times. Record the outcomes.</li>
-                    <li>Repeat, now selecting the <strong>X-basis</strong>. Observe that the result is always $|{+}\rangle$.</li>
-                    <li>Repeat with the <strong>Y-basis</strong>. Verify that outcomes are again 50/50.</li>
-                    <li>For each trial, record: <em>initial state → basis chosen → outcome probabilities → observed outcome</em>.</li>
+                    <li>Click <strong>|+⟩</strong> in Quick States. The probability bars show 50% / 50% in the Z-basis — verify this.</li>
+                    <li>Switch to the <strong>X-basis</strong>. The bars now show 100% / 0%. Click <strong>Measure!</strong> several times — always the same outcome. Why?</li>
+                    <li>Switch to the <strong>Y-basis</strong>. Bars return to 50% / 50%. Click Measure! — random again.</li>
+                    <li>Now try <strong>|−⟩</strong>: same $\theta$, different $\varphi$. In Z-basis: still 50/50. In X-basis: the <em>other</em> eigenstate becomes certain. In Y-basis: 50/50 again.</li>
+                    <li>For each trial, record: <em>state → basis → probability bars → observed outcome</em>. Watch how the vector snaps to the collapsed position after each measurement.</li>
                 </ol>
 
                 <div class="deepdive-box">
@@ -531,11 +793,13 @@
 
                 <div class="theory-box">
                     <strong>Theory — Spin and the Bloch Sphere:</strong>
-                    <br>The electron spin observable along axis $\hat{n} = (\sin\theta\cos\varphi,\sin\theta\sin\varphi,\cos\theta)$ is:
-                    $$\hat{S}_{\hat{n}} = \frac{\hbar}{2}\hat{\sigma}_{\hat{n}}
-                    = \frac{\hbar}{2}(\sin\theta\cos\varphi\,\hat{X} + \sin\theta\sin\varphi\,\hat{Y} + \cos\theta\,\hat{Z})$$
-                    The Stern-Gerlach apparatus oriented along $\hat{n}$ splits the beam into
-                    spin-up ($+\hbar/2$) and spin-down ($-\hbar/2$) outputs.
+                    <br>An electron's spin is a two-level quantum system — exactly like a qubit.
+                    Spin-up along $Z$ corresponds to $|0\rangle$ (north pole); spin-down to $|1\rangle$ (south pole).
+                    Spin-up along $X$ corresponds to $|{+}\rangle$ (equator); spin-up along $Y$ to $|i\rangle$.
+                    <br><br>
+                    The Stern-Gerlach apparatus oriented along an axis splits the beam into two outputs
+                    (spin-up and spin-down for that axis), each with probability given by the Born rule:
+                    $$P(\uparrow_{\hat{n}}) = |\langle\uparrow_{\hat{n}}|\psi\rangle|^2$$
                 </div>
 
                 <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (PhET Stern-Gerlach):</h6>
@@ -566,7 +830,8 @@
                     <strong>Goal:</strong>
                     Demonstrate that measuring in $Z$, then $X$, then $Z$ again produces random outcomes
                     in the final $Z$ measurement, even if the first $Z$ gave a definite result.
-                    This builds concrete intuition for $[\hat{X}, \hat{Z}] \neq 0$.
+                    This builds concrete intuition for why $\hat{X}$ and $\hat{Z}$ are incompatible observables.
+                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ Lab 1 — Ex. 5:</span> H–Z–H gave 100% $|1\rangle$ because the two H gates turned the phase into a measurable bit flip. Here you'll see that inserting a measurement between the H gates destroys that interference.</small>
                 </div>
 
                 <div class="theory-box">
@@ -595,9 +860,9 @@
 
                 <div class="deepdive-box">
                     <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
-                    Express the sequence Z→X→Z algebraically using projection operators.
-                    Why does the intermediate X measurement introduce irreducible randomness into the
-                    final Z outcome, regardless of the initial state?
+                    After the X measurement, the state has collapsed to either $|{+}\rangle$ or $|{-}\rangle$.
+                    Both of these states are equal superpositions of $|0\rangle$ and $|1\rangle$.
+                    Can the subsequent Z measurement ever recover the original Z information? Why not?
                 </div>
             </div>
         </div>
@@ -675,47 +940,6 @@
         </a>
 
         <!-- ══════════════════════════════════════════════════════════════════ -->
-        <!--  REPORT GUIDELINES                                                  -->
-        <!-- ══════════════════════════════════════════════════════════════════ -->
-        <h2 class="section-title mt-5">
-            <i class="fa-solid fa-file-lines text-warning me-2"></i>Report Guidelines
-        </h2>
-
-        <div class="report-box">
-            <h5 class="mb-3"><i class="fa-solid fa-pencil me-2"></i>Laboratory Report</h5>
-            <p class="mb-3">
-                Produce a <strong>PDF report (10–15 pages)</strong> documenting your work for each activity.
-                Submit within <strong>15 days</strong> of the lab session.
-            </p>
-
-            <h6>For each activity, include:</h6>
-            <ul>
-                <li><strong>Screenshots</strong> of the simulator at each key step.</li>
-                <li>
-                    A <strong>measurement table</strong>: initial state | basis used | theoretical probabilities
-                    (Born rule) | observed outcome(s).
-                </li>
-                <li>Brief explanation of each result in your own words.</li>
-            </ul>
-
-            <h6 class="mt-3">Reflection Questions to Answer:</h6>
-            <ol>
-                <li>
-                    <em>"Why does measuring $|{+}\rangle$ in the X-basis always give the same result?"</em><br>
-                    <small class="text-muted">Hint: compute $\langle{+}|\hat{X}|{+}\rangle$ and $|\langle{+}|{+}\rangle|^2$.</small>
-                </li>
-                <li>
-                    <em>"What happens to the Bloch vector after a Z-basis measurement?"</em><br>
-                    <small class="text-muted">Describe the geometric transformation of an arbitrary equatorial state under measurement.</small>
-                </li>
-                <li>
-                    <em>"How does the Stern-Gerlach experiment demonstrate state collapse?"</em><br>
-                    <small class="text-muted">Use the sequence Z→X→Z to build your argument. Relate to the non-commutativity of $\hat{S}_x$ and $\hat{S}_z$.</small>
-                </li>
-            </ol>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════════════════════ -->
         <!--  RESOURCES                                                           -->
         <!-- ══════════════════════════════════════════════════════════════════ -->
         <h2 class="section-title mt-2">
@@ -750,18 +974,6 @@
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <h6 class="card-title text-primary"><i class="fa-solid fa-file-pdf me-1"></i>Course Support Material</h6>
-                        <ul class="small text-secondary mb-0">
-                            <li><code>support_material/quantum_interference.pdf</code> — Interference and phase</li>
-                            <li><code>support_material/phase_kickback_proof.pdf</code> — Phase relationship proofs</li>
-                            <li><code>support_material/amplitude_amplification.pdf</code> — Amplification formalism</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
                         <h6 class="card-title text-primary"><i class="fa-solid fa-code me-1"></i>Companion Notebook</h6>
                         <p class="small text-secondary mb-2">
                             The Jupyter notebook companion for this lab provides Qiskit-based analytical tools:
@@ -786,7 +998,7 @@
         </h2>
 
         <p class="text-muted mb-4">
-            Check your understanding before submitting the report.
+            Check your understanding of the key concepts from this lab.
         </p>
 
         <div class="card mb-3 border-light shadow-sm">
@@ -869,6 +1081,281 @@
     <footer class="text-center py-4 mt-2 bg-light border-top">
         <p class="text-muted mb-0">Quantum Computing Foundation — Lab Module 5: Quantum Measurements</p>
     </footer>
+
+    <!-- Bloch Sphere Simulator -->
+    <script>
+    (function () {
+        'use strict';
+        if (typeof THREE === 'undefined') return;
+
+        // ── Setup ──────────────────────────────────────────────────────────────
+        const container = document.getElementById('bloch-canvas-container');
+        if (!container) return;
+        let W = container.offsetWidth || 480;
+        const H = 380;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(W, H);
+        renderer.setClearColor(0x0f0230, 1);
+        container.appendChild(renderer.domElement);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 50);
+        camera.position.set(2.9, 1.8, 2.9);
+        camera.lookAt(0, 0, 0);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;
+        controls.minDistance = 2.5;
+        controls.maxDistance = 7;
+        controls.enablePan = false;
+        controls.rotateSpeed = 0.55;
+
+        // ── Lighting ───────────────────────────────────────────────────────────
+        scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+        const dl = new THREE.DirectionalLight(0xffffff, 0.35);
+        dl.position.set(4, 6, 4);
+        scene.add(dl);
+
+        // ── Sphere ─────────────────────────────────────────────────────────────
+        scene.add(new THREE.Mesh(
+            new THREE.SphereGeometry(1, 48, 32),
+            new THREE.MeshPhongMaterial({
+                color: 0x6d28d9, transparent: true, opacity: 0.07,
+                side: THREE.DoubleSide, depthWrite: false
+            })
+        ));
+
+        // ── Circles ────────────────────────────────────────────────────────────
+        // Coordinate mapping: Three.js X=bx, Three.js Y=bz (physics Z, "up"), Three.js Z=by
+        function makeRing(plane, color, opacity) {
+            var pts = [], segs = 128;
+            for (var i = 0; i <= segs; i++) {
+                var a = (i / segs) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+                if      (plane === 'eq') pts.push(new THREE.Vector3(c, 0, s));   // equator (bz=0)
+                else if (plane === 'xz') pts.push(new THREE.Vector3(c, s, 0));   // meridian φ=0
+                else                     pts.push(new THREE.Vector3(0, c, s));   // meridian φ=90°
+            }
+            return new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(pts),
+                new THREE.LineBasicMaterial({ color: color, opacity: opacity, transparent: true })
+            );
+        }
+        scene.add(makeRing('eq', 0x6b7280, 0.45));
+        scene.add(makeRing('xz', 0x6b7280, 0.20));
+        scene.add(makeRing('yz', 0x6b7280, 0.20));
+
+        // ── Axes ───────────────────────────────────────────────────────────────
+        function axLine(from, to, color) {
+            return new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(from[0],from[1],from[2]), new THREE.Vector3(to[0],to[1],to[2])]),
+                new THREE.LineBasicMaterial({ color: color, opacity: 0.75, transparent: true })
+            );
+        }
+        function axCone(dirArr, color) {
+            var cone = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.16, 8), new THREE.MeshBasicMaterial({ color: color }));
+            var d = new THREE.Vector3(dirArr[0], dirArr[1], dirArr[2]).normalize();
+            cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+            cone.position.copy(d.clone().multiplyScalar(1.56));
+            return cone;
+        }
+        scene.add(axLine([0,-1.5,0], [0,1.5,0], 0x3b82f6)); scene.add(axCone([0,1,0],  0x3b82f6)); // Z (bz)
+        scene.add(axLine([-1.5,0,0], [1.5,0,0], 0xf87171)); scene.add(axCone([1,0,0],  0xf87171)); // X (bx)
+        scene.add(axLine([0,0,-1.5], [0,0,1.5], 0x4ade80)); scene.add(axCone([0,0,1],  0x4ade80)); // Y (by)
+
+        // ── Cardinal dots ──────────────────────────────────────────────────────
+        var CARDINALS = [
+            { id:'cs-k0',  tv:[0,1,0],   color:0x60a5fa },
+            { id:'cs-k1',  tv:[0,-1,0],  color:0xf87171 },
+            { id:'cs-kp',  tv:[1,0,0],   color:0x4ade80 },
+            { id:'cs-km',  tv:[-1,0,0],  color:0xfacc15 },
+            { id:'cs-ki',  tv:[0,0,1],   color:0xc084fc },
+            { id:'cs-kni', tv:[0,0,-1],  color:0x67e8f9 },
+        ];
+        CARDINALS.forEach(function(c) {
+            var dot = new THREE.Mesh(new THREE.SphereGeometry(0.046, 8, 8), new THREE.MeshBasicMaterial({ color: c.color }));
+            dot.position.set(c.tv[0], c.tv[1], c.tv[2]);
+            scene.add(dot);
+        });
+
+        // ── State arrow ────────────────────────────────────────────────────────
+        var ACOL  = 0xf59e0b, ACOL_M = 0xef4444;
+        var arrow = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,0), 0.96, ACOL, 0.18, 0.11);
+        scene.add(arrow);
+
+        // ── State ──────────────────────────────────────────────────────────────
+        var theta = 0, phi = 0, animating = false, outcomes = [];
+
+        function phToThree(th, ph) {
+            return new THREE.Vector3(
+                Math.sin(th) * Math.cos(ph),
+                Math.cos(th),
+                Math.sin(th) * Math.sin(ph)
+            );
+        }
+
+        function bornProbs(th, ph, basis) {
+            var bx = Math.sin(th)*Math.cos(ph), by = Math.sin(th)*Math.sin(ph), bz = Math.cos(th);
+            if (basis==='Z') return [(1+bz)/2, (1-bz)/2];
+            if (basis==='X') return [(1+bx)/2, (1-bx)/2];
+            return                  [(1+by)/2, (1-by)/2];
+        }
+
+        function setState(th, ph, sync) {
+            theta = th; phi = ph;
+            arrow.setDirection(phToThree(th, ph).normalize());
+            arrow.setColor(ACOL);
+            if (sync) {
+                document.getElementById('sim-theta').value = th;
+                document.getElementById('sim-phi').value   = ph;
+            }
+            refreshPanel();
+        }
+
+        function refreshPanel() {
+            var basis = document.querySelector('input[name="sim-basis"]:checked').value;
+            var pp = bornProbs(theta, phi, basis);
+            var p0 = pp[0], p1 = pp[1];
+            var tdeg = (theta*180/Math.PI).toFixed(1), pdeg = (phi*180/Math.PI).toFixed(1);
+            var a = Math.cos(theta/2).toFixed(3), b = Math.sin(theta/2).toFixed(3);
+            var formula;
+            if (parseFloat(b)<0.001)       formula = '|ψ⟩ = |0⟩';
+            else if (parseFloat(a)<0.001)  formula = '|ψ⟩ = |1⟩';
+            else if (parseFloat(phi)===0)  formula = '|ψ⟩ = '+a+'|0⟩ + '+b+'|1⟩';
+            else                           formula = '|ψ⟩ = '+a+'|0⟩ + e^{i'+pdeg+'°}·'+b+'|1⟩';
+            document.getElementById('sim-formula').textContent = formula;
+            document.getElementById('sim-theta-val').textContent = tdeg+'°';
+            document.getElementById('sim-phi-val').textContent   = pdeg+'°';
+            var lbls = { Z:['P(|0⟩)','P(|1⟩)'], X:['P(|+⟩)','P(|−⟩)'], Y:['P(|i⟩)','P(|−i⟩)'] };
+            document.getElementById('sim-lbl-0').textContent = lbls[basis][0];
+            document.getElementById('sim-lbl-1').textContent = lbls[basis][1];
+            document.getElementById('sim-bar-0').style.width = (p0*100).toFixed(1)+'%';
+            document.getElementById('sim-bar-1').style.width = (p1*100).toFixed(1)+'%';
+            document.getElementById('sim-pct-0').textContent = (p0*100).toFixed(1)+'%';
+            document.getElementById('sim-pct-1').textContent = (p1*100).toFixed(1)+'%';
+        }
+
+        // ── Measurement ────────────────────────────────────────────────────────
+        var COLLAPSED = {
+            Z: [[0,0],[Math.PI,0]],
+            X: [[Math.PI/2,0],[Math.PI/2,Math.PI]],
+            Y: [[Math.PI/2,Math.PI/2],[Math.PI/2,3*Math.PI/2]]
+        };
+        var OUT_LABEL = { Z:['|0⟩','|1⟩'], X:['|+⟩','|−⟩'], Y:['|i⟩','|−i⟩'] };
+        var CHIP_CLR  = { '|0⟩':'#dbeafe','|1⟩':'#fee2e2','|+⟩':'#dcfce7','|−⟩':'#fef9c3','|i⟩':'#f3e8ff','|−i⟩':'#e0f2fe' };
+
+        function doMeasure() {
+            if (animating) return;
+            var basis = document.querySelector('input[name="sim-basis"]:checked').value;
+            var pp = bornProbs(theta, phi, basis);
+            var idx = Math.random() < pp[0] ? 0 : 1;
+            var col = COLLAPSED[basis][idx];
+            var tTh = col[0], tPh = col[1];
+            var label = OUT_LABEL[basis][idx];
+            animating = true;
+            arrow.setColor(ACOL_M);
+            var startV = phToThree(theta, phi).normalize();
+            var endV   = phToThree(tTh, tPh).normalize();
+            var t = 0;
+            (function step() {
+                t += 0.055;
+                if (t >= 1) {
+                    setState(tTh, tPh, true);
+                    animating = false;
+                    flashOutcome(label);
+                    addHistory(label);
+                    return;
+                }
+                var ease = t * t * (3 - 2 * t);
+                arrow.setDirection(startV.clone().lerp(endV, ease).normalize());
+                requestAnimationFrame(step);
+            }());
+        }
+
+        function flashOutcome(label) {
+            var el = document.getElementById('sim-outcome');
+            el.textContent = 'Outcome: ' + label;
+            el.style.opacity = '1';
+            clearTimeout(el._t);
+            el._t = setTimeout(function(){ el.style.opacity='0'; }, 2200);
+        }
+
+        function addHistory(label) {
+            outcomes.unshift(label);
+            if (outcomes.length > 14) outcomes.pop();
+            document.getElementById('sim-history').innerHTML = outcomes.map(function(l) {
+                return '<span style="background:'+(CHIP_CLR[l]||'#f3f4f6')+';border:1px solid #e5e7eb;border-radius:20px;padding:2px 9px;font-size:.76rem;font-weight:600;color:#374151;display:inline-block;margin:2px 2px 2px 0;">'+l+'</span>';
+            }).join('');
+        }
+
+        // ── Label overlay ──────────────────────────────────────────────────────
+        var AXIS_LBL_POS = [
+            { id:'sim-lbl-z',  pos:new THREE.Vector3(0,  1.78, 0)  },
+            { id:'sim-lbl-nz', pos:new THREE.Vector3(0, -1.78, 0)  },
+            { id:'sim-lbl-x',  pos:new THREE.Vector3(1.78, 0, 0)   },
+            { id:'sim-lbl-y',  pos:new THREE.Vector3(0, 0, 1.78)   },
+        ];
+        var CARD_LBL_POS = [
+            { id:'cs-k0',  pos:new THREE.Vector3( 0.15, 1.25, 0)   },
+            { id:'cs-k1',  pos:new THREE.Vector3( 0.15,-1.25, 0)   },
+            { id:'cs-kp',  pos:new THREE.Vector3( 1.28, 0.08, 0)   },
+            { id:'cs-km',  pos:new THREE.Vector3(-1.28, 0.08, 0)   },
+            { id:'cs-ki',  pos:new THREE.Vector3( 0,    0.08, 1.28) },
+            { id:'cs-kni', pos:new THREE.Vector3( 0,    0.08,-1.28) },
+        ];
+        var wrap = document.getElementById('bloch-wrap');
+
+        function posLabel(el, pos3) {
+            var v = pos3.clone().project(camera);
+            var cw = renderer.domElement.offsetWidth  || W;
+            var ch = renderer.domElement.offsetHeight || H;
+            el.style.left = ((v.x + 1) / 2 * cw) + 'px';
+            el.style.top  = ((-v.y + 1) / 2 * ch) + 'px';
+            el.style.display = (v.z < 1) ? 'block' : 'none';
+        }
+
+        function posAllLabels() {
+            AXIS_LBL_POS.concat(CARD_LBL_POS).forEach(function(item) {
+                var el = document.getElementById(item.id);
+                if (el) posLabel(el, item.pos);
+            });
+        }
+
+        // ── Render loop ────────────────────────────────────────────────────────
+        (function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+            posAllLabels();
+        }());
+
+        // ── Events ─────────────────────────────────────────────────────────────
+        document.getElementById('sim-theta').addEventListener('input', function() { setState(parseFloat(this.value), phi, false); });
+        document.getElementById('sim-phi').addEventListener('input',   function() { setState(theta, parseFloat(this.value), false); });
+        document.querySelectorAll('input[name="sim-basis"]').forEach(function(r){ r.addEventListener('change', refreshPanel); });
+        document.getElementById('sim-measure').addEventListener('click', doMeasure);
+
+        var PRESET = { '0':[0,0],'1':[Math.PI,0],'+':[Math.PI/2,0],'-':[Math.PI/2,Math.PI],'i':[Math.PI/2,Math.PI/2],'-i':[Math.PI/2,3*Math.PI/2] };
+        document.querySelectorAll('[data-bloch-state]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (animating) return;
+                var p = PRESET[this.dataset.blochState];
+                if (p) setState(p[0], p[1], true);
+            });
+        });
+
+        window.addEventListener('resize', function() {
+            W = container.offsetWidth;
+            camera.aspect = W / H;
+            camera.updateProjectionMatrix();
+            renderer.setSize(W, H);
+        });
+
+        setState(0, 0, false);
+    }());
+    </script>
 
     <!-- MathJax -->
     <script>
