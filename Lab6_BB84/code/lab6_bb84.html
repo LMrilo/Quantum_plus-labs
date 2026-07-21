@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Lab 6: Quantum Key Distribution — BB84</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --clr-bg:      #f0f2f8;
+            --clr-hero1:   #02121f;
+            --clr-hero2:   #062f43;
+            --clr-accent:  #f59e0b;
+            --clr-accent2: #0d9488;
+            --clr-blue:    #1d4ed8;
+            --clr-purple:  #6d28d9;
+        }
+        body { background-color: var(--clr-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hero-section {
+            background: linear-gradient(135deg, var(--clr-hero1) 0%, var(--clr-hero2) 55%, #0b3d4d 100%);
+            color: white; padding: 3.8rem 0;
+            border-bottom: 5px solid var(--clr-accent);
+            position: relative; overflow: hidden;
+        }
+        .hero-section::before {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(-45deg,
+                rgba(245,158,11,0.04) 0px, rgba(245,158,11,0.04) 1px,
+                transparent 1px, transparent 50px);
+        }
+        .hero-badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 30px; padding: 5px 16px; font-size: .82rem;
+            display: inline-block; margin: 3px 4px; }
+        .hero-tag { background: var(--clr-accent); color: #062f43;
+            border-radius: 4px; padding: 3px 10px; font-weight: 700;
+            font-size: .8rem; letter-spacing: .5px; display: inline-block; margin: 3px 4px; }
+        .section-title { border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+            margin-bottom: 28px; color: #062f43; }
+        .theory-box { background-color: #eff6ff; border-left: 5px solid var(--clr-blue);
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .context-box { background-color: #fffbeb; border-left: 5px solid var(--clr-accent);
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .warning-box { background-color: #fff7ed; border-left: 5px solid #f97316;
+            padding: 16px; margin-bottom: 20px; border-radius: 4px; font-size: 0.95rem; }
+        .procedure-box { background-color: #fef2f2; border-left: 5px solid #dc2626;
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .def-box { background-color: #ecfdf5; border-left: 5px solid #059669;
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .connection-box { background-color: #f0fdf4; border-left: 5px solid #16a34a;
+            padding: 16px 20px; border-radius: 6px; margin-bottom: 14px; font-size: 0.92rem; }
+        .connection-box .lab-link { display: inline-block; background: #16a34a;
+            color: white; border-radius: 4px; padding: 1px 8px;
+            font-size: .78rem; font-weight: 700; margin-right: 6px; }
+        .outcome-box { background-color: #f5f3ff; border-left: 5px solid var(--clr-purple);
+            padding: 18px 20px; border-radius: 6px; margin-bottom: 10px;
+            display: flex; align-items: flex-start; gap: 14px; }
+        .outcome-number { background: var(--clr-purple); color: white; border-radius: 50%;
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .9rem; flex-shrink: 0; }
+        .deepdive-box { background-color: #f0fdfa; border-left: 5px solid var(--clr-accent2);
+            padding: 18px 20px; margin-top: 18px; border-radius: 4px; font-size: 0.95rem; }
+        .task-box { border: 1px solid #dde4ee; border-radius: 12px; background: white;
+            margin-bottom: 35px; transition: transform 0.2s;
+            box-shadow: 0 3px 12px rgba(0,0,0,.05); overflow: hidden; }
+        .task-box:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,.10); }
+        .task-header { background-color: #f0f9f8; padding: 14px 22px;
+            border-bottom: 1px solid #dde4ee; font-weight: 700; font-size: 1.05rem;
+            display: flex; justify-content: space-between; align-items: center; }
+        .task-body { padding: 26px; }
+        .colab-btn { background:#f9ab00; color:white; font-weight:700; padding:9px 22px;
+            text-decoration:none; border-radius:5px; }
+        .colab-btn:hover { background:#e09b00; color:white; }
+
+        /* ── Born / protocol tables ─────────────────────────────────────── */
+        .born-table { width:100%; border-collapse:separate; border-spacing:2px; }
+        .born-table th { background:#062f43; color:white; text-align:center;
+            padding:8px 6px; border-radius:4px; font-size:.88rem; }
+        .born-table td { text-align:center; padding:8px 6px; border-radius:4px;
+            font-family:monospace; font-weight:700; background:#f8fafc; }
+        .born-cell-det  { background:#d1fae5 !important; color:#065f46; }
+        .born-cell-rand { background:#fef3c7 !important; color:#92400e; }
+
+        /* ── Simulator ─────────────────────────────────────────────────── */
+        .sim-section { background: white; border: 1px solid #dde4ee; border-radius: 12px;
+            overflow: hidden; margin-bottom: 40px; box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+        .sim-header { background: linear-gradient(135deg, #02121f 0%, #0b3d4d 100%);
+            color: white; padding: 14px 22px; font-weight: 700; font-size: 1.05rem;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .sim-badge { background: #f59e0b; color: #062f43; border-radius: 4px;
+            padding: 3px 10px; font-size: .78rem; font-weight: 700; }
+        .sim-body { padding: 24px; }
+        .stat-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
+            padding:14px 16px; text-align:center; height:100%; }
+        .stat-value { font-size:1.45rem; font-weight:800; font-family:monospace; color:#062f43; }
+        .stat-theory { font-size:.78rem; color:#64748b; font-family:monospace; }
+        .stat-label { font-size:.8rem; color:#475569; font-weight:600; margin-bottom:2px; }
+        .key-strip { font-family:monospace; font-size:1.02rem; letter-spacing:2px;
+            background:#0f172a; color:#e2e8f0; border-radius:6px; padding:8px 12px;
+            overflow-x:auto; white-space:nowrap; }
+        .key-strip .kb-err { color:#f87171; font-weight:800; text-decoration:underline; }
+        .key-strip .kb-ok  { color:#6ee7b7; }
+        .round-log th { font-size:.78rem; background:#f1f5f9; }
+        .round-log td { font-size:.85rem; font-family:monospace; text-align:center; }
+        .round-log tr.discarded td { color:#b0b7c3; }
+        .round-log tr.err-row td { background:#fef2f2; }
+        .basis-chip { display:inline-block; width:22px; height:22px; line-height:20px;
+            border-radius:4px; text-align:center; font-weight:800; }
+        .basis-Z { background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; }
+        .basis-X { background:#fce7f3; color:#9d174d; border:1px solid #f9a8d4; }
+        .info-box-interactive { background:#e8f4f8; border-left:4px solid #0dcaf0;
+            padding:14px; border-radius:0 4px 4px 0; font-size:.92rem; color:#222;
+            min-height:60px; margin-top:14px; }
+        .chart-frame { background:#fafafa; border:1px solid #eee; border-radius:6px; padding:12px; }
+        .feedback { display: none; margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .correct { background-color: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .wrong   { background-color: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+        pre { background:#1e1e2e; color:#cdd6f4; padding:18px; border-radius:8px;
+            font-size:.86rem; overflow-x:auto; }
+        code { font-family:'Courier New', monospace; }
+        .nav-tabs .nav-link.active { font-weight:700; color:#062f43; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  HERO                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="hero-section text-center">
+    <div class="container position-relative">
+        <p class="mb-2" style="font-size:.8rem;letter-spacing:2px;text-transform:uppercase;opacity:.7;">
+            Quantum Computing Foundation
+        </p>
+        <h1 class="display-4 fw-bold mb-2">
+            <i class="fa-solid fa-key"></i> Lab 6: Quantum Key Distribution
+        </h1>
+        <p class="lead mb-4 opacity-75">
+            The BB84 Protocol — Measurement as a Security Primitive
+        </p>
+        <div>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Lab 5 (Quantum Measurements) &amp; Quantum Communication course</span>
+            <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
+            <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 10 h lab work</span>
+            <span class="hero-badge"><i class="fa-solid fa-globe me-1"></i>Mode: Interactive Simulator + Qiskit</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5 pb-4">
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  RATIONALE — THE LAB 5 BRIDGE                                        -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-microscope text-warning me-2"></i>Rationale</h2>
+            <p class="fs-5 text-secondary lh-lg">
+                In Lab 5 you learned that measuring a qubit in the <em>wrong</em> basis gives a
+                random outcome and <strong>irreversibly disturbs the state</strong>. That looked like
+                a limitation. In 1984, Bennett and Brassard turned it into a feature: if an
+                eavesdropper cannot measure without disturbing, then <strong>disturbance is
+                evidence of eavesdropping</strong> — and two parties can build a shared secret key
+                whose security rests on physics, not on computational hardness.
+            </p>
+            <div class="connection-box">
+                <span class="lab-link">LAB 5 BRIDGE</span>
+                Everything in BB84 is applied Lab 5. The four signal states are exactly the states
+                $|0\rangle, |1\rangle, |{+}\rangle, |{-}\rangle$ you placed on the Bloch sphere; the
+                measurement statistics are the Born rule you derived; and the distinction between
+                <strong>Procedure&nbsp;1</strong> (direct basis projection) and <strong>Procedure&nbsp;2</strong>
+                (rotate with $H$, then Z-measure) — which seemed academic — becomes <em>operationally
+                decisive</em> when the eavesdropper must resend a quantum state (Part&nbsp;4).
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  LEARNING OUTCOMES                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-star text-warning me-2"></i>Learning Outcomes</h2>
+            <div class="outcome-box"><div class="outcome-number">1</div><div>
+                <strong>Explain the logic of BB84 and its security foundations</strong> — random bases,
+                mutually unbiased states, sifting, and why $|\langle z_j | x_l \rangle|^2 = 1/2$ makes a
+                wrong-basis measurement erase the encoded bit.</div></div>
+            <div class="outcome-box"><div class="outcome-number">2</div><div>
+                <strong>Perform and analyze QKD experiments</strong> — run the protocol in the simulator
+                and in Qiskit, compute the sifted fraction and the quantum bit error rate (QBER), and
+                compare against the exact theoretical values.</div></div>
+            <div class="outcome-box"><div class="outcome-number">3</div><div>
+                <strong>Understand the measurement–disturbance–security relationship</strong> — derive the
+                25% QBER of intercept-resend, see why the eavesdropper cannot avoid it, and quantify
+                detection: $P_{\text{det}}(k) = 1 - (3/4)^k$.</div></div>
+            <div class="outcome-box"><div class="outcome-number">4</div><div>
+                <strong>Discuss the relevance for cryptographic systems</strong> — key rates, error
+                thresholds, and what QKD does (and does not) replace in modern cryptography.</div></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 1 — THE FOUR STATES                                            -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-arrows-up-down-left-right text-warning me-2"></i>
+                Part 1: The Four BB84 States</h2>
+
+            <p>Alice encodes each random bit $a \in \{0,1\}$ in one of two randomly chosen bases:
+            the <strong>Z-basis</strong> (rectilinear, <span class="basis-chip basis-Z">+</span>) or the
+            <strong>X-basis</strong> (diagonal, <span class="basis-chip basis-X">×</span>). The encoding rule:
+            bit 0 always maps to the $+1$ eigenstate of the basis, bit 1 to the $-1$ eigenstate.</p>
+
+            <div class="def-box">
+                <strong>Encoding map</strong> (photon-polarization picture in parentheses):
+                <div class="text-center mt-2">
+                    $|\psi(0,Z)\rangle = |0\rangle$ (vertical ↑) &emsp;
+                    $|\psi(1,Z)\rangle = |1\rangle$ (horizontal →) &emsp;
+                    $|\psi(0,X)\rangle = |{+}\rangle$ (diagonal ⤢) &emsp;
+                    $|\psi(1,X)\rangle = |{-}\rangle$ (diagonal ⤡)
+                </div>
+                <div class="text-center mt-2 text-muted" style="font-size:.88rem;">
+                    with $|{\pm}\rangle = (|0\rangle \pm |1\rangle)/\sqrt{2}$ — on the Lab 5 Bloch sphere:
+                    the poles ($\theta = 0, \pi$) and two equator points ($\theta = \pi/2$, $\varphi = 0, \pi$).
+                </div>
+            </div>
+
+            <p>The two bases are <strong>mutually unbiased</strong>: writing $|z_0\rangle = |0\rangle,
+            |z_1\rangle = |1\rangle, |x_0\rangle = |{+}\rangle, |x_1\rangle = |{-}\rangle$,</p>
+            <div class="text-center mb-3">
+                $$|\langle z_j | x_l \rangle|^2 = \tfrac{1}{2} \quad \text{for all } j, l \in \{0,1\}.$$
+            </div>
+            <div class="theory-box">
+                <strong><i class="fa-solid fa-shield-halved me-1"></i>Why this is the security foundation:</strong>
+                a measurement in the wrong basis yields a uniformly random outcome — it extracts
+                <em>zero</em> information about the encoded bit and (Lab 5!) destroys the original
+                state in the process. Everything that follows is this one fact, exploited systematically.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 2 — BORN TABLE                                                 -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-table-cells text-warning me-2"></i>
+                Part 2: Measurement Statistics — the Born Table</h2>
+
+            <p>Applying the Born rule $P(m \,|\, \psi; B) = |\langle m | \psi \rangle|^2$ from Lab 5
+            to the four BB84 states in both bases gives the complete statistics of the protocol:</p>
+
+            <div class="table-responsive mb-3">
+                <table class="born-table">
+                    <tr>
+                        <th>State sent</th>
+                        <th colspan="2">Z-measurement: $P(0)$, $P(1)$</th>
+                        <th colspan="2">X-measurement: $P(+)$, $P(-)$</th>
+                    </tr>
+                    <tr><th>$|0\rangle$</th>
+                        <td class="born-cell-det">1</td><td class="born-cell-det">0</td>
+                        <td class="born-cell-rand">1/2</td><td class="born-cell-rand">1/2</td></tr>
+                    <tr><th>$|1\rangle$</th>
+                        <td class="born-cell-det">0</td><td class="born-cell-det">1</td>
+                        <td class="born-cell-rand">1/2</td><td class="born-cell-rand">1/2</td></tr>
+                    <tr><th>$|{+}\rangle$</th>
+                        <td class="born-cell-rand">1/2</td><td class="born-cell-rand">1/2</td>
+                        <td class="born-cell-det">1</td><td class="born-cell-det">0</td></tr>
+                    <tr><th>$|{-}\rangle$</th>
+                        <td class="born-cell-rand">1/2</td><td class="born-cell-rand">1/2</td>
+                        <td class="born-cell-det">0</td><td class="born-cell-det">1</td></tr>
+                </table>
+            </div>
+            <p class="text-muted" style="font-size:.9rem;">
+                <span class="badge" style="background:#d1fae5;color:#065f46;">green</span> matched basis —
+                deterministic recovery of the bit; &nbsp;
+                <span class="badge" style="background:#fef3c7;color:#92400e;">amber</span> mismatched basis —
+                coin-flip outcome, bit erased.
+            </p>
+
+            <div class="procedure-box">
+                <strong><i class="fa-solid fa-code-branch me-1"></i>Procedure 1 vs Procedure 2 — read this carefully.</strong>
+                The table above lists <em>probabilities</em>, and these are identical whether the X-basis
+                measurement is done by <strong>Procedure 1</strong> (direct projection onto
+                $\{|{+}\rangle, |{-}\rangle\}$) or by <strong>Procedure 2</strong> (apply the canonical
+                rotation $U_X = H$, then Z-measure — what real hardware does). Lab 5 established this
+                equivalence. Bob only keeps a classical bit, so <em>for Bob</em> the choice of procedure
+                is invisible: with Procedure 2 the Z-outcome $c \in \{0,1\}$ maps to bit $b = c$ because
+                $H|{+}\rangle = |0\rangle$ and $H|{-}\rangle = |1\rangle$.
+                <br><br>
+                But the two procedures leave <strong>different post-measurement states</strong>
+                (Procedure 1: a basis eigenstate; Procedure 2: $|0\rangle$ or $|1\rangle$). Bob never
+                cares. <strong>The eavesdropper will</strong> — she must resend a quantum state, and a
+                post-measurement state is exactly what she has in hand. Hold that thought for Part 4.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 3 — PROTOCOL + SIFTING                                         -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-list-ol text-warning me-2"></i>
+                Part 3: The Protocol, Sifting, and the Error Check</h2>
+
+            <p>For each round $i = 1, \dots, n$:</p>
+            <ol class="mb-4">
+                <li class="mb-2"><strong>Alice</strong> draws a uniform random bit $a_i$ and basis
+                    $\alpha_i \in \{Z, X\}$, prepares $|\psi(a_i, \alpha_i)\rangle$, and sends it through
+                    the quantum channel.</li>
+                <li class="mb-2"><strong>Bob</strong> draws his own uniform random basis
+                    $\beta_i \in \{Z, X\}$ — independently, since he cannot know $\alpha_i$ — and measures,
+                    recording bit $b_i$. (On hardware: Procedure 2 with $U_X = H$.)</li>
+                <li class="mb-2"><strong>Basis reconciliation:</strong> over an authenticated public channel,
+                    Alice and Bob announce their <em>bases</em> — never the bits. They keep the
+                    <strong>sifted set</strong> $S = \{i : \alpha_i = \beta_i\}$ and discard everything else.</li>
+                <li class="mb-2"><strong>Error check:</strong> they sacrifice a random subset of $k$ sifted
+                    positions, publicly compare $a_i$ vs $b_i$ there, and estimate the
+                    <strong>quantum bit error rate (QBER)</strong>. Too many errors → abort.</li>
+                <li class="mb-2"><strong>Key:</strong> the remaining sifted, unchecked bits form the raw shared key.</li>
+            </ol>
+
+            <div class="theory-box">
+                <strong>Sifted fraction.</strong> $\alpha_i$ and $\beta_i$ are independent and uniform on
+                two values, so
+                $$P(\alpha_i = \beta_i) = P(Z,Z) + P(X,X) = \tfrac14 + \tfrac14 = \tfrac12 .$$
+                On average <strong>half the rounds survive sifting</strong>: expected sifted key length $n/2$.
+            </div>
+
+            <div class="theory-box">
+                <strong>QBER without eavesdropping.</strong> On an ideal channel, every sifted round is a
+                matched-basis measurement — the <em>green</em> cells of the Born table. Those are
+                deterministic, so
+                $$Q_{\text{no Eve}} = P(b_i \neq a_i \mid i \in S) = 0 \quad \text{exactly.}$$
+                Not "small" — <strong>zero</strong>. On an ideal channel, <em>any</em> error in the sifted
+                key is evidence that something interfered with the qubits in transit.
+            </div>
+
+            <div class="deepdive-box">
+                <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Why sifting matters:</strong>
+                without step 3, mismatched-basis rounds (coin flips) would contribute errors even with no
+                eavesdropper at all — the raw disagreement rate would be
+                $\tfrac12 \cdot \tfrac12 = 25\%$ for a perfectly secure channel. Sifting removes exactly this
+                noise floor, which is what makes the QBER a meaningful security signal. Verify both numbers
+                in the simulator.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 4 — INTERCEPT-RESEND                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-user-secret text-warning me-2"></i>
+                Part 4: The Intercept-Resend Attack — QBER = 25%</h2>
+
+            <p>Eve's simplest attack: intercept each qubit, measure it in a random basis
+            $\gamma_i \in \{Z, X\}$, and resend the post-measurement state to Bob. She cannot do better
+            than guess — the basis announcements happen only <em>after</em> Bob has measured.
+            Condition on a sifted round ($\beta = \alpha$) and split on Eve's guess:</p>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="def-box h-100 mb-0">
+                        <strong>Case 1 — Eve guesses right</strong> ($\gamma = \alpha$, probability $\tfrac12$).
+                        Matched-basis measurement is deterministic: Eve reads $e = a$, resends the very same
+                        state, Bob recovers $b = a$.
+                        <div class="text-center mt-2">Error probability: $0$</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="procedure-box h-100 mb-0">
+                        <strong>Case 2 — Eve guesses wrong</strong> ($\gamma \neq \alpha$, probability $\tfrac12$).
+                        Her outcome is a coin flip, and her resent state is a $\gamma$-basis eigenstate.
+                        Bob measures it in $\alpha \neq \gamma$ — mutually unbiased again — so his outcome
+                        is uniform <em>regardless of what Alice sent</em>.
+                        <div class="text-center mt-2">Error probability: $\tfrac12$</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-3">
+                $$Q \;=\; \underbrace{\tfrac12 \cdot 0}_{\gamma = \alpha}
+                   \;+\; \underbrace{\tfrac12 \cdot \tfrac12}_{\gamma \neq \alpha}
+                   \;=\; \tfrac14 \;=\; 25\% .$$
+            </div>
+
+            <p>Two refinements you can test directly in the simulator:</p>
+            <ul>
+                <li class="mb-2"><strong>Partial interception.</strong> If Eve intercepts each round
+                    independently with probability $p$ and lets the rest pass, errors arise only on
+                    intercepted rounds: $Q(p) = p/4$, linear in $p$. Less interception means less
+                    information for Eve <em>and</em> less visibility — but never zero of one with the
+                    other.</li>
+                <li class="mb-2"><strong>Fixed-basis Eve.</strong> If Eve always measures in $Z$ instead of
+                    guessing randomly, the arithmetic changes but the answer does not: her matching rounds
+                    contribute $0$, the others $\tfrac12$ — still $Q = \tfrac14$. Randomizing her basis
+                    neither helps nor hurts her visibility.</li>
+            </ul>
+
+            <div class="procedure-box">
+                <strong><i class="fa-solid fa-triangle-exclamation me-1"></i>Where Procedure 1 vs Procedure 2
+                becomes operational.</strong>
+                "Resend the post-measurement state" hides a subtlety. If Eve measures by
+                <strong>Procedure 1</strong>, her post-measurement state <em>is</em> the $\gamma$-basis
+                eigenstate $|e_\gamma\rangle$ — resending it gives the 25% above. If she measures by
+                <strong>Procedure 2</strong> (apply $U_\gamma$, Z-measure), her post-measurement state is the
+                computational state $|e\rangle$, and to run the same attack she must <strong>re-encode</strong>
+                it by applying $U_\gamma^\dagger$ before resending. Done correctly, the two implementations
+                are indistinguishable — same states to Bob, same $Q = 25\%$.
+                <br><br>
+                <strong>But suppose she forgets the re-encoding</strong> and naively resends $|e\rangle$
+                as-is. Work it through with the Born table:
+                <ul class="mt-2 mb-2">
+                    <li>Alice's $Z$-rounds: Eve's $\gamma = Z$ causes no error; $\gamma = X$ scrambles $e$ to a
+                        coin flip that Bob then reads deterministically → error $\tfrac12$. Contribution:
+                        $\tfrac12 \cdot \tfrac12 = \tfrac14$.</li>
+                    <li>Alice's $X$-rounds: Bob X-measures a Z-eigenstate — coin flip <em>whatever</em> Eve's
+                        basis was → error $\tfrac12$. Contribution: $\tfrac12$.</li>
+                </ul>
+                $$Q_{\text{naive}} = \tfrac12 \cdot \tfrac14 + \tfrac12 \cdot \tfrac12
+                    = \tfrac38 = 37.5\% \;\neq\; 25\% .$$
+                Every outcome <em>probability</em> in her measurement was identical between the two
+                procedures — yet the attack statistics changed, because the <em>post-measurement states</em>
+                differ and the resent state is a post-measurement state. This is the Lab 5 distinction made
+                operational. The simulator's "naive resend" mode lets you watch the QBER converge to 37.5%
+                instead of 25%.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 5 — DETECTION                                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-radar text-warning me-2"></i>
+                Part 5: Catching Eve — Detection Probability</h2>
+
+            <p>Under full interception, each of the $k$ publicly compared check bits is wrong
+            independently with probability $\tfrac14$. Eve escapes only if <em>all</em> $k$ agree:</p>
+            <div class="text-center mb-3">
+                $$P(\text{undetected}) = \left(\tfrac34\right)^k
+                \qquad\Longrightarrow\qquad
+                P_{\text{det}}(k) = 1 - \left(\tfrac34\right)^k .$$
+            </div>
+
+            <div class="table-responsive mb-3">
+                <table class="born-table" style="max-width:520px;margin:0 auto;">
+                    <tr><th>check bits $k$</th><th>1</th><th>5</th><th>10</th><th>20</th></tr>
+                    <tr><th>$P_{\text{det}}$</th>
+                        <td>25%</td><td>76.3%</td><td>94.4%</td><td>99.7%</td></tr>
+                </table>
+            </div>
+
+            <p>Detection is <strong>exponentially certain</strong> in the number of check bits. For partial
+            interception the same argument gives $P_{\text{det}}(k; p) = 1 - (1 - p/4)^k$. Note the
+            $k = 0$ limit: no check bits, no detection — the public comparison is not an optional
+            optimization, it <em>is</em> the security test.</p>
+
+            <div class="context-box">
+                <strong><i class="fa-solid fa-scale-balanced me-1"></i>Honest security context.</strong>
+                What you derived here covers one specific attack. The full security statement for BB84
+                (Shor &amp; Preskill, 2000) says the protocol with error correction and privacy
+                amplification produces a secure key whenever the QBER stays below <strong>≈ 11%</strong> —
+                against <em>any</em> attack physics allows, not just intercept-resend. Intercept-resend's
+                25% sits far above that threshold, which is why this attack is always catastrophic for Eve.
+                The proof machinery is beyond this lab; the QBER-threshold <em>logic</em> — measure the
+                error rate, abort above threshold — is exactly what you practice here.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  THE SIMULATOR                                                       -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title"><i class="fa-solid fa-satellite-dish text-warning me-2"></i>
+        The BB84 Simulator</h2>
+    <p class="text-secondary mb-4">
+        Built for this lab. <strong>Step-by-Step</strong> mode shows one photon at a time — watch the basis
+        choices, Eve's interference, and the sifted key forming. <strong>Batch Statistics</strong> mode runs
+        thousands of rounds and plots the measured statistics against every formula derived above. All runs
+        are seeded: the same seed always reproduces the same run.
+    </p>
+
+    <div class="sim-section">
+        <div class="sim-header">
+            <span><i class="fa-solid fa-key me-2"></i>BB84 Protocol Simulator</span>
+            <span class="sim-badge">SEEDED &amp; REPRODUCIBLE</span>
+        </div>
+        <div class="sim-body">
+
+            <ul class="nav nav-tabs mb-4" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
+                    data-bs-target="#tab-step" type="button" role="tab">
+                    <i class="fa-solid fa-shoe-prints me-1"></i>Mode 1 — Step-by-Step</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                    data-bs-target="#tab-batch" type="button" role="tab">
+                    <i class="fa-solid fa-chart-line me-1"></i>Mode 2 — Batch Statistics</button></li>
+            </ul>
+
+            <div class="tab-content">
+
+            <!-- ── MODE 1: STEP-BY-STEP ─────────────────────────────────── -->
+            <div class="tab-pane fade show active" id="tab-step" role="tabpanel">
+
+                <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+                    <button class="btn btn-primary" onclick="stepRound()">
+                        <i class="fa-solid fa-forward-step me-1"></i>Next round</button>
+                    <button class="btn btn-outline-primary" onclick="stepMany(10)">+10 rounds</button>
+                    <button class="btn btn-outline-secondary" onclick="resetStep()">
+                        <i class="fa-solid fa-rotate-left me-1"></i>Reset</button>
+                    <div class="form-check form-switch ms-2">
+                        <input class="form-check-input" type="checkbox" id="step-eve"
+                               onchange="resetStep()">
+                        <label class="form-check-label fw-bold" for="step-eve">
+                            <i class="fa-solid fa-user-secret me-1"></i>Eve intercepts</label>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <label class="fw-bold" for="step-seed" style="font-size:.9rem;">Seed</label>
+                        <input type="number" class="form-control form-control-sm" id="step-seed"
+                               value="42" style="width:90px" onchange="resetStep()">
+                    </div>
+                </div>
+
+                <!-- pipeline SVG -->
+                <div class="chart-frame mb-3">
+                    <svg id="pipeline-svg" viewBox="0 0 860 190" xmlns="http://www.w3.org/2000/svg"
+                         style="width:100%;max-height:220px;">
+                        <!-- Alice -->
+                        <rect x="10" y="30" width="150" height="120" rx="10" fill="#eff6ff" stroke="#1d4ed8"/>
+                        <text x="85" y="52" text-anchor="middle" font-weight="bold" fill="#1d4ed8" font-size="15">ALICE</text>
+                        <text id="p-alice-bit"   x="85" y="80"  text-anchor="middle" font-size="13" font-family="monospace">bit a = –</text>
+                        <text id="p-alice-basis" x="85" y="100" text-anchor="middle" font-size="13" font-family="monospace">basis α = –</text>
+                        <text id="p-alice-state" x="85" y="126" text-anchor="middle" font-size="17" font-weight="bold" font-family="monospace">|–⟩</text>
+                        <!-- channel -->
+                        <line x1="160" y1="90" x2="345" y2="90" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6,5"/>
+                        <line x1="515" y1="90" x2="700" y2="90" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6,5"/>
+                        <!-- photon glyph (polarization arrow) -->
+                        <g id="p-photon" transform="translate(250,90)" opacity="0">
+                            <circle r="15" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                            <line id="p-photon-pol" x1="0" y1="-9" x2="0" y2="9"
+                                  stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+                        </g>
+                        <!-- Eve -->
+                        <g id="p-eve-group" opacity="0.25">
+                            <rect x="355" y="30" width="150" height="120" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+                            <text x="430" y="52" text-anchor="middle" font-weight="bold" fill="#dc2626" font-size="15">EVE</text>
+                            <text id="p-eve-basis"  x="430" y="80"  text-anchor="middle" font-size="13" font-family="monospace">basis γ = –</text>
+                            <text id="p-eve-bit"    x="430" y="100" text-anchor="middle" font-size="13" font-family="monospace">reads e = –</text>
+                            <text id="p-eve-resend" x="430" y="126" text-anchor="middle" font-size="15" font-weight="bold" font-family="monospace">resends –</text>
+                        </g>
+                        <!-- Bob -->
+                        <rect x="700" y="30" width="150" height="120" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+                        <text x="775" y="52" text-anchor="middle" font-weight="bold" fill="#16a34a" font-size="15">BOB</text>
+                        <text id="p-bob-basis" x="775" y="80"  text-anchor="middle" font-size="13" font-family="monospace">basis β = –</text>
+                        <text id="p-bob-bit"   x="775" y="100" text-anchor="middle" font-size="13" font-family="monospace">reads b = –</text>
+                        <text id="p-verdict"   x="775" y="126" text-anchor="middle" font-size="13" font-weight="bold">–</text>
+                        <!-- round counter -->
+                        <text id="p-round" x="430" y="176" text-anchor="middle" font-size="12" fill="#64748b">round 0</text>
+                    </svg>
+                </div>
+
+                <div class="info-box-interactive mb-3" id="step-info">
+                    Press <strong>Next round</strong> to send the first photon. Toggle
+                    <strong>Eve intercepts</strong> to put an eavesdropper on the channel
+                    (toggling resets the run — she intercepts from round 1).
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3"><div class="stat-card">
+                        <div class="stat-label">Rounds sent</div>
+                        <div class="stat-value" id="s-rounds">0</div></div></div>
+                    <div class="col-md-3"><div class="stat-card">
+                        <div class="stat-label">Sifted bits</div>
+                        <div class="stat-value" id="s-sifted">0</div>
+                        <div class="stat-theory">expected ≈ n/2</div></div></div>
+                    <div class="col-md-3"><div class="stat-card">
+                        <div class="stat-label">Errors in sifted key</div>
+                        <div class="stat-value" id="s-errors">0</div>
+                        <div class="stat-theory" id="s-errors-note">no Eve → 0 exactly</div></div></div>
+                    <div class="col-md-3"><div class="stat-card">
+                        <div class="stat-label">Running QBER</div>
+                        <div class="stat-value" id="s-qber">–</div>
+                        <div class="stat-theory" id="s-qber-theory">theory: 0</div></div></div>
+                </div>
+
+                <div class="mb-2"><strong style="font-size:.9rem;">Alice's sifted key</strong>
+                    <div class="key-strip" id="key-alice">–</div></div>
+                <div class="mb-3"><strong style="font-size:.9rem;">Bob's sifted key</strong>
+                    <span class="text-muted" style="font-size:.8rem;">(errors in red)</span>
+                    <div class="key-strip" id="key-bob">–</div></div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm round-log mb-1">
+                        <thead><tr>
+                            <th>#</th><th>a</th><th>α</th><th>Eve γ→e</th>
+                            <th>β</th><th>b</th><th>kept?</th><th>error?</th>
+                        </tr></thead>
+                        <tbody id="log-body">
+                            <tr class="discarded"><td colspan="8">no rounds yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted mb-0" style="font-size:.8rem;">Last 12 rounds shown, newest first.</p>
+            </div>
+
+            <!-- ── MODE 2: BATCH ────────────────────────────────────────── -->
+            <div class="tab-pane fade" id="tab-batch" role="tabpanel">
+
+                <div class="row g-3 align-items-end mb-4">
+                    <div class="col-md-2 col-6">
+                        <label class="form-label fw-bold" style="font-size:.85rem;">Rounds N</label>
+                        <select class="form-select form-select-sm" id="b-n">
+                            <option>100</option><option selected>1000</option><option>5000</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label fw-bold" style="font-size:.85rem;">Eve strategy</label>
+                        <select class="form-select form-select-sm" id="b-strategy" onchange="syncBatchTheory()">
+                            <option value="off" selected>Off (no eavesdropper)</option>
+                            <option value="ir">Intercept-resend (random basis)</option>
+                            <option value="ir-z">Intercept-resend (fixed Z basis)</option>
+                            <option value="naive">Naive resend (forgets re-encoding)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-8">
+                        <label class="form-label fw-bold" style="font-size:.85rem;">
+                            Interception probability p = <span id="b-p-label">1.00</span></label>
+                        <input type="range" class="form-range" id="b-p" min="0" max="100" value="100"
+                               oninput="syncBatchTheory()">
+                    </div>
+                    <div class="col-md-2 col-4">
+                        <label class="form-label fw-bold" style="font-size:.85rem;">Seed</label>
+                        <input type="number" class="form-control form-control-sm" id="b-seed" value="42">
+                    </div>
+                    <div class="col-md-2 col-12 d-grid gap-1">
+                        <button class="btn btn-primary btn-sm" onclick="runBatchUI()">
+                            <i class="fa-solid fa-play me-1"></i>Run N rounds</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="runSweep()">
+                            <i class="fa-solid fa-arrow-trend-up me-1"></i>Sweep p: 0 → 1</button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6"><div class="stat-card">
+                        <div class="stat-label">Sifted fraction</div>
+                        <div class="stat-value" id="b-sifted">–</div>
+                        <div class="stat-theory">theory: 0.5</div></div></div>
+                    <div class="col-md-3 col-6"><div class="stat-card">
+                        <div class="stat-label">Measured QBER</div>
+                        <div class="stat-value" id="b-qber">–</div>
+                        <div class="stat-theory" id="b-qber-theory">theory: 0</div></div></div>
+                    <div class="col-md-3 col-6"><div class="stat-card">
+                        <div class="stat-label">Sifted key length</div>
+                        <div class="stat-value" id="b-keylen">–</div>
+                        <div class="stat-theory" id="b-keylen-theory">expected: 500</div></div></div>
+                    <div class="col-md-3 col-6"><div class="stat-card">
+                        <div class="stat-label">Errors</div>
+                        <div class="stat-value" id="b-errors">–</div>
+                        <div class="stat-theory" id="b-errors-theory">expected: 0</div></div></div>
+                </div>
+
+                <div class="row g-4 mb-2">
+                    <div class="col-lg-6">
+                        <h6 class="text-center text-muted fw-bold">Running QBER vs rounds</h6>
+                        <div class="chart-frame">
+                            <svg id="chart-conv" viewBox="0 0 420 240" style="width:100%;"></svg>
+                        </div>
+                        <p class="text-muted text-center mb-0" style="font-size:.78rem;">
+                            Amber dashed line = theoretical QBER for the current settings.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <h6 class="text-center text-muted fw-bold">Measured QBER vs interception probability p</h6>
+                        <div class="chart-frame">
+                            <svg id="chart-sweep" viewBox="0 0 420 240" style="width:100%;"></svg>
+                        </div>
+                        <p class="text-muted text-center mb-0" style="font-size:.78rem;">
+                            Line = $Q(p) = p/4$ (or $3p/8$ in naive mode); dots = simulation at each p.
+                            Press <em>Sweep p</em>.</p>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="fw-bold"><i class="fa-solid fa-radar me-1"></i>Detection panel — how fast is Eve caught?</h6>
+                <p class="text-muted" style="font-size:.88rem;">
+                    Using the current Eve strategy and p: each trial runs the protocol, samples
+                    $k$ random check bits from the sifted key, and flags "detected" if any of them disagree.
+                    300 seeded trials per point; curve = $1 - (1 - Q)^k$ with the theoretical $Q$.
+                </p>
+                <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
+                    <label class="fw-bold" style="font-size:.9rem;">Check bits k =
+                        <span id="d-k-label">10</span></label>
+                    <input type="range" class="form-range" id="d-k" min="1" max="30" value="10"
+                           style="max-width:280px;" oninput="document.getElementById('d-k-label').textContent=this.value;">
+                    <button class="btn btn-sm btn-primary" onclick="runDetection()">
+                        <i class="fa-solid fa-crosshairs me-1"></i>Estimate detection rate</button>
+                    <span class="ms-2" style="font-size:.95rem;">
+                        empirical: <strong id="d-emp">–</strong> &nbsp;|&nbsp;
+                        theory: <strong id="d-theory">–</strong></span>
+                </div>
+                <div class="chart-frame">
+                    <svg id="chart-det" viewBox="0 0 860 200" style="width:100%;"></svg>
+                </div>
+                <p class="text-muted mb-0" style="font-size:.78rem;">
+                    Curve: $P_{\text{det}}(k) = 1-(1-Q)^k$ for the current settings; dot: empirical rate
+                    at your chosen $k$.</p>
+            </div>
+
+            </div><!-- /tab-content -->
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  EXERCISES                                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title"><i class="fa-solid fa-flask text-warning me-2"></i>Exercises</h2>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 1 — Sifting statistics <span class="badge bg-primary">Mode 2</span></div>
+        <div class="task-body">
+            <p>With Eve <strong>off</strong>, run N = 100, then N = 1000, then N = 5000 (same seed).
+            Record the sifted fraction each time.</p>
+            <ul>
+                <li>How does the deviation from $1/2$ shrink as N grows? Compare with the statistical
+                    scale $\sqrt{1/(4N)}$.</li>
+                <li>Confirm the QBER is <em>exactly</em> 0 in every run — not just small. Why is this
+                    exact even though the simulation is random?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 2 — Measuring Eve <span class="badge bg-primary">Mode 1 + 2</span></div>
+        <div class="task-body">
+            <p>Turn Eve <strong>on</strong> (intercept-resend, p = 1).</p>
+            <ul>
+                <li>In Step-by-Step mode, find a round where Eve guessed the wrong basis but
+                    <em>no error resulted</em>. Why is that possible? (Hint: Case 2 gives an error with
+                    probability $\tfrac12$, not $1$.)</li>
+                <li>In Batch mode with N = 5000, verify the QBER lands near 25%. How large is the
+                    deviation? Change the seed a few times — does it stay within a band of roughly
+                    $\pm 2\sqrt{0.25 \cdot 0.75 / (N/2)}$?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 3 — The naive resend: post-states matter
+            <span class="badge bg-danger">Procedure 1 vs 2</span></div>
+        <div class="task-body">
+            <p>Switch the Eve strategy to <strong>naive resend</strong> (she measures via Procedure 2 and
+            forgets to re-encode with $U_\gamma^\dagger$). Run N = 5000.</p>
+            <ul>
+                <li>Verify the QBER converges near 37.5%, not 25%.</li>
+                <li>Every measurement <em>probability</em> in Eve's apparatus is identical in the two
+                    strategies. What, physically, is different about what Bob receives?</li>
+                <li>Alice's Z-rounds and X-rounds contribute differently ($\tfrac14$ vs $\tfrac12$).
+                    Which rounds in the Step-by-Step log show it?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 4 — Detection budget <span class="badge bg-primary">Detection panel</span></div>
+        <div class="task-body">
+            <p>Suppose Alice and Bob want to catch a full intercept-resend Eve with at least 99%
+            probability.</p>
+            <ul>
+                <li>From $P_{\text{det}}(k) = 1 - (3/4)^k$, compute the smallest sufficient $k$.
+                    Verify with the detection panel.</li>
+                <li>Repeat for a lazier Eve with $p = 0.25$. How many check bits do you need now?
+                    What does this say about the cost of detecting weak eavesdropping?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 5 — Quick check</div>
+        <div class="task-body">
+            <p class="fw-bold mb-2">Q1. Alice sends $|{+}\rangle$ and Bob measures in the Z-basis. What is
+            the probability he reads 0?</p>
+            <div class="mb-1"><label><input type="radio" name="q1" value="a"> 1</label></div>
+            <div class="mb-1"><label><input type="radio" name="q1" value="b"> 1/2</label></div>
+            <div class="mb-2"><label><input type="radio" name="q1" value="c"> 0</label></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q1','b')">Check</button>
+            <div class="feedback" id="fb-q1"></div>
+            <hr>
+            <p class="fw-bold mb-2">Q2. Why does the sifted key contain <em>no</em> errors on an ideal
+            channel without Eve?</p>
+            <div class="mb-1"><label><input type="radio" name="q2" value="a"> Because errors are corrected
+                during basis reconciliation</label></div>
+            <div class="mb-1"><label><input type="radio" name="q2" value="b"> Because matched-basis
+                measurements reproduce the encoded bit with probability 1</label></div>
+            <div class="mb-2"><label><input type="radio" name="q2" value="c"> Because Bob's random basis
+                averages the errors away</label></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q2','b')">Check</button>
+            <div class="feedback" id="fb-q2"></div>
+            <hr>
+            <p class="fw-bold mb-2">Q3. Eve measures a qubit in the X-basis via Procedure 2 ($H$, then
+            Z-measure) and gets outcome 0. Which state does she hold afterwards?</p>
+            <div class="mb-1"><label><input type="radio" name="q3" value="a"> $|{+}\rangle$</label></div>
+            <div class="mb-1"><label><input type="radio" name="q3" value="b"> $|0\rangle$</label></div>
+            <div class="mb-2"><label><input type="radio" name="q3" value="c"> Whatever Alice sent</label></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q3','b')">Check</button>
+            <div class="feedback" id="fb-q3"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  QISKIT / COLAB                                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title"><i class="fa-solid fa-code text-warning me-2"></i>
+        Qiskit Notebook — BB84 on a Real Quantum Stack</h2>
+
+    <div class="task-box">
+        <div class="task-header d-flex justify-content-between align-items-center">
+            <span>Full protocol in Qiskit: circuits, Eve, QBER, detection</span>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab6/lab6_bb84.ipynb"
+               class="btn btn-sm colab-btn">
+                <i class="fa-solid fa-terminal me-1"></i>Open Colab Notebook
+            </a>
+        </div>
+        <div class="task-body">
+            <p>The companion notebook rebuilds everything in this page with real quantum circuits:
+            state preparation for the four BB84 states, X-basis measurement as
+            <strong>Procedure 2</strong> ($H$ then Z-measure — hardware has no other option), the full
+            $n$-round protocol with sifting, an intercept-resend Eve implemented as
+            measure-and-re-prepare, QBER statistics against the 25% theory line, and the detection
+            probability against $1 - (3/4)^k$. It closes with an optional run on real IBM hardware —
+            where you will meet a nonzero QBER <em>without</em> any Eve, and confront the question
+            real QKD systems face: how do you tell noise from eavesdropping?</p>
+            <p class="text-muted mb-0" style="font-size:.88rem;">
+                <i class="fa-solid fa-circle-info me-1"></i>All notebook experiments are seeded and
+                reproducible; expected statistics and tolerances are stated inline.</p>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  FOOTER                                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer class="text-center py-4 mt-2 bg-light border-top">
+    <p class="mb-1" style="font-size:.9rem;">
+        <span class="text-muted">Series:</span>
+        Lab 5 — Quantum Measurements
+        <i class="fa-solid fa-arrow-right mx-1 text-muted"></i>
+        <strong>Lab 6 — Quantum Key Distribution (BB84)</strong>
+    </p>
+    <p class="mb-0 text-muted">Quantum Computing Foundation — Lab Module 6</p>
+</footer>
+
+<!-- MathJax -->
+<script>
+    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  BB84 CORE — pure protocol logic, no DOM.
+ *  Mirrors the lab's reference implementation round-for-round:
+ *    - BORN:            the 4×2×2 Born table of theory Part 2 (spec §4.2);
+ *                       state index = 2·basisFlag + bit, bases 0 = Z, 1 = X
+ *    - measureOutcome:  Born sampling rule (outcome 1 iff u ≥ P(outcome 0)),
+ *                       identical to the reference simulator (spec §4.2/§4.3)
+ *    - runRound:        one protocol round — Alice prep, optional Eve
+ *                       intercept-resend, Bob measurement, sifting decision
+ *                       (spec §4.3 steps 1–3; Eve model spec §4.6, with
+ *                       Procedure-1 resend; 'naive' variant resends |e⟩
+ *                       without re-encoding — spec §4.6 "naive resend")
+ *    - runBatch:        n-round statistics: sifted fraction (spec §4.4),
+ *                       QBER (spec §4.5–§4.6)
+ *    - qberTheory:      Q(p) = p·(1/4), naive: p·(3/8)  (spec §4.6)
+ *    - detectionTheory: P_det(k) = 1 − (1−Q)^k          (spec §4.7)
+ *  PRNG: mulberry32, seeded — same seed ⇒ same run (statistics agree with the
+ *  reference implementation within the stated statistical tolerances; the
+ *  underlying generators differ, so individual rounds need not coincide).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+function mulberry32(seed) {
+    let s = seed >>> 0;
+    return function () {
+        s |= 0; s = (s + 0x6D2B79F5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+/* Born table, indexed [stateIdx][measBasis][outcome]; stateIdx = 2·basis + bit:
+   0:|0⟩  1:|1⟩  2:|+⟩  3:|−⟩ ; measBasis 0 = Z, 1 = X (theory Part 2). */
+const BORN = [
+    [[1.0, 0.0], [0.5, 0.5]],   // |0⟩
+    [[0.0, 1.0], [0.5, 0.5]],   // |1⟩
+    [[0.5, 0.5], [1.0, 0.0]],   // |+⟩
+    [[0.5, 0.5], [0.0, 1.0]]    // |−⟩
+];
+const STATE_LABEL = ['|0⟩', '|1⟩', '|+⟩', '|−⟩'];
+const BASIS_LABEL = ['Z', 'X'];
+
+function measureOutcome(stateIdx, measBasis, rng) {
+    return rng() >= BORN[stateIdx][measBasis][0] ? 1 : 0;
+}
+
+/* One protocol round. eve = null | {strategy:'ir'|'naive', p: number}.
+   Per-round draw order: a, α, β, [intercept?, γ, outcome-u], outcome-u(Bob). */
+function runRound(rng, eve) {
+    const a     = rng() < 0.5 ? 0 : 1;
+    const alpha = rng() < 0.5 ? 0 : 1;
+    const beta  = rng() < 0.5 ? 0 : 1;
+    let stateIdx = 2 * alpha + a;
+
+    let eveInfo = null;
+    if (eve && eve.p > 0 && (eve.p >= 1 || rng() < eve.p)) {
+        /* 'ir-z' = fixed-basis Eve (always Z) — the QBER-invariance remark
+           of the theory (spec §6); otherwise γ is a fresh coin flip. */
+        const gamma = eve.strategy === 'ir-z' ? 0 : (rng() < 0.5 ? 0 : 1);
+        const e     = measureOutcome(stateIdx, gamma, rng);
+        /* Procedure-1 resend: the γ-eigenstate of her outcome → index 2γ+e.
+           Naive Procedure-2 resend: the literal post-state |e⟩ → index e
+           (a Z-basis state), re-encoding U_γ† forgotten. */
+        stateIdx = (eve.strategy === 'naive') ? e : 2 * gamma + e;
+        eveInfo  = { gamma: gamma, e: e, resentIdx: stateIdx };
+    }
+
+    const b      = measureOutcome(stateIdx, beta, rng);
+    const kept   = alpha === beta;
+    const error  = kept && (b !== a);
+    return { a, alpha, beta, b, kept, error, eveInfo };
+}
+
+/* n rounds → protocol statistics + running-QBER samples for plotting. */
+function runBatch(n, seed, eve) {
+    const rng = mulberry32(seed);
+    let sifted = 0, errors = 0;
+    const running = [];
+    for (let i = 1; i <= n; i++) {
+        const r = runRound(rng, eve);
+        if (r.kept) { sifted++; if (r.error) errors++; }
+        if (i % Math.max(1, Math.floor(n / 120)) === 0 || i === n) {
+            running.push({ round: i, qber: sifted > 0 ? errors / sifted : 0 });
+        }
+    }
+    return { n, sifted, errors,
+             siftedFrac: sifted / n,
+             qber: sifted > 0 ? errors / sifted : 0,
+             running };
+}
+
+function qberTheory(strategy, p) {
+    if (!strategy || strategy === 'off') return 0;
+    return p * (strategy === 'naive' ? 0.375 : 0.25);
+}
+
+function detectionTheory(k, q) {
+    return 1 - Math.pow(1 - q, k);
+}
+
+/* Detection experiment: per trial, run rounds until k sifted bits collected,
+   detect if any of them errs (spec §4.7 check-bit comparison). */
+function detectionEmpirical(trials, k, seed, eve) {
+    let detected = 0;
+    for (let t = 0; t < trials; t++) {
+        const rng = mulberry32(seed + 1000 * t + 7);
+        let got = 0, hit = false, guard = 0;
+        while (got < k && guard < 100000) {
+            const r = runRound(rng, eve);
+            guard++;
+            if (r.kept) { got++; if (r.error) { hit = true; break; } }
+        }
+        if (hit) detected++;
+    }
+    return detected / trials;
+}
+/* ═══ END BB84 CORE ═══════════════════════════════════════════════════════ */
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  MODE 1 — STEP-BY-STEP UI
+ * ═══════════════════════════════════════════════════════════════════════════ */
+let stepState = null;
+
+function stepEveConfig() {
+    return document.getElementById('step-eve').checked
+        ? { strategy: 'ir', p: 1 } : null;
+}
+
+function resetStep() {
+    const seed = parseInt(document.getElementById('step-seed').value) || 42;
+    stepState = {
+        rng: mulberry32(seed), round: 0, sifted: 0, errors: 0,
+        aliceKey: [], bobKey: [], log: []
+    };
+    renderStep(null);
+    document.getElementById('step-info').innerHTML = document.getElementById('step-eve').checked
+        ? 'Eve is on the channel. Press <strong>Next round</strong> — rounds where she causes ' +
+          'an error are flagged in the log.'
+        : 'Press <strong>Next round</strong> to send the first photon.';
+}
+
+function stepRound() {
+    const r = runRound(stepState.rng, stepEveConfig());
+    stepState.round++;
+    if (r.kept) {
+        stepState.sifted++;
+        stepState.aliceKey.push(r.a);
+        stepState.bobKey.push({ bit: r.b, err: r.error });
+        if (r.error) stepState.errors++;
+    }
+    stepState.log.unshift({ round: stepState.round, r });
+    if (stepState.log.length > 12) stepState.log.pop();
+    renderStep(r);
+}
+
+function stepMany(n) { for (let i = 0; i < n; i++) stepRound(); }
+
+/* Polarization angles for the photon glyph: |0⟩ vertical, |1⟩ horizontal,
+   |+⟩ 45°, |−⟩ 135° (theory Part 1 picture). */
+const POL_ANGLE = [0, 90, 45, 135];
+
+function renderStep(r) {
+    const $ = id => document.getElementById(id);
+    const s = stepState;
+    const eveOn = document.getElementById('step-eve').checked;
+    $('p-eve-group').setAttribute('opacity', eveOn ? '1' : '0.25');
+
+    if (r === null) {
+        $('p-alice-bit').textContent = 'bit a = –';
+        $('p-alice-basis').textContent = 'basis α = –';
+        $('p-alice-state').textContent = '|–⟩';
+        $('p-eve-basis').textContent = 'basis γ = –';
+        $('p-eve-bit').textContent = 'reads e = –';
+        $('p-eve-resend').textContent = 'resends –';
+        $('p-bob-basis').textContent = 'basis β = –';
+        $('p-bob-bit').textContent = 'reads b = –';
+        $('p-verdict').textContent = '–';
+        $('p-photon').setAttribute('opacity', '0');
+    } else {
+        const sentIdx = 2 * r.alpha + r.a;
+        $('p-alice-bit').textContent   = 'bit a = ' + r.a;
+        $('p-alice-basis').textContent = 'basis α = ' + BASIS_LABEL[r.alpha];
+        $('p-alice-state').textContent = STATE_LABEL[sentIdx];
+        $('p-photon').setAttribute('opacity', '1');
+        $('p-photon-pol').setAttribute('transform', 'rotate(' + POL_ANGLE[sentIdx] + ')');
+        if (r.eveInfo) {
+            $('p-eve-basis').textContent  = 'basis γ = ' + BASIS_LABEL[r.eveInfo.gamma];
+            $('p-eve-bit').textContent    = 'reads e = ' + r.eveInfo.e;
+            $('p-eve-resend').textContent = 'resends ' + STATE_LABEL[r.eveInfo.resentIdx];
+        } else {
+            $('p-eve-basis').textContent = eveOn ? 'basis γ = –' : 'basis γ = –';
+            $('p-eve-bit').textContent = 'reads e = –';
+            $('p-eve-resend').textContent = eveOn ? 'resends –' : '(not intercepting)';
+        }
+        $('p-bob-basis').textContent = 'basis β = ' + BASIS_LABEL[r.beta];
+        $('p-bob-bit').textContent   = 'reads b = ' + r.b;
+        if (!r.kept) {
+            $('p-verdict').textContent = 'discarded (α ≠ β)';
+            $('p-verdict').setAttribute('fill', '#94a3b8');
+        } else if (r.error) {
+            $('p-verdict').textContent = 'KEPT — ERROR!';
+            $('p-verdict').setAttribute('fill', '#dc2626');
+        } else {
+            $('p-verdict').textContent = 'kept ✓ (b = a)';
+            $('p-verdict').setAttribute('fill', '#16a34a');
+        }
+    }
+    $('p-round').textContent = 'round ' + s.round;
+
+    $('s-rounds').textContent = s.round;
+    $('s-sifted').textContent = s.sifted;
+    $('s-errors').textContent = s.errors;
+    $('s-errors-note').textContent = eveOn ? 'Eve on → errors expected' : 'no Eve → 0 exactly';
+    $('s-qber').textContent = s.sifted > 0 ? (s.errors / s.sifted).toFixed(3) : '–';
+    $('s-qber-theory').textContent = 'theory: ' + (eveOn ? '0.25' : '0');
+
+    $('key-alice').innerHTML = s.aliceKey.length
+        ? s.aliceKey.slice(-40).map(b => '<span class="kb-ok">' + b + '</span>').join('')
+        : '–';
+    $('key-bob').innerHTML = s.bobKey.length
+        ? s.bobKey.slice(-40).map(o =>
+            '<span class="' + (o.err ? 'kb-err' : 'kb-ok') + '">' + o.bit + '</span>').join('')
+        : '–';
+
+    const body = document.getElementById('log-body');
+    if (s.log.length === 0) {
+        body.innerHTML = '<tr class="discarded"><td colspan="8">no rounds yet</td></tr>';
+    } else {
+        body.innerHTML = s.log.map(entry => {
+            const rr = entry.r;
+            const cls = !rr.kept ? 'discarded' : (rr.error ? 'err-row' : '');
+            const eveCell = rr.eveInfo
+                ? BASIS_LABEL[rr.eveInfo.gamma] + '→' + rr.eveInfo.e : '—';
+            return '<tr class="' + cls + '">' +
+                '<td>' + entry.round + '</td><td>' + rr.a + '</td>' +
+                '<td>' + BASIS_LABEL[rr.alpha] + '</td><td>' + eveCell + '</td>' +
+                '<td>' + BASIS_LABEL[rr.beta] + '</td><td>' + rr.b + '</td>' +
+                '<td>' + (rr.kept ? '✓' : '✗') + '</td>' +
+                '<td>' + (rr.error ? '⚠' : '') + '</td></tr>';
+        }).join('');
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  MODE 2 — BATCH UI
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function batchEveConfig() {
+    const strategy = document.getElementById('b-strategy').value;
+    const p = parseInt(document.getElementById('b-p').value) / 100;
+    return strategy === 'off' ? null : { strategy, p };
+}
+
+function syncBatchTheory() {
+    const strategy = document.getElementById('b-strategy').value;
+    const p = parseInt(document.getElementById('b-p').value) / 100;
+    document.getElementById('b-p-label').textContent = p.toFixed(2);
+    const q = qberTheory(strategy, p);
+    document.getElementById('b-qber-theory').textContent = 'theory: ' + q.toFixed(4);
+}
+
+function svgLine(pts, stroke, dash, width) {
+    return '<polyline fill="none" stroke="' + stroke + '" stroke-width="' + (width || 2) +
+        '"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') +
+        ' points="' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '"/>';
+}
+
+function chartFrame(w, h, padL, padB, yMax, yLabel, xLabel) {
+    let s = '';
+    s += '<line x1="' + padL + '" y1="10" x2="' + padL + '" y2="' + (h - padB) +
+         '" stroke="#cbd5e1"/>';
+    s += '<line x1="' + padL + '" y1="' + (h - padB) + '" x2="' + (w - 8) + '" y2="' +
+         (h - padB) + '" stroke="#cbd5e1"/>';
+    for (let f = 0; f <= 4; f++) {
+        const yv = yMax * f / 4;
+        const y = (h - padB) - (h - padB - 10) * f / 4;
+        s += '<text x="' + (padL - 5) + '" y="' + (y + 3) + '" text-anchor="end" ' +
+             'font-size="9" fill="#94a3b8">' + yv.toFixed(2) + '</text>';
+        s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (w - 8) + '" y2="' + y +
+             '" stroke="#f1f5f9"/>';
+    }
+    s += '<text x="' + (w / 2) + '" y="' + (h - 2) + '" text-anchor="middle" font-size="10" ' +
+         'fill="#64748b">' + xLabel + '</text>';
+    s += '<text x="12" y="' + (h / 2) + '" text-anchor="middle" font-size="10" fill="#64748b" ' +
+         'transform="rotate(-90 12 ' + (h / 2) + ')">' + yLabel + '</text>';
+    return s;
+}
+
+function runBatchUI() {
+    const n = parseInt(document.getElementById('b-n').value);
+    const seed = parseInt(document.getElementById('b-seed').value) || 42;
+    const eve = batchEveConfig();
+    const res = runBatch(n, seed, eve);
+    syncBatchTheory();
+
+    const strategy = document.getElementById('b-strategy').value;
+    const p = parseInt(document.getElementById('b-p').value) / 100;
+    const q = qberTheory(strategy, p);
+
+    document.getElementById('b-sifted').textContent = res.siftedFrac.toFixed(4);
+    document.getElementById('b-qber').textContent = res.qber.toFixed(4);
+    document.getElementById('b-keylen').textContent = res.sifted;
+    document.getElementById('b-keylen-theory').textContent = 'expected: ' + (n / 2);
+    document.getElementById('b-errors').textContent = res.errors;
+    document.getElementById('b-errors-theory').textContent =
+        'expected ≈ ' + Math.round(q * n / 2);
+
+    /* convergence chart */
+    const W = 420, H = 240, PL = 42, PB = 28;
+    const yMax = Math.max(0.5, q * 1.6 + 0.05);
+    const toXY = pt => [
+        PL + (W - PL - 8) * pt.round / n,
+        (H - PB) - (H - PB - 10) * Math.min(pt.qber, yMax) / yMax
+    ];
+    let s = chartFrame(W, H, PL, PB, yMax, 'running QBER', 'rounds');
+    const yTh = (H - PB) - (H - PB - 10) * q / yMax;
+    s += svgLine([[PL, yTh], [W - 8, yTh]], '#f59e0b', '6,4', 2);
+    s += svgLine(res.running.map(toXY), '#1d4ed8', null, 2);
+    document.getElementById('chart-conv').innerHTML = s;
+}
+
+function runSweep() {
+    const seed = parseInt(document.getElementById('b-seed').value) || 42;
+    const strategy = document.getElementById('b-strategy').value;
+    const effStrategy = strategy === 'off' ? 'ir' : strategy;   // sweeping p with Eve off is empty
+    if (strategy === 'off') {
+        document.getElementById('b-strategy').value = 'ir';
+        syncBatchTheory();
+    }
+    const N_SWEEP = 4000;
+    const pts = [];
+    for (let i = 0; i <= 10; i++) {
+        const p = i / 10;
+        const res = runBatch(N_SWEEP, seed + i, p === 0 ? null : { strategy: effStrategy, p });
+        pts.push({ p, qber: res.qber });
+    }
+    const W = 420, H = 240, PL = 42, PB = 28;
+    const qMaxTheory = qberTheory(effStrategy, 1);
+    const yMax = qMaxTheory * 1.3;
+    const toXY = pt => [
+        PL + (W - PL - 8) * pt.p,
+        (H - PB) - (H - PB - 10) * Math.min(pt.qber, yMax) / yMax
+    ];
+    let s = chartFrame(W, H, PL, PB, yMax, 'QBER', 'interception probability p');
+    s += svgLine([[PL, (H - PB)], [W - 8,
+        (H - PB) - (H - PB - 10) * qMaxTheory / yMax]], '#f59e0b', null, 2);
+    pts.forEach(pt => {
+        const [x, y] = toXY(pt);
+        s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) +
+             '" r="4" fill="#1d4ed8" opacity="0.85"/>';
+    });
+    document.getElementById('chart-sweep').innerHTML = s;
+}
+
+function runDetection() {
+    const seed = parseInt(document.getElementById('b-seed').value) || 42;
+    const k = parseInt(document.getElementById('d-k').value);
+    let eve = batchEveConfig();
+    if (!eve) {   // detection with Eve off is trivially 0 — switch her on
+        document.getElementById('b-strategy').value = 'ir';
+        syncBatchTheory();
+        eve = batchEveConfig();
+    }
+    const q = qberTheory(eve.strategy, eve.p);
+    const emp = detectionEmpirical(300, k, seed, eve);
+    const th = detectionTheory(k, q);
+    document.getElementById('d-emp').textContent = (emp * 100).toFixed(1) + '%';
+    document.getElementById('d-theory').textContent = (th * 100).toFixed(1) + '%';
+
+    const W = 860, H = 200, PL = 42, PB = 28;
+    let s = chartFrame(W, H, PL, PB, 1, 'P(detect)', 'check bits k');
+    const toXY = (kk, v) => [
+        PL + (W - PL - 8) * kk / 30,
+        (H - PB) - (H - PB - 10) * v
+    ];
+    const curve = [];
+    for (let kk = 0; kk <= 30; kk++) curve.push(toXY(kk, detectionTheory(kk, q)));
+    s += svgLine(curve, '#f59e0b', null, 2.5);
+    const [ex, ey] = toXY(k, emp);
+    s += '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) +
+         '" r="6" fill="#1d4ed8" stroke="white" stroke-width="2"/>';
+    document.getElementById('chart-det').innerHTML = s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  QUIZ
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function checkAnswer(q, correct) {
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const fb = document.getElementById('fb-' + q);
+    fb.style.display = 'block';
+    if (!sel) {
+        fb.className = 'feedback wrong';
+        fb.textContent = 'Choose an answer first.';
+        return;
+    }
+    if (sel.value === correct) {
+        fb.className = 'feedback correct';
+        fb.innerHTML = '✓ Correct.';
+        if (q === 'q1') fb.innerHTML += ' $|\\langle 0 | {+} \\rangle|^2 = 1/2$ — the mutually unbiased coin flip.';
+        if (q === 'q2') fb.innerHTML += ' The Born table is deterministic on matched bases: sifted rounds reproduce $a$ with probability 1.';
+        if (q === 'q3') fb.innerHTML += ' Procedure 2 always leaves a Z-eigenstate — that is exactly why the naive resend of $|e\\rangle$ changes the attack statistics (37.5% instead of 25%).';
+    } else {
+        fb.className = 'feedback wrong';
+        fb.innerHTML = '✗ Not quite — revisit ';
+        if (q === 'q1') fb.innerHTML += 'the Born table in Part 2: what is $|\\langle 0 | {+}\\rangle|^2$?';
+        if (q === 'q2') fb.innerHTML += 'Part 3: which cells of the Born table do sifted rounds use?';
+        if (q === 'q3') fb.innerHTML += 'the Procedure 1 vs 2 box in Part 2: what post-state does rotate-then-measure leave?';
+    }
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([fb]);
+}
+
+/* init */
+resetStep();
+syncBatchTheory();
+</script>
+
+</body>
+</html>
