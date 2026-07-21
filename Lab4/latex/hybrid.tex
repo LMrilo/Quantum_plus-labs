@@ -61,15 +61,15 @@
     title=Theory Recap, fonttitle=\bfseries}
 \newtcolorbox{warningbox}[1][Key Concept]{%
     colback=yellow!10!white,colframe=orange!80!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{mathbox}[1][Derivation]{%
     colback=red!5!white,colframe=red!75!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{defbox}[1][Definition]{%
     colback=teal!5!white,colframe=teal!70!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{bridgebox}{colback=purple!5!white,colframe=purple!70!black,
-    title=Bridge to Lab 5: Finance \& Industry, fonttitle=\bfseries}
+    title=Bridge to Lab 4 Finance: Portfolio Optimization, fonttitle=\bfseries}
 
 % ── Math shorthands ────────────────────────────────────────────────────────────
 \newcommand{\ket}[1]{|#1\rangle}
@@ -107,7 +107,7 @@ This laboratory introduces the practical answer to the NISQ limitation:
 classical-quantum} algorithms. Rather than running a single deep quantum
 circuit, these algorithms iterate between a short parametric quantum circuit
 and a classical optimizer, converging toward a useful solution.
-Understanding this paradigm is a prerequisite for Lab 5, where you will apply
+Understanding this paradigm is a prerequisite for Lab 4 Finance, where you will apply
 it to a real-world portfolio optimization problem.
 
 \vspace{0.3cm}
@@ -617,13 +617,13 @@ def build_qaoa(n, edges, p):
 \end{tcolorbox}
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{Part G: Bridge to Lab 5 and Assessment}
+\section{Part G: Bridge to Lab 4 Finance and Assessment}
 % ══════════════════════════════════════════════════════════════════════════════
 
 \begin{bridgebox}
 \textbf{From MaxCut to Portfolio Optimization}
 
-In Lab 5, the portfolio optimization problem is formulated as:
+In Lab 4 Finance, the portfolio optimization problem is formulated as:
 \[
     \min_{x\,\in\,\{0,1\}^n}\; x^T Q x
     \quad\text{subject to}\quad \mathbf{1}^T x = K,

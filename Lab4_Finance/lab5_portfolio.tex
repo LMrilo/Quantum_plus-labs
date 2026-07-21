@@ -57,16 +57,16 @@
     title=Student Activity, fonttitle=\bfseries}
 \newtcolorbox{warningbox}[1][Key Concept]{%
     colback=yellow!10!white,colframe=orange!80!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{mathbox}[1][Derivation]{%
     colback=red!5!white,colframe=red!75!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{defbox}[1][Definition]{%
     colback=teal!5!white,colframe=teal!70!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{finbox}[1][Financial Interpretation]{%
     colback=green!5!white,colframe=green!65!black,
-    title=#1, fonttitle=\bfseries}
+    title={#1}, fonttitle=\bfseries}
 \newtcolorbox{bridgebox}{colback=purple!5!white,colframe=purple!70!black,
     title=Connection to Lab 4, fonttitle=\bfseries}
 
@@ -77,7 +77,7 @@
 \newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
 \newcommand{\tr}{\mathrm{Tr}}
 
-\title{\textbf{Laboratory Guide 5: Quantum Portfolio Optimization}\\
+\title{\textbf{Laboratory Guide 4 (Finance): Quantum Portfolio Optimization}\\
 \large Finance \& Industry Applications of Variational Quantum Algorithms}
 \author{Course: Quantum Computing Foundation}
 \date{}
@@ -263,12 +263,20 @@ Adding the financial objective and grouping:
   \item \textbf{Off-diagonal} ($i<j$, one occurrence): coefficient of $x_ix_j$ is
         $2\lambda\Sigma_{ij} + 2\lambda_\text{pen}$.
 \end{itemize}
-Convention note: the symmetric matrix entry $Q_{ij}$ ($i\neq j$) in
-equation~\eqref{eq:Q} is defined as $\lambda\Sigma_{ij}+2\lambda_\text{pen}$
-so that the full product $x^TQx = \sum_{i,j}Q_{ij}x_ix_j$ (which counts each
-pair twice) equals the financial cost plus a constant shift
-$-\lambda_\text{pen}K$ for all feasible portfolios.
-The shift is the same for every feasible $x$, so it does not affect the ranking.
+Convention note: because the full product $x^TQx = \sum_{i,j}Q_{ij}x_ix_j$ counts
+each unordered pair twice, the symmetric matrix entry $Q_{ij}$ ($i\neq j$) in
+equation~\eqref{eq:Q} carries \emph{half} of the $i<j$ coefficient above — the
+risk part and the penalty part alike — giving
+$Q_{ij}=\lambda\Sigma_{ij}+\lambda_\text{pen}$.
+With this scaling,
+\[
+    x^TQx \;=\; C(x) \;+\; \lambda_\text{pen}\!\left(\sum_i x_i - K\right)^{\!2}
+    \;-\; \lambda_\text{pen}K^2 .
+\]
+On a feasible portfolio the penalty vanishes, so $x^TQx = C(x) - \lambda_\text{pen}K^2$:
+a constant shift, identical for every feasible $x$, which does not affect the ranking.
+Every infeasible portfolio pays a strictly positive penalty — that is what enforces
+the budget constraint.
 \end{warningbox}
 
 \begin{equation}
@@ -281,7 +289,7 @@ The shift is the same for every feasible $x$, so it does not affect the ranking.
     Q_{ij} = \begin{cases}
         \lambda\,\Sigma_{ii} - \mu_i + \lambda_\text{pen}(1-2K)
         & i = j \\[4pt]
-        \lambda\,\Sigma_{ij} + 2\lambda_\text{pen}
+        \lambda\,\Sigma_{ij} + \lambda_\text{pen}
         & i \neq j.
     \end{cases}
     \label{eq:Q}
@@ -294,21 +302,22 @@ into equation~\eqref{eq:Q} with $\lambda_\text{pen}(1-2K) = 3(1-4) = -9$:
     Q = \lambda\Sigma - \mathrm{diag}(\boldsymbol\mu)
     + \lambda_\text{pen}
     \begin{pmatrix}
-        1-2K & 2 & 2 & 2 \\
-        2 & 1-2K & 2 & 2 \\
-        2 & 2 & 1-2K & 2 \\
-        2 & 2 & 2 & 1-2K
+        1-2K & 1 & 1 & 1 \\
+        1 & 1-2K & 1 & 1 \\
+        1 & 1 & 1-2K & 1 \\
+        1 & 1 & 1 & 1-2K
     \end{pmatrix}
 \]
 \[
     Q = \begin{pmatrix}
-        -\crd{9.2559} & 6.0588 & 6.0313 & 6.0203 \\
-        6.0588 & -\crd{9.1971} & 6.0272 & 6.0170 \\
-        6.0313 & 6.0272 & -\crd{9.0924} & 6.0294 \\
-        6.0203 & 6.0170 & 6.0294 & -\crd{9.0975}
+        -\crd{9.2559} & 3.0588 & 3.0313 & 3.0203 \\
+        3.0588 & -\crd{9.1971} & 3.0272 & 3.0170 \\
+        3.0313 & 3.0272 & -\crd{9.0924} & 3.0294 \\
+        3.0203 & 3.0170 & 3.0294 & -\crd{9.0975}
     \end{pmatrix}.
 \]
-The large off-diagonal terms reflect the strong budget penalty;
+The positive off-diagonal terms ($\approx\lambda_\text{pen}$) reflect the budget
+penalty, which charges every extra pair of selected assets;
 the negative diagonal terms reflect the return incentive.
 \end{mathbox}
 
@@ -346,8 +355,16 @@ covariance (both technology sector), AAPL and MSFT also have the
 highest expected returns ($0.34$ and $0.27$ respectively). For
 $\lambda=1$ the return advantage outweighs the diversification cost.
 As $\lambda$ increases (more risk-averse investor), the optimal
-portfolio shifts toward AAPL + XOM (energy provides diversification)
-and eventually toward JPM + XOM (defensive, low correlation).
+portfolio shifts to AAPL + JPM (around $\lambda=2$) and eventually to
+MSFT + JPM (by $\lambda=5$). Both shifts bring in JPM, which has the
+smallest individual variance ($\Sigma_{\text{JPM,JPM}}=0.0576$).
+Note that XOM never enters the optimal portfolio, despite having the
+smallest covariances with the other assets
+($\Sigma_{\text{MSFT,XOM}}=0.0170$ is the smallest off-diagonal entry
+of all): portfolio variance $x^T\Sigma x$ includes the diagonal, and
+XOM's own variance ($0.1225$, i.e.\ $\sigma=35\%$) is by far the
+largest. Low correlation cannot rescue an asset that is individually
+too volatile.
 \end{finbox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -513,8 +530,8 @@ susceptibility to hardware noise.
 \begin{mathbox}[How $\lambda$ Shifts the Optimal Portfolio]
 At $\lambda = 0.5$ (return-focused): $\cblu{\text{AAPL}+\text{MSFT}}$ optimal. \\
 At $\lambda = 1.0$ (balanced):      $\cblu{\text{AAPL}+\text{MSFT}}$ optimal. \\
-At $\lambda = 2.0$ (risk-averse):   $\corg{\text{AAPL}+\text{XOM}}$ may emerge. \\
-At $\lambda = 5.0$ (very defensive): $\crd{\text{JPM}+\text{XOM}}$ (lowest covariance
+At $\lambda = 2.0$ (risk-averse):   $\corg{\text{AAPL}+\text{JPM}}$ takes over. \\
+At $\lambda = 5.0$ (very defensive): $\crd{\text{MSFT}+\text{JPM}}$ (lowest-variance
                                                                     pair) wins.
 
 \noindent The quantum circuit must be re-optimised for each $\lambda$
