@@ -1,0 +1,565 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{booktabs}
+
+% Page geometry
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% Custom colours
+\definecolor{ibmblue}{RGB}{0, 45, 156}
+\definecolor{ibmred}{RGB}{250, 75, 76}
+\definecolor{purpleaccent}{RGB}{109, 40, 217}
+\definecolor{amberaccent}{RGB}{245, 158, 11}
+\definecolor{tealaccent}{RGB}{13, 148, 136}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Python code style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Custom boxes (titles always in braced form)
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,title={Student Activity}}
+\newtcolorbox{theorybox}{colback=gray!5!white,colframe=gray!50!black,title={Theory Recap}}
+\newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title={Important}}
+\newtcolorbox{simulatorbox}{colback=purple!5!white,colframe=purple!75!black,title={Simulator}}
+\newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title={Reflection Questions}}
+\newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title={Connections to Previous Labs}}
+\newtcolorbox{procedurebox}{colback=red!4!white,colframe=red!70!black,title={Procedure 1 vs Procedure 2}}
+
+% Bra-ket shorthands (guarded: never clash with package-provided macros)
+\providecommand{\ket}[1]{|#1\rangle}
+\providecommand{\bra}[1]{\langle#1|}
+\providecommand{\braket}[2]{\langle#1|#2\rangle}
+\providecommand{\ketbra}[2]{|#1\rangle\langle#2|}
+
+\title{\textbf{Laboratory Guide 6: Quantum Key Distribution --- The BB84 Protocol}\\
+\large Measurement as a Security Primitive}
+\author{Course: Quantum Computing Foundation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction and Objectives}
+
+In Lab 5 you learned that measuring a qubit in the \emph{wrong} basis gives a random
+outcome and \textbf{irreversibly disturbs the state}. That looked like a limitation.
+In 1984, Bennett and Brassard turned it into a feature: if an eavesdropper cannot
+measure without disturbing, then \textbf{disturbance is evidence of eavesdropping} ---
+and two parties can build a shared secret key whose security rests on physics, not on
+computational hardness.
+
+This laboratory develops the BB84 protocol completely: the four signal states, the
+exact measurement statistics, sifting, the quantum bit error rate (QBER) with and
+without an eavesdropper, and the probability of catching her. Every number derived
+here is verified live in the lab's interactive simulator and rebuilt with real
+quantum circuits in the companion Qiskit notebook.
+
+\vspace{0.3cm}
+\noindent\textbf{Prerequisites:}
+\begin{itemize}
+    \item Lab 5: \textit{Quantum Measurements} --- the Born rule, measurement
+          Procedures 1 and 2, and the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$
+          on the Bloch sphere.
+    \item \textit{Quantum Communication} (lecture series).
+    \item Familiarity with Dirac notation: $\ket{\psi}$, $\bra{\phi}$, $\braket{\phi}{\psi}$.
+\end{itemize}
+
+\begin{connectionbox}
+\textbf{The Lab 5 bridge.} Everything in BB84 is applied Lab 5:
+\begin{itemize}
+    \item The four signal states are exactly the states $\ket{0}, \ket{1}, \ket{+},
+          \ket{-}$ you placed on the Bloch sphere --- the poles and two equator points.
+    \item The measurement statistics are the Born rule you derived, evaluated at those
+          four states in the $Z$- and $X$-bases (Part B).
+    \item The distinction between \textbf{Procedure 1} (direct basis projection) and
+          \textbf{Procedure 2} (rotate with the canonical rotation $U_X = H$, then
+          $Z$-measure) --- which may have seemed academic --- becomes \emph{operationally
+          decisive} when the eavesdropper must resend a quantum state (Part D).
+\end{itemize}
+\end{connectionbox}
+
+\noindent\textbf{Mode:} Interactive Simulator + Qiskit \quad\textbf{Credits:} 1 ECTS
+\quad\textbf{Estimated time:} $\approx$ 10 h
+
+\vspace{0.3cm}
+\noindent\textbf{Learning Objectives:}
+\begin{enumerate}
+    \item \textbf{Explain the logic of BB84 and its security foundations} --- random
+          bases, mutually unbiased states, sifting, and why
+          $|\braket{z_j}{x_l}|^2 = 1/2$ makes a wrong-basis measurement erase the
+          encoded bit.
+    \item \textbf{Perform and analyze QKD experiments} --- run the protocol in the
+          simulator and in Qiskit, compute the sifted fraction and the QBER, and
+          compare against the exact theoretical values.
+    \item \textbf{Understand the measurement--disturbance--security relationship} ---
+          derive the 25\% QBER of intercept-resend, see why the eavesdropper cannot
+          avoid it, and quantify detection: $P_{\text{det}}(k) = 1 - (3/4)^k$.
+    \item \textbf{Discuss the relevance for cryptographic systems} --- key rates,
+          error thresholds, and what QKD does (and does not) replace in modern
+          cryptography.
+\end{enumerate}
+
+\newpage
+
+\section{Part A: The Four BB84 States}
+
+Alice encodes each random bit $a \in \{0,1\}$ in one of two randomly chosen bases:
+the \textbf{$Z$-basis} (rectilinear) or the \textbf{$X$-basis} (diagonal). The
+encoding rule: bit 0 always maps to the $+1$ eigenstate of the basis observable,
+bit 1 to the $-1$ eigenstate.
+
+\begin{equation}
+    \ket{\psi(0,Z)} = \ket{0}, \qquad
+    \ket{\psi(1,Z)} = \ket{1}, \qquad
+    \ket{\psi(0,X)} = \ket{+}, \qquad
+    \ket{\psi(1,X)} = \ket{-},
+    \label{eq:encoding}
+\end{equation}
+
+\noindent with $\ket{\pm} = (\ket{0} \pm \ket{1})/\sqrt{2}$. On the Lab 5 Bloch
+sphere these are the poles ($\theta = 0, \pi$) and two equator points
+($\theta = \pi/2$, $\varphi = 0, \pi$). In the photon-polarization picture they
+correspond to vertical, horizontal, and the two diagonal polarizations.
+
+Both bases are orthonormal, and they are \textbf{mutually unbiased}. Writing
+$\ket{z_0} = \ket{0}$, $\ket{z_1} = \ket{1}$, $\ket{x_0} = \ket{+}$,
+$\ket{x_1} = \ket{-}$:
+
+\begin{equation}
+    |\braket{z_j}{x_l}|^2 = \frac{1}{2}
+    \qquad \text{for all } j, l \in \{0, 1\}.
+    \label{eq:mub}
+\end{equation}
+
+\noindent Direct computation: $\braket{0}{\pm} = 1/\sqrt{2}$ and
+$\braket{1}{\pm} = \pm 1/\sqrt{2}$, so every cross-basis overlap has squared
+modulus $1/2$.
+
+\begin{theorybox}
+\textbf{Why this is the security foundation.} A measurement in the wrong basis
+yields a uniformly random outcome --- it extracts \emph{zero} information about the
+encoded bit and (Lab 5!) destroys the original state in the process. Everything
+that follows is this one fact, exploited systematically.
+\end{theorybox}
+
+\section{Part B: Measurement Statistics --- the Born Table}
+
+Applying the Born rule from Lab 5,
+\begin{equation}
+    P(m \,|\, \psi; B) = |\braket{m}{\psi}|^2,
+    \label{eq:born}
+\end{equation}
+to the four BB84 states in both bases gives the complete statistics of the protocol:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{\textbf{$Z$-measurement}} & \multicolumn{2}{c}{\textbf{$X$-measurement}} \\
+\textbf{State sent} & $P(0)$ & $P(1)$ & $P(+)$ & $P(-)$ \\
+\midrule
+$\ket{0}$  & $1$   & $0$   & $1/2$ & $1/2$ \\
+$\ket{1}$  & $0$   & $1$   & $1/2$ & $1/2$ \\
+$\ket{+}$  & $1/2$ & $1/2$ & $1$   & $0$   \\
+$\ket{-}$  & $1/2$ & $1/2$ & $0$   & $1$   \\
+\bottomrule
+\end{tabular}
+\caption{The BB84 Born table. Matched basis $\Rightarrow$ deterministic recovery of
+the bit; mismatched basis $\Rightarrow$ coin-flip outcome, bit erased
+(equation~\eqref{eq:mub}).}
+\label{tab:born}
+\end{table}
+
+\begin{procedurebox}
+\textbf{Read this carefully --- it returns in Part D.} Table~\ref{tab:born} lists
+\emph{probabilities}, and these are identical whether the $X$-basis measurement is
+done by \textbf{Procedure 1} (direct projection onto $\{\ket{+}, \ket{-}\}$) or by
+\textbf{Procedure 2} (apply the canonical rotation $U_X = H$, then $Z$-measure ---
+what real hardware does). Lab 5 established this equivalence. Bob keeps only a
+classical bit, so \emph{for Bob} the choice of procedure is invisible: with
+Procedure 2 the $Z$-outcome $c \in \{0,1\}$ maps to key bit $b = c$ because
+$H\ket{+} = \ket{0}$ and $H\ket{-} = \ket{1}$.
+
+\medskip
+But the two procedures leave \textbf{different post-measurement states}
+(Procedure 1: a basis eigenstate; Procedure 2: $\ket{0}$ or $\ket{1}$). Bob never
+cares. \textbf{The eavesdropper will} --- she must resend a quantum state, and a
+post-measurement state is exactly what she has in hand. Hold that thought for
+Part D.
+\end{procedurebox}
+
+\section{Part C: The Protocol, Sifting, and the Error Check}
+
+For each round $i = 1, \dots, n$:
+
+\begin{enumerate}
+    \item \textbf{Alice} draws a uniform random bit $a_i$ and basis
+          $\alpha_i \in \{Z, X\}$, prepares $\ket{\psi(a_i, \alpha_i)}$, and sends
+          it through the quantum channel.
+    \item \textbf{Bob} draws his own uniform random basis $\beta_i \in \{Z, X\}$ ---
+          independently, since he cannot know $\alpha_i$ --- and measures, recording
+          bit $b_i$. (On hardware: Procedure 2 with $U_X = H$.)
+    \item \textbf{Basis reconciliation:} over an authenticated public channel, Alice
+          and Bob announce their \emph{bases} --- never the bits. They keep the
+          \textbf{sifted set} $S = \{i : \alpha_i = \beta_i\}$ and discard everything
+          else.
+    \item \textbf{Error check:} they sacrifice a uniformly random subset of $k$
+          sifted positions, publicly compare $a_i$ vs $b_i$ there, and estimate the
+          \textbf{quantum bit error rate (QBER)}. Too many errors $\rightarrow$ abort.
+    \item \textbf{Key:} the remaining sifted, unchecked bits form the raw shared key.
+\end{enumerate}
+
+\begin{theorybox}
+\textbf{Sifted fraction.} $\alpha_i$ and $\beta_i$ are independent and uniform on
+two values, so
+\begin{equation}
+    P(\alpha_i = \beta_i) = P(Z,Z) + P(X,X) = \tfrac{1}{4} + \tfrac{1}{4}
+    = \tfrac{1}{2}.
+    \label{eq:sift}
+\end{equation}
+On average \textbf{half the rounds survive sifting}: the sifted length is
+binomially distributed with expectation $n/2$.
+\end{theorybox}
+
+\begin{theorybox}
+\textbf{QBER without eavesdropping.} On an ideal channel, every sifted round is a
+matched-basis measurement --- the deterministic cells of Table~\ref{tab:born}. Hence
+\begin{equation}
+    Q_{\text{no Eve}} = P(b_i \neq a_i \mid i \in S) = 0 \quad \text{exactly.}
+    \label{eq:qzero}
+\end{equation}
+Not ``small'' --- \textbf{zero}. On an ideal channel, \emph{any} error in the sifted
+key is evidence that something interfered with the qubits in transit.
+\end{theorybox}
+
+\begin{warningbox}
+\textbf{Why sifting matters.} Without step 3, mismatched-basis rounds (coin flips)
+would contribute errors even with no eavesdropper at all: the raw, unsifted
+disagreement rate is $\tfrac{1}{2} \cdot \tfrac{1}{2} = 25\%$ for a perfectly
+secure channel. Sifting removes exactly this noise floor, which is what makes the
+QBER a meaningful security signal. Verify both numbers in the simulator.
+\end{warningbox}
+
+\section{Part D: The Intercept-Resend Attack --- QBER = 25\%}
+
+Eve's simplest attack: intercept each qubit, measure it in a random basis
+$\gamma_i \in \{Z, X\}$, and resend the post-measurement state to Bob. She cannot
+do better than guess --- the basis announcements happen only \emph{after} Bob has
+measured. Condition on a sifted round ($\beta = \alpha$) and split on Eve's guess:
+
+\begin{itemize}
+    \item \textbf{Case 1 --- Eve guesses right} ($\gamma = \alpha$, probability
+          $\tfrac{1}{2}$). Matched-basis measurement is deterministic: Eve reads
+          $e = a$, resends the very same state, Bob recovers $b = a$.
+          Error probability: $0$.
+    \item \textbf{Case 2 --- Eve guesses wrong} ($\gamma \neq \alpha$, probability
+          $\tfrac{1}{2}$). Her outcome is a coin flip, and her resent state is a
+          $\gamma$-basis eigenstate. Bob measures it in $\alpha \neq \gamma$ ---
+          mutually unbiased again --- so his outcome is uniform \emph{regardless of
+          what Alice sent}. Error probability: $\tfrac{1}{2}$.
+\end{itemize}
+
+\begin{equation}
+    Q \;=\; \underbrace{\tfrac{1}{2} \cdot 0}_{\gamma = \alpha}
+       \;+\; \underbrace{\tfrac{1}{2} \cdot \tfrac{1}{2}}_{\gamma \neq \alpha}
+       \;=\; \tfrac{1}{4} \;=\; 25\%.
+    \label{eq:qber25}
+\end{equation}
+
+\noindent Two refinements, both testable directly in the simulator:
+
+\begin{itemize}
+    \item \textbf{Partial interception.} If Eve intercepts each round independently
+          with probability $p$ and lets the rest pass, errors arise only on
+          intercepted rounds:
+          \begin{equation}
+              Q(p) = \frac{p}{4}, \qquad Q(0) = 0, \qquad Q(1) = \tfrac{1}{4},
+              \label{eq:partial}
+          \end{equation}
+          linear in $p$. Less interception means less information for Eve \emph{and}
+          less visibility --- but never zero of one with the other.
+    \item \textbf{Fixed-basis Eve.} If Eve always measures in $Z$ instead of
+          guessing randomly, the arithmetic changes but the answer does not: her
+          matching rounds contribute $0$, the others $\tfrac{1}{2}$ --- still
+          $Q = \tfrac{1}{4}$. Randomizing her basis neither helps nor hurts her
+          visibility.
+\end{itemize}
+
+\begin{procedurebox}
+\textbf{Where the procedure distinction becomes operational.} ``Resend the
+post-measurement state'' hides a subtlety. If Eve measures by \textbf{Procedure 1},
+her post-measurement state \emph{is} the $\gamma$-basis eigenstate
+$\ket{e_\gamma}$ --- resending it gives the 25\% above. If she measures by
+\textbf{Procedure 2} (apply $U_\gamma$, $Z$-measure), her post-measurement state is
+the computational state $\ket{e}$, and to run the same attack she must
+\textbf{re-encode} it by applying $U_\gamma^\dagger$ before resending. Done
+correctly, the two implementations are indistinguishable --- same states to Bob,
+same $Q = 25\%$.
+
+\medskip
+\textbf{But suppose she forgets the re-encoding} and naively resends $\ket{e}$
+as-is. Work it through with Table~\ref{tab:born}:
+\begin{itemize}
+    \item Alice's $Z$-rounds: Eve's $\gamma = Z$ causes no error; $\gamma = X$
+          scrambles $e$ to a coin flip that Bob then reads deterministically
+          $\rightarrow$ error $\tfrac{1}{2}$. Contribution:
+          $\tfrac{1}{2} \cdot \tfrac{1}{2} = \tfrac{1}{4}$.
+    \item Alice's $X$-rounds: Bob $X$-measures a $Z$-eigenstate --- coin flip
+          \emph{whatever} Eve's basis was $\rightarrow$ error $\tfrac{1}{2}$.
+          Contribution: $\tfrac{1}{2}$.
+\end{itemize}
+\begin{equation}
+    Q_{\text{naive}} = \tfrac{1}{2} \cdot \tfrac{1}{4}
+                     + \tfrac{1}{2} \cdot \tfrac{1}{2}
+                     = \tfrac{3}{8} = 37.5\% \;\neq\; 25\%.
+    \label{eq:naive}
+\end{equation}
+Every outcome \emph{probability} in her measurement was identical between the two
+procedures --- yet the attack statistics changed, because the
+\emph{post-measurement states} differ and the resent state is a post-measurement
+state. This is the Lab 5 distinction made operational. The simulator's ``naive
+resend'' mode lets you watch the QBER converge to 37.5\% instead of 25\%.
+\end{procedurebox}
+
+\section{Part E: Catching Eve --- Detection Probability}
+
+Under full interception, each of the $k$ publicly compared check bits is wrong
+independently with probability $\tfrac{1}{4}$. Eve escapes only if \emph{all} $k$
+agree:
+
+\begin{equation}
+    P(\text{undetected}) = \left(\tfrac{3}{4}\right)^k
+    \qquad\Longrightarrow\qquad
+    P_{\text{det}}(k) = 1 - \left(\tfrac{3}{4}\right)^k.
+    \label{eq:detect}
+\end{equation}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+check bits $k$      & 1      & 5      & 10     & 20     \\
+\midrule
+$P_{\text{det}}(k)$ & $0.25$ & $\approx 0.7627$ & $\approx 0.9437$ & $\approx 0.9968$ \\
+\bottomrule
+\end{tabular}
+\caption{Detection probability against full intercept-resend,
+equation~\eqref{eq:detect}.}
+\label{tab:detect}
+\end{table}
+
+\noindent Detection is \textbf{exponentially certain} in the number of check bits.
+For partial interception the same argument gives
+\begin{equation}
+    P_{\text{det}}(k; p) = 1 - \left(1 - \frac{p}{4}\right)^k
+    \label{eq:detectp}
+\end{equation}
+(e.g.\ $p = 0.5$, $k = 16$ gives $P_{\text{det}} \approx 0.8819$). Note the
+$k = 0$ limit: no check bits, no detection --- the public comparison is not an
+optional optimization, it \emph{is} the security test.
+
+\begin{warningbox}
+\textbf{Honest security context.} What you derived here covers one specific attack.
+The full security statement for BB84 (Shor \& Preskill, 2000) says the protocol
+with error correction and privacy amplification produces a secure key whenever the
+QBER stays below $\approx 11\%$ --- against \emph{any} attack physics allows, not
+just intercept-resend. Intercept-resend's 25\% sits far above that threshold, which
+is why this attack is always catastrophic for Eve. The proof machinery is beyond
+this lab; the QBER-threshold \emph{logic} --- measure the error rate, abort above
+threshold --- is exactly what you practice here.
+\end{warningbox}
+
+\newpage
+
+\section{Part F: Guided Activities}
+
+\begin{simulatorbox}
+The lab's interactive page (\texttt{lab6\_bb84.html}) contains a BB84 simulator
+built for this lab. \textbf{Step-by-Step} mode shows one photon at a time --- watch
+the basis choices, Eve's interference, and the sifted key forming.
+\textbf{Batch Statistics} mode runs thousands of rounds and plots the measured
+statistics against every formula derived above. All runs are seeded: the same seed
+always reproduces the same run. The companion Qiskit notebook rebuilds the same
+protocol with real quantum circuits:\\[4pt]
+\url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab6/lab6_bb84.ipynb}
+\end{simulatorbox}
+
+\subsection{Activity 1: Sifting Statistics (Batch mode)}
+
+\begin{studentbox}
+With Eve \textbf{off}, run $N = 100$, then $N = 1000$, then $N = 5000$ (same seed).
+Record the sifted fraction each time.
+\begin{enumerate}
+    \item How does the deviation from $1/2$ shrink as $N$ grows? Compare with the
+          statistical scale $\sqrt{1/(4N)}$.
+    \item Confirm the QBER is \emph{exactly} 0 in every run --- not just small. Why
+          is this exact even though the simulation is random?
+          (Equation~\eqref{eq:qzero}.)
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 2: Measuring Eve (Step-by-Step + Batch modes)}
+
+\begin{studentbox}
+Turn Eve \textbf{on} (intercept-resend, $p = 1$).
+\begin{enumerate}
+    \item In Step-by-Step mode, find a round where Eve guessed the wrong basis but
+          \emph{no error resulted}. Why is that possible? (Hint: Case 2 gives an
+          error with probability $\tfrac{1}{2}$, not $1$.)
+    \item In Batch mode with $N = 5000$, verify the QBER lands near 25\%. How large
+          is the deviation? Change the seed a few times --- does it stay within a
+          band of roughly $\pm 2\sqrt{0.25 \cdot 0.75/(N/2)}$?
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 3: The Naive Resend --- Post-States Matter}
+
+\begin{studentbox}
+Switch the Eve strategy to \textbf{naive resend} (she measures via Procedure 2 and
+forgets to re-encode with $U_\gamma^\dagger$). Run $N = 5000$.
+\begin{enumerate}
+    \item Verify the QBER converges near 37.5\%, not 25\%
+          (equation~\eqref{eq:naive}).
+    \item Every measurement \emph{probability} in Eve's apparatus is identical in
+          the two strategies. What, physically, is different about what Bob
+          receives?
+    \item Alice's $Z$-rounds and $X$-rounds contribute differently ($\tfrac{1}{4}$
+          vs $\tfrac{1}{2}$). Which rounds in the Step-by-Step log show it?
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 4: Detection Budget (Detection panel)}
+
+\begin{studentbox}
+Suppose Alice and Bob want to catch a full intercept-resend Eve with at least 99\%
+probability.
+\begin{enumerate}
+    \item From $P_{\text{det}}(k) = 1 - (3/4)^k$, compute the smallest sufficient
+          $k$. Verify with the detection panel.
+    \item Repeat for a lazier Eve with $p = 0.25$
+          (equation~\eqref{eq:detectp}). How many check bits do you need now? What
+          does this say about the cost of detecting weak eavesdropping?
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 5: The Protocol in Qiskit}
+
+The companion notebook implements the four BB84 states and the basis-selective
+measurement as two short routines, then scales them to the full protocol with
+sifting, an intercept-resend Eve (measure-and-re-prepare), QBER statistics against
+the 25\% theory line, and the detection probability against $1 - (3/4)^k$. Its two
+core routines:
+
+\begin{lstlisting}[language=Python]
+def prepare_bb84_state(bit: int, basis: str) -> QuantumCircuit:
+    """Return a 1-qubit circuit preparing the BB84 state |psi(bit, basis)>."""
+    qc = QuantumCircuit(1)
+    if bit == 1:
+        qc.x(0)          # |0> -> |1>
+    if basis == "X":
+        qc.h(0)          # |0> -> |+>,  |1> -> |->
+    return qc
+
+def measure_in_basis(qc: QuantumCircuit, basis: str) -> QuantumCircuit:
+    """Append a basis-B measurement (Procedure 2) to a 1-qubit circuit, in place."""
+    if basis == "X":
+        qc.h(0)          # canonical rotation U_X = H
+    qc.measure_all()
+    return qc
+\end{lstlisting}
+
+\noindent The $X$-basis measurement is Procedure 2 with the canonical rotation
+$U_X = H$ --- hardware has no other option. The notebook closes with an optional
+run on real IBM hardware, where you will meet a nonzero QBER \emph{without} any
+Eve, and confront the question real QKD systems face: how do you tell noise from
+eavesdropping?
+
+\begin{warningbox}
+\textbf{Qiskit bit-ordering note.} Qiskit orders multi-qubit bitstrings
+little-endian (rightmost bit = qubit $q_0$), while this lab series writes states
+big-endian (qubit 0 leftmost). In this lab every quantum register holds a
+\emph{single} qubit, so the two conventions coincide and no conversion is needed
+--- stated here for consistency with the multi-qubit labs, where the distinction
+is essential.
+\end{warningbox}
+
+\subsection{Activity 6: Quick Check}
+
+\begin{reflectionbox}
+\textbf{Question 1:} Alice sends $\ket{+}$ and Bob measures in the $Z$-basis. What
+is the probability he reads 0?
+\begin{itemize}
+    \item[(a)] $1$ \qquad (b) $1/2$ \qquad (c) $0$
+\end{itemize}
+
+\textbf{Question 2:} Why does the sifted key contain \emph{no} errors on an ideal
+channel without Eve?
+\begin{itemize}
+    \item[(a)] Because errors are corrected during basis reconciliation.
+    \item[(b)] Because matched-basis measurements reproduce the encoded bit with
+               probability 1.
+    \item[(c)] Because Bob's random basis averages the errors away.
+\end{itemize}
+
+\textbf{Question 3:} Eve measures a qubit in the $X$-basis via Procedure 2 ($H$,
+then $Z$-measure) and gets outcome 0. Which state does she hold afterwards?
+\begin{itemize}
+    \item[(a)] $\ket{+}$ \qquad (b) $\ket{0}$ \qquad (c) Whatever Alice sent.
+\end{itemize}
+\end{reflectionbox}
+
+\section{Resources}
+
+\begin{itemize}
+    \item Bennett, C. H. \& Brassard, G., ``Quantum cryptography: Public key
+          distribution and coin tossing,'' \textit{Proc.\ IEEE Int.\ Conf.\ on
+          Computers, Systems and Signal Processing}, Bangalore, 1984, pp.~175--179.
+          Reprinted: \textit{Theor.\ Comput.\ Sci.}\ \textbf{560}, 7--11 (2014).
+          --- The BB84 protocol.
+    \item Nielsen, M. A. \& Chuang, I. L., \textit{Quantum Computation and Quantum
+          Information}, Cambridge University Press, 10th anniversary edition, 2010,
+          \S 12.6 (quantum cryptography: BB84, intercept-resend, security sketch).
+    \item Gisin, N., Ribordy, G., Tittel, W. \& Zbinden, H., ``Quantum
+          cryptography,'' \textit{Rev.\ Mod.\ Phys.}\ \textbf{74}, 145 (2002). ---
+          Survey; QBER terminology and practical attack context.
+    \item Shor, P. W. \& Preskill, J., ``Simple proof of security of the BB84
+          quantum key distribution protocol,'' \textit{Phys.\ Rev.\ Lett.}\
+          \textbf{85}, 441 (2000). --- The $\approx 11\%$ threshold cited in Part E.
+    \item Lab 5: \textit{Quantum Measurements} (this series) --- Born rule,
+          Procedures 1 and 2, the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$.
+    \item Companion Jupyter notebook:
+          \texttt{quantum-labs-2026/lab6/lab6\_bb84.ipynb} (Colab link in Part F).
+\end{itemize}
+
+\end{document}
