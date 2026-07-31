@@ -1,0 +1,913 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{booktabs}
+
+% Page geometry
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% Custom colours
+\definecolor{ibmblue}{RGB}{0, 45, 156}
+\definecolor{ibmred}{RGB}{250, 75, 76}
+\definecolor{purpleaccent}{RGB}{109, 40, 217}
+\definecolor{amberaccent}{RGB}{245, 158, 11}
+\definecolor{tealaccent}{RGB}{13, 148, 136}
+\definecolor{shockorange}{RGB}{234, 88, 12}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Python code style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Custom boxes (titles always in braced form)
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,title={Student Activity}}
+\newtcolorbox{theorybox}{colback=gray!5!white,colframe=gray!50!black,title={Theory Recap}}
+\newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title={Important}}
+\newtcolorbox{simulatorbox}{colback=purple!5!white,colframe=purple!75!black,title={Simulator}}
+\newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title={Quick Check}}
+\newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title={Connections to Previous Labs}}
+\newtcolorbox{procedurebox}{colback=red!4!white,colframe=red!70!black,title={Procedure 1 vs Procedure 2}}
+\newtcolorbox{questionbox}{colback=violet!4!white,colframe=violet!70!black,title={The Question}}
+\newtcolorbox{shockbox}{colback=shockorange!8!white,colframe=shockorange,title={Counterintuitive --- and Real}}
+\newtcolorbox{benchbox}{colback=teal!6!white,colframe=tealaccent,title={Open the Simulator First}}
+\newtcolorbox{numberbox}{colback=green!4!white,colframe=green!50!black,title={Formula $\rightarrow$ Number $\rightarrow$ Bench}}
+\newtcolorbox{industrybox}{colback=amberaccent!10!white,colframe=amberaccent!90!black,title={Real-World Anchor}}
+\newtcolorbox{deepdivebox}{colback=cyan!4!white,colframe=cyan!60!black,title={Deep Dive}}
+
+% Bra-ket shorthands (guarded: never clash with package-provided macros)
+\providecommand{\ket}[1]{|#1\rangle}
+\providecommand{\bra}[1]{\langle#1|}
+\providecommand{\braket}[2]{\langle#1|#2\rangle}
+\providecommand{\ketbra}[2]{|#1\rangle\langle#2|}
+
+\title{\textbf{Laboratory Guide 7: Quantum Optics --- Photons, Interference, and Entanglement}\\
+\large The Hardware of Quantum Technology}
+\author{Course: Quantum Computing Foundation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction and Objectives}
+
+Labs 5 and 6 gave you the mathematics of qubits and a protocol built on it. This lab
+shows you the \textbf{hardware those abstractions run on}. A single photon \emph{is} a
+qubit --- twice over: its \textbf{path} through an interferometer is one two-level
+system, its \textbf{polarization} is another. Every device on the optical bench ---
+beam splitter, phase shifter, polarizer --- is one of the operators you already know,
+executed by glass and crystal. And every strange number this lab produces (a
+coincidence counter pinned at zero, two 50/50 elements composing to certainty, a
+filter that \emph{revives} blocked light, twin photons that always agree) is a
+Born-rule computation you have already done abstractly.
+
+\vspace{0.3cm}
+\noindent\textbf{Prerequisites:}
+\begin{itemize}
+    \item \textit{Fundamental Concepts of Quantum Technologies} (lecture series).
+    \item Lab 5: \textit{Quantum Measurements} --- the Born rule, measurement
+          Procedures 1 and 2, and the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$
+          on the Bloch sphere.
+    \item Lab 6: \textit{Quantum Key Distribution (BB84)} --- mutual unbiasedness
+          and the measurement--disturbance--security bridge.
+    \item Familiarity with Dirac notation: $\ket{\psi}$, $\bra{\phi}$, $\braket{\phi}{\psi}$.
+\end{itemize}
+
+\begin{connectionbox}
+\textbf{The Lab 5--6 bridge.} The path states $\ket{A}, \ket{B}$ and the polarization
+states $\ket{H}, \ket{V}$ are both the Lab 5 computational ($Z$) basis; the diagonal
+polarizations at $\pm 45^\circ$ are exactly the Lab 5 $X$-basis states
+$\ket{+}, \ket{-}$. The four BB84 signal states of Lab 6 are \emph{physically}
+$\ket{H}, \ket{V}, \ket{+}, \ket{-}$ --- Part C of this lab is the transmitter and
+receiver hardware of a real QKD link, and Part B's which-path result is Lab 6's
+``Eve leaves fingerprints'' theorem restated as an identity about interference.
+\end{connectionbox}
+
+\noindent\textbf{Mode:} Interactive Optical Bench + Qiskit \quad\textbf{Credits:} 1 ECTS
+\quad\textbf{Estimated time:} $\approx$ 10 h
+
+\vspace{0.3cm}
+\noindent\textbf{Learning Objectives:}
+\begin{enumerate}
+    \item \textbf{Explain the operational principles of single-photon and
+          entangled-photon experiments} --- beam splitters as unitaries, detection as
+          projective measurement, anti-correlation, interference, and coincidence
+          counting.
+    \item \textbf{Design and analyze simple optical setups} --- predict the output
+          statistics of a Mach--Zehnder interferometer, a polarizer cascade, or a
+          two-analyzer coincidence experiment, and verify the prediction photon by
+          photon in the simulator.
+    \item \textbf{Interpret interference and coincidence data} --- fringe visibility,
+          which-path complementarity ($\mathcal{V} = s$), and the quantitative gap
+          between quantum and classical-wave predictions.
+    \item \textbf{Discuss the role of optical platforms in quantum communication and
+          computation} --- polarization-encoded and entanglement-based QKD,
+          interferometric sensing, and dual-rail photonic quantum computing.
+\end{enumerate}
+
+\begin{simulatorbox}
+The lab's interactive page (\texttt{lab7\_optics.html}) contains the
+\textbf{Optical Bench} built for this lab: five guided presets reproduce exactly the
+experiments of this guide --- \textbf{Preset A} (beam splitter + coincidence counter),
+\textbf{Preset B1} (Mach--Zehnder fringes), \textbf{Preset B2} (which-path marker),
+\textbf{Preset C} (polarizer cascade), \textbf{Preset D} (entangled pairs, optional).
+Every displayed probability comes from the same Born-rule pipeline as the formulas in
+this guide, and all runs are seeded: the same seed and the same sequence of actions
+always reproduce the same counts.
+
+\medskip
+\textbf{This guide is written simulator-first.} Each Part opens with an ``Open the
+Simulator First'' box. Do that two-minute run \emph{before} reading the theory: the
+counts you observe pose exactly the question the section then answers. The companion
+Qiskit notebook rebuilds the same optics as quantum circuits:\\[4pt]
+\url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab7/lab7_optics.ipynb}
+\end{simulatorbox}
+
+\newpage
+
+\section{Part A: One Photon at a Beam Splitter}
+
+\begin{benchbox}
+Open the bench in \textbf{Preset A}: a single-photon source, one 50/50 beam splitter,
+a detector on each output port, and a coincidence counter wired to both. Fire
+\textbf{10\,000 photons} and watch two things: the two detector tallies, and the
+coincidence counter. The tallies drift toward 50/50 --- but the coincidence counter
+\emph{never moves}. Keep that second observation in mind; it is the whole section.
+\end{benchbox}
+
+\begin{questionbox}
+What does it actually mean that light comes in photons --- and what happens when one
+indivisible photon hits a half-silvered mirror?
+\end{questionbox}
+
+\begin{shockbox}
+One photon \textbf{takes both paths} --- the state after the beam splitter is a
+superposition over the two output arms, and Part B will prove it by interference ---
+yet it \textbf{never triggers both detectors}. Not rarely: \emph{never}. The photon
+is divisible in amplitude but indivisible in detection.
+\end{shockbox}
+
+A half-silvered mirror (a \textbf{50/50 beam splitter}) transmits half the light and
+reflects half. For a classical wave that sentence is unambiguous: the energy splits,
+half into each arm. But light arrives in indivisible quanta. A single photon cannot
+deliver half a click to each detector --- so what does ``splits 50/50'' mean for
+\emph{one photon}?
+
+Quantum mechanics answers with a state, not a story. Write the two output paths as
+the basis states $\ket{A}$ (transmitted) and $\ket{B}$ (reflected) --- the same
+two-level system as any Lab 5 qubit. A lossless beam splitter must act as a
+\textbf{unitary} on this qubit (unitarity here \emph{is} energy conservation --- the
+photon must exit somewhere), and the symmetric 50/50 choice is:
+
+\begin{equation}
+    B = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & i \\ i & 1 \end{pmatrix}
+    \qquad\Longrightarrow\qquad
+    B\ket{A} = \frac{\ket{A} + i\,\ket{B}}{\sqrt{2}}.
+    \label{eq:bs}
+\end{equation}
+
+\begin{theorybox}
+\textbf{Why the $i$?} A naive ``50/50 without phase'',
+$\tfrac{1}{\sqrt 2}\bigl(\begin{smallmatrix}1&1\\1&1\end{smallmatrix}\bigr)$, is a
+singular matrix --- it is \emph{not a possible physical device}, because it would
+merge two distinguishable inputs into one output and lose a photon in the process.
+The phase $i$ on reflection is the minimal repair that restores unitarity
+(Zeilinger, 1981). This phase convention --- $i$ on reflection, used consistently ---
+is fixed for the entire lab: every formula below is derived under it, and the
+simulator uses exactly this matrix.
+\end{theorybox}
+
+Detection at the two output ports is a path-basis measurement ---
+\textbf{Procedure 1} from Lab 5, executed destructively (the photon is absorbed by
+the detector that clicks). The Born rule gives the two outcome probabilities:
+
+\begin{equation}
+    P(\text{detector at port A}) = \left|\tfrac{1}{\sqrt 2}\right|^2 = \tfrac12,
+    \qquad
+    P(\text{detector at port B}) = \left|\tfrac{i}{\sqrt 2}\right|^2 = \tfrac12,
+    \label{eq:bsprobs}
+\end{equation}
+\begin{equation}
+    P(\text{both detectors}) = 0 \quad\text{exactly.}
+    \label{eq:anticorr}
+\end{equation}
+
+That last line deserves a hard look. The state $(\ket{A} + i\ket{B})/\sqrt 2$ is
+\textbf{one photon in superposition over two paths --- not two photons}. A path
+measurement has exactly two mutually exclusive outcomes; ``both detectors click'' is
+not a low-probability event, it is \emph{not in the outcome set at all}. The zero is
+structural, not statistical.
+
+\begin{numberbox}
+$P = \tfrac12, \tfrac12$ and $P_{\text{coinc}} = 0$. In \textbf{Preset A}: after
+10\,000 photons the tallies land within statistical noise of
+\textbf{5\,000 / 5\,000} (the theory overlay shows the exact 50\% line), while the
+coincidence counter reads \textbf{0 --- exactly, after every single photon}. Fire
+another 10\,000 and check that the zero is not luck.
+\end{numberbox}
+
+\begin{warningbox}
+\textbf{The honest classical contrast.} A classical wave or pulse really does split:
+half the energy in each arm, and with two detectors both can fire in the same trial.
+The standard figure of merit is $g^{(2)}(0)$, the normalized zero-delay second-order
+correlation --- the coincidence rate normalized to random chance (Loudon, 2000).
+Semiclassical models predict coincidence rates at least at the random-chance level,
+$g^{(2)}(0) \geq 1$, while the one-photon state gives $g^{(2)}(0) = 0$. Grangier,
+Roger and Aspect measured exactly this anti-correlation in 1986; it is the
+operational meaning of ``the photon is indivisible'', and it is the first of this
+lab's four experimental pillars.
+\end{warningbox}
+
+\begin{industrybox}
+\textbf{Where this is an industry, not a thought experiment.} One photon distributed
+over two spatial modes is the \textbf{dual-rail qubit} --- the native encoding of
+photonic quantum computing. \textbf{Quandela} builds the single-photon sources (the
+``fire one photon on demand'' box the simulator idealizes) and dual-rail photonic
+processors around exactly this $\{\ket{A}, \ket{B}\}$ qubit; \textbf{ORCA Computing}
+builds photonic quantum processors on the same principle that beam-splitter networks
+perform unitary computation on light. The linear-optical quantum computing
+literature (the KLM protocol) showed that such networks plus detection are universal.
+When you fire photons at the bench, you are operating the elementary cell of those
+machines.
+\end{industrybox}
+
+\section{Part B: The Mach--Zehnder Interferometer and Which-Path Information}
+
+\begin{benchbox}
+Switch the bench to \textbf{Preset B1}: two beam splitters back to back, mirrors
+folding the two arms together, and a phase knob $\varphi$ on arm B. Leave
+$\varphi = 0^\circ$ and fire 10\,000 photons. Every photon exits at \textbf{D1} ---
+100/0, from a device built of two 50/50 elements. Now sweep the $\varphi$ slider and
+watch the split move. The counts \emph{depend on the phase difference between the two
+paths}.
+\end{benchbox}
+
+\begin{questionbox}
+If the photon went one way or the other, the detector counts could not depend on the
+path it didn't take. They do. What now?
+\end{questionbox}
+
+\begin{shockbox}
+Two 50/50 beam splitters in sequence give a \textbf{100/0} outcome. Model each
+splitter as an independent coin flip --- the reasonable move if the photon ``really''
+takes one path --- and you predict 50/50 at the output. The observed perfect nulls
+and perfect peaks are the single-photon interference signature: the amplitudes of
+\emph{both} paths add before anything is detected.
+\end{shockbox}
+
+The \textbf{Mach--Zehnder interferometer} is the workhorse: beam splitter BS1 opens
+two paths, mirrors bring them back together, a \textbf{phase shifter}
+$\Phi(\varphi) = \mathrm{diag}(1, e^{i\varphi})$ on arm B models any path-length
+difference, and beam splitter BS2 recombines. (The mirrors add the same phase to both
+arms --- a global phase, dropped.) Step the input $\ket{A}$ through the device:
+
+\begin{equation}
+    \ket{A}
+    \;\xrightarrow{\;\text{BS1}\;}\; \frac{\ket{A} + i\ket{B}}{\sqrt 2}
+    \;\xrightarrow{\;\Phi(\varphi)\;}\; \frac{\ket{A} + i e^{i\varphi}\ket{B}}{\sqrt 2}
+    \;\xrightarrow{\;\text{BS2}\;}\;
+    \frac{(1 - e^{i\varphi})\ket{A} + i(1 + e^{i\varphi})\ket{B}}{2}.
+    \label{eq:mzpipe}
+\end{equation}
+
+With detector \textbf{D1} on output port B and \textbf{D2} on output port A, the Born
+rule and the identity $|1 \pm e^{i\varphi}|^2 = 2 \pm 2\cos\varphi$ give the fringes:
+
+\begin{equation}
+    P(D1) = \cos^2\!\frac{\varphi}{2}, \qquad P(D2) = \sin^2\!\frac{\varphi}{2}.
+    \label{eq:fringes}
+\end{equation}
+
+At $\varphi = 0$: $P(D1) = 1$ --- the 100/0 you just observed. Algebraically this is
+the composition identity $B^2 = iX$: two symmetric beam splitters are a perfect path
+swap (up to an overall phase). At $\varphi = \pi$ the same instrument, retuned, sends
+every photon to D2 instead. Between the extremes the split interpolates as a perfect
+cosine:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+phase $\varphi$ & $0^\circ$ & $60^\circ$ & $90^\circ$ & $180^\circ$ \\
+\midrule
+$P(D1) = \cos^2(\varphi/2)$ & $1$ & $3/4$ & $1/2$ & $0$ \\
+$P(D2) = \sin^2(\varphi/2)$ & $0$ & $1/4$ & $1/2$ & $1$ \\
+\bottomrule
+\end{tabular}
+\caption{Mach--Zehnder anchor points, equation~\eqref{eq:fringes}. The
+$60^\circ$ column is the 3\,:\,1 fringe point used by Preset B1.}
+\label{tab:mz}
+\end{table}
+
+For fringes of the form $P(\varphi) = (1 + \mathcal{V}\cos\varphi)/2$, the
+\textbf{fringe visibility} is
+\begin{equation}
+    \mathcal{V} = \frac{P_{\max} - P_{\min}}{P_{\max} + P_{\min}},
+    \label{eq:vis}
+\end{equation}
+and the unmarked interferometer has $P_{\max} = 1$, $P_{\min} = 0$:
+$\mathcal{V} = 1$.
+
+\begin{numberbox}
+At $\varphi = \pi/3$ ($60^\circ$): $P(D1) = \cos^2(30^\circ) = \tfrac34$ --- a
+\textbf{75\% / 25\%} split. In \textbf{Preset B1}, set the slider to $60^\circ$ and
+fire 10\,000 photons: the tallies land on 75/25 within noise, on top of the theory
+overlay. Then return to $\varphi = 0^\circ$ and re-verify the \textbf{100/0} --- two
+50/50 splitters, certain outcome.
+\end{numberbox}
+
+\begin{industrybox}
+\textbf{The fringe as a measuring instrument.} $\varphi$ is optical path-length
+difference in disguise. Any physical quantity that stretches one arm --- rotation in
+a \textbf{fiber-optic gyroscope} (the navigation-grade rotation sensors in aircraft),
+strain, temperature, or a passing gravitational wave in the kilometer-scale
+\textbf{LIGO-class interferometers} --- shifts the fringe. Near the steepest point of
+the cosine, reading $P(D1)$ to precision $\delta P$ reads the phase to
+$\delta\varphi \approx 2\,\delta P$: counting photons \emph{is} the measurement. That
+is interferometric sensing, and it is this exact circuit.
+\end{industrybox}
+
+\subsection{Which-Path Marking: Complementarity, Quantified}
+
+\begin{benchbox}
+Switch to \textbf{Preset B2}: the same interferometer, plus a \textbf{which-path
+marker} in the arms --- a probe qubit that records which arm the photon took. Its
+dial is the \textbf{marker overlap $s$}: at $s = 1$ the marker states for the two
+arms are identical (no record); at $s = 0$ they are orthogonal (a perfect record).
+Set $s = 0$, sweep $\varphi$, and watch the fringes: they are \textbf{gone} --- flat
+50/50 at every phase. Now slide $s$ upward and watch them come back, exactly in
+proportion.
+\end{benchbox}
+
+\begin{shockbox}
+An \textbf{unread} which-path marker still destroys the fringes. Nobody looks at the
+record. It is enough that the record \emph{exists} --- that the universe could in
+principle tell which path was taken. Interference is lost the moment the paths become
+distinguishable, not the moment someone learns the answer.
+\end{shockbox}
+
+Model the marking honestly. Between the beam splitters, couple the path qubit to a
+marker qubit: path A tags the marker into state $\ket{M_A}$, path B into $\ket{M_B}$
+(normalized, with overlap $s = \braket{M_A}{M_B}$ taken real in $[0,1]$). We write
+the two-qubit state as $\ket{\text{path}\;\text{marker}}$ with the \textbf{path qubit
+leftmost} --- big-endian ordering, qubit 0 is the leftmost symbol; the companion
+notebook converts Qiskit's opposite bitstring order before displaying anything.
+After BS1 and the marking:
+
+\begin{equation}
+    \frac{\ket{A}\ket{M_A} + i e^{i\varphi}\,\ket{B}\ket{M_B}}{\sqrt 2}.
+    \label{eq:marked}
+\end{equation}
+
+Recombine at BS2 (acting on the path qubit only) and compute $P(D1)$, summing over
+the marker --- read or unread, the arithmetic cannot tell:
+
+\begin{equation}
+    P(D1; \varphi, s)
+    = \frac{1}{4}\,\bigl\|\, \ket{M_A} + e^{i\varphi}\ket{M_B} \,\bigr\|^2
+    = \frac{1 + s\cos\varphi}{2}
+    \qquad\Longrightarrow\qquad
+    \boxed{\;\mathcal{V} = s = |\braket{M_A}{M_B}|\;}
+    \label{eq:complementarity}
+\end{equation}
+
+\textbf{Fringe visibility equals the indistinguishability of the marker states.}
+$s = 1$: no record, full fringes. $s = 0$: perfect record, no fringes ---
+$P(D1) = \tfrac12$ at every phase, as if the photon really had flipped a coin at BS1.
+In between, the trade is exactly linear in the fringe term. A perfect marking
+($s = 0$) is physically a controlled-NOT --- the path controls the marker, turning
+the superposition into the entangled path--marker state
+$(\ket{00} + i e^{i\varphi}\ket{11})/\sqrt 2$ (path leftmost, as always) --- and
+reading the marker afterwards is a genuine path measurement
+(\textbf{Procedure 1} on the marker qubit): same statistics as putting a detector in
+the arm, but the photon survives to reach BS2.
+
+\begin{numberbox}
+At $s = 0.5$: $\mathcal{V} = 0.5$, so the fringes run between
+$P_{\max} = \tfrac{1+0.5}{2} = \mathbf{0.75}$ and
+$P_{\min} = \tfrac{1-0.5}{2} = \mathbf{0.25}$. In \textbf{Preset B2}, set $s = 0.5$,
+fire at $\varphi = 0^\circ$ ($\rightarrow$ 75\%) and at $\varphi = 180^\circ$
+($\rightarrow$ 25\%), and read the visibility card: it converges to 0.5 --- the dial
+you set, recovered from counting statistics alone.
+\end{numberbox}
+
+\begin{connectionbox}
+Lab 5 said ``measurement disturbs the state''; Lab 6 said ``Eve's measurement leaves
+fingerprints''. Both are this one identity $\mathcal{V} = |\braket{M_A}{M_B}|$: an
+eavesdropper who gains path information ($s < 1$) \emph{necessarily} degrades the
+interference any honest party could observe. Information out $\Longrightarrow$
+coherence lost, in exact proportion. (The general form is Englert's duality relation
+$\mathcal{V}^2 + \mathcal{D}^2 \leq 1$ with distinguishability
+$\mathcal{D} = \sqrt{1 - s^2}$ --- our ideal marker saturates it.)
+\end{connectionbox}
+
+\section{Part C: Polarization --- Quantum Malus and the Three-Polarizer Surprise}
+
+\begin{benchbox}
+Switch to \textbf{Preset C}: an unpolarized source and a rack of polarizing filters.
+Start with two \textbf{crossed} polarizers --- $0^\circ$ and $90^\circ$. Fire
+10\,000 photons: \textbf{nothing gets through}. Now insert a $45^\circ$ polarizer
+between them and fire again: \textbf{12.5\%} of the photons pass all three filters.
+You added an absorber, and the light came back.
+\end{benchbox}
+
+\begin{questionbox}
+Two crossed filters block everything. Insert a third filter between them and light
+comes through. Why does adding an absorber \emph{increase} transmission?
+\end{questionbox}
+
+\begin{shockbox}
+Adding an absorbing polarizer raises transmission from exactly \textbf{0} to
+\textbf{1/8}. No sieve, filter, or ``the polarizer lets through the right
+components'' picture survives this: a filter that only ever \emph{removes} light
+cannot make more light arrive. Something other than removal is happening. (You can
+try this at home with three lenses from polarized sunglasses.)
+\end{shockbox}
+
+Polarization is the photon's second qubit: $\ket{H}$ (horizontal) and $\ket{V}$
+(vertical) form the computational basis, and the state at linear angle $\theta$ from
+the H-axis is $\ket{\theta} = \cos\theta\,\ket{H} + \sin\theta\,\ket{V}$. The
+diagonal states at $\pm 45^\circ$ are exactly the Lab 5 $X$-basis pair $\ket{\pm}$.
+
+An ideal polarizer at angle $\theta$ is the projector
+$\Pi_\theta = \ketbra{\theta}{\theta}$, and this is the crucial fact: a polarizer is
+an inherently \textbf{Procedure-1 device}. Each photon either passes --- \emph{and is
+then in state $\ket{\theta}$} --- or is absorbed. There is no fractional photon. For
+a photon in $\ket{H}$ meeting a polarizer at $\theta$, the Born rule gives the
+\textbf{quantum Malus law}:
+
+\begin{equation}
+    P(\text{pass}) = |\braket{\theta}{H}|^2 = \cos^2\theta,
+    \qquad \text{post-state } \ket{\theta}.
+    \label{eq:malus}
+\end{equation}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+polarizer angle $\theta$ & $0^\circ$ & $30^\circ$ & $45^\circ$ & $60^\circ$ & $90^\circ$ \\
+\midrule
+$P(\text{pass})$ from $\ket{H}$ & $1$ & $3/4$ & $1/2$ & $1/4$ & $0$ \\
+\bottomrule
+\end{tabular}
+\caption{Quantum Malus law, equation~\eqref{eq:malus}, at the five anchor angles.}
+\label{tab:malus}
+\end{table}
+
+Classical Malus ($I = I_0\cos^2\theta$) reads identically --- but the quantum version
+is \textbf{per-photon and probabilistic}: $\cos^2\theta$ is a Born probability, the
+same $|\braket{m}{\psi}|^2$ as every measurement since Lab 5, and each individual
+photon entirely passes or is entirely absorbed.
+
+\begin{numberbox}
+$\cos^2(60^\circ) = \mathbf{25\%}$. In \textbf{Preset C}, switch the source to
+$\ket{H}$, enable a single polarizer at $60^\circ$, and fire 10\,000 photons: the
+pass fraction lands on 25\% within noise. Then rebuild the crossed pair (unpolarized
+source, $0^\circ$ and $90^\circ$) $\rightarrow$ \textbf{exactly 0} --- and insert the
+$45^\circ$ filter $\rightarrow$ \textbf{1/8 = 12.5\%}.
+\end{numberbox}
+
+Now the resolution of the three-polarizer surprise. For a cascade
+$\theta_1, \dots, \theta_N$, each passage \emph{renews} the state to the current
+polarizer's $\ket{\theta_j}$ --- the Procedure-1 post-state. So the pass
+probabilities multiply with the \emph{differences} between consecutive angles:
+
+\begin{equation}
+    P(\text{pass all}) = P_1 \cdot \prod_{j=2}^{N}\cos^2(\theta_j - \theta_{j-1}),
+    \label{eq:cascade}
+\end{equation}
+
+\noindent with $P_1 = \tfrac12$ for an unpolarized source (no polarization
+preference --- every first filter passes half). The two experiments you ran:
+
+\begin{equation}
+    \text{crossed } (0^\circ, 90^\circ):\;\;
+    \tfrac12\cdot\cos^2(90^\circ) = 0,
+    \qquad\quad
+    \text{three } (0^\circ, 45^\circ, 90^\circ):\;\;
+    \tfrac12\cdot\tfrac12\cdot\tfrac12 = \tfrac18.
+    \label{eq:threepol}
+\end{equation}
+
+The middle filter does not ``let more light through'' --- it \textbf{rewrites the
+state}. After the $45^\circ$ polarizer the photon is in $\ket{+}$, which is no longer
+orthogonal to the final $90^\circ$ filter. The projective post-state --- the fact
+that measurement \emph{changes} the system, the disturbance you met in Lab 5 --- is
+the entire explanation. The $45^\circ$ polarizer is an $X$-basis measurement of the
+polarization qubit, executed by a plastic film.
+
+\begin{procedurebox}
+\textbf{Two physically different devices.} Lab 5 distinguished two ways to measure in
+the diagonal basis, and in optics they are \emph{different hardware}:
+\begin{itemize}
+    \item \textbf{Procedure 1} --- a polarizer at $45^\circ$: probabilities
+          $|\braket{\pm}{\psi}|^2$, passed photon left in $\ket{+}$ (the $\ket{-}$
+          outcome is an absorbed photon).
+    \item \textbf{Procedure 2} --- a half-waveplate at $22.5^\circ$ (which implements
+          the canonical basis-change rotation $U_X = H$) followed by a polarizing
+          beam splitter and two detectors: \emph{identical probabilities}, but the
+          photon exits in $\ket{H}$ or $\ket{V}$, not $\ket{\pm}$.
+\end{itemize}
+Same statistics, different post-measurement states: the overlap between the two
+devices' ``+'' outputs is $|\braket{+}{H}|^2 = \tfrac12$, not 1. Downstream optics
+see different photons. Lab 6's naive-resend attack --- where Eve's forgotten
+re-encoding turned a 25\% error rate into 37.5\% --- was exactly this distinction
+carrying a security consequence.
+\end{procedurebox}
+
+\begin{industrybox}
+\textbf{This hardware runs QKD networks today.} Polarization-encoded BB84 uses
+precisely these components: Lab 6's four signal states \emph{are}
+$\ket{H}, \ket{V}, \ket{+}, \ket{-}$; Alice's transmitter is a polarization
+preparer, Bob's receiver is a basis-switched analyzer --- a rotation plus a
+polarizing beam splitter, Procedure 2 in glass. Metropolitan QKD fiber networks
+(deployed in Europe and Asia, and the building block of the planned
+\textbf{EuroQCI} infrastructure) run this Part's optics at telecom scale: every
+``secure key bit'' started life as a photon meeting a polarization analyzer.
+\end{industrybox}
+
+\begin{deepdivebox}
+\textbf{The polarizer staircase.} Generalize the insertion trick: between $0^\circ$
+and $90^\circ$, insert intermediate filters in equal steps of $90^\circ/N$ --- $N$
+steps, hence $N+1$ polarizers counting both ends. The transmission
+$\tfrac12\cos^{2N}(90^\circ/N)$ \emph{rises} toward $\tfrac12$ as $N$ grows: many
+gentle projections approximate a lossless rotation of the polarization. ($N = 2$ is
+the three-polarizer experiment.) Try the staircase
+$0^\circ, 30^\circ, 60^\circ, 90^\circ$ in Preset C:
+$\tfrac12\,(3/4)^3 = 27/128 \approx 21.1\%$, already far above the 12.5\% of the
+single insertion.
+\end{deepdivebox}
+
+\section{Part D: Entangled Photon Pairs \textnormal{\normalsize(Optional)}}
+
+\noindent\textit{This part is optional enrichment: nothing in the activities' core
+depends on it. It is also the doorway to the deepest experimental result in the
+field --- read on if you want to see it.}
+
+\begin{benchbox}
+Switch to \textbf{Preset D}: a crystal that emits \textbf{pairs} of photons, one to
+each side, each side ending in an analyzer (angle dial + two detectors, ``+'' and
+``$-$''). Set both dials to the \textbf{same angle} --- any angle --- and fire
+10\,000 pairs. Each side alone clicks ``+'' or ``$-$'' like a fair coin. But the
+\textbf{agreement} counter reads \textbf{100\%}: the two sides always give the same
+answer. Now change the common angle and fire again --- still 100\%.
+\end{benchbox}
+
+\begin{questionbox}
+Two photons, each individually a perfect coin toss, always agree when asked the same
+question --- at any angle, chosen after they separated. What kind of correlation is
+that?
+\end{questionbox}
+
+\begin{shockbox}
+Entangled photons are \textbf{individually random at every angle, perfectly
+correlated whenever the angles match} --- and the best classical wave model is not
+just vaguely wrong about this, it is off by \textbf{exactly a factor of 2} in the
+correlation amplitude. The simulator plots both curves; the gap between them is the
+measurement.
+\end{shockbox}
+
+Nonlinear crystals (spontaneous parametric down-conversion, the workhorse
+entangled-pair source since the 1990s --- Kwiat et al., 1995) emit two photons in the
+joint polarization state
+
+\begin{equation}
+    \ket{\Phi^{+}} = \frac{\ket{HH} + \ket{VV}}{\sqrt 2},
+    \label{eq:pairstate}
+\end{equation}
+
+\noindent written photon 1 leftmost, photon 2 rightmost --- the same leftmost-first,
+big-endian ordering as Part B's $\ket{\text{path}\;\text{marker}}$ kets. Each side
+passes a two-channel analyzer at angle $\alpha$ (photon 1) or $\beta$ (photon 2):
+outcome ``+'' means the photon exited the $\ket{\theta_{\text{analyzer}}}$ port,
+``$-$'' the orthogonal port. Two facts, both exact:
+
+\begin{itemize}
+    \item \textbf{Each photon alone: a perfect coin.} Summing over the partner's
+          outcomes leaves photon 1 (or 2) in the maximally mixed state $I/2$ ---
+          \emph{exactly} unpolarized. $P(+) = \tfrac12$ at \emph{every} analyzer
+          angle. No analyzer setting on one side is visible in the other side's
+          single rates.
+    \item \textbf{The pair together: locked.} The joint amplitude is
+          $\braket{\alpha, \beta}{\Phi^{+}}
+          = (\cos\alpha\cos\beta + \sin\alpha\sin\beta)/\sqrt 2
+          = \cos(\alpha - \beta)/\sqrt 2$, so with $\Delta = \alpha - \beta$:
+          \begin{equation}
+              P({+}{+}) = P({-}{-}) = \frac{\cos^2\Delta}{2},
+              \qquad
+              P({+}{-}) = P({-}{+}) = \frac{\sin^2\Delta}{2}.
+              \label{eq:jointprobs}
+          \end{equation}
+          At matched angles ($\Delta = 0$): agreement with certainty. At
+          $\alpha = 0^\circ$, $\beta = 22.5^\circ$, for instance:
+          $P({+}{+}) = P({-}{-}) = (1 + \cos 45^\circ)/4 \approx 0.4268$ and
+          $P({+}{-}) = P({-}{+}) = (1 - \cos 45^\circ)/4 \approx 0.0732$ --- the
+          four sum to 1.
+\end{itemize}
+
+The standard summary is the \textbf{correlation function}
+$E(\alpha,\beta) = P({+}{+}) + P({-}{-}) - P({+}{-}) - P({-}{+})$, which collapses
+to a function of the angle \emph{difference} alone --- the state $\ket{\Phi^{+}}$ is
+invariant when both analyzers rotate together:
+
+\begin{equation}
+    E(\alpha, \beta) = \cos 2\Delta, \qquad \Delta = \alpha - \beta.
+    \label{eq:corr}
+\end{equation}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+analyzer difference $\Delta$ & $0^\circ$ & $22.5^\circ$ & $45^\circ$ & $90^\circ$ \\
+\midrule
+$E = \cos 2\Delta$ & $1$ & $\sqrt{2}/2 \approx 0.707$ & $0$ & $-1$ \\
+\bottomrule
+\end{tabular}
+\caption{Correlation anchors, equation~\eqref{eq:corr}: perfect correlation,
+the $\sqrt 2/2$ point, mutually unbiased analyzers, perfect anti-correlation.}
+\label{tab:corr}
+\end{table}
+
+\begin{numberbox}
+$E(0^\circ, 22.5^\circ) = \cos 45^\circ = \tfrac{\sqrt 2}{2} \approx \mathbf{0.707}$.
+In \textbf{Preset D}, set $\alpha = 0^\circ$, $\beta = 22.5^\circ$, fire 10\,000
+pairs, and read the measured $E$ against the theory overlay. Then set the dials equal
+($\Delta = 0$) and confirm \textbf{100\% agreement} --- against the classical-wave
+overlay's \textbf{75\%} --- while each side's own counter stays at 50/50. At
+$\Delta = 45^\circ$, $E = 0$: the two analyzers have become mutually unbiased ---
+Lab 6's key concept reappearing as zero correlation.
+\end{numberbox}
+
+Why is this \emph{deep} and not just pretty? Try the obvious classical story: each
+pair is emitted with a shared random polarization $\lambda$, and each analyzer
+responds by classical Malus, $\cos^2$ of the angle to $\lambda$. Average over
+uniform $\lambda$: expanding each factor via $\cos^2 x = (1 + \cos 2x)/2$, the
+single-cosine averages vanish, and the lone surviving average is
+$\langle \cos 2(\alpha - \lambda)\cos 2(\beta - \lambda)\rangle_\lambda
+= \cos(2\Delta)/2$, so
+
+\begin{equation}
+    P_{\text{cl}}({+}{+}) = \frac14 + \frac18\cos 2\Delta
+    \qquad\Longrightarrow\qquad
+    E_{\text{cl}}(\Delta) = \frac{\cos 2\Delta}{2}
+    \label{eq:classical}
+\end{equation}
+
+--- the same shape, but \textbf{half the size}. At matched analyzers the classical
+wave model manages only 75\% agreement ($E_{\text{cl}}(0) = \tfrac12$) against the
+observed 100\%. This is not a philosophical complaint --- it is a
+\textbf{device-verifiable factor of 2}, and the simulator's overlay draws both
+curves so you can watch the measured points choose the quantum one. More
+sophisticated classical models (predetermined answers for every angle) can patch the
+matched-angle agreement but then fail elsewhere on the $\cos 2\Delta$ curve --- that
+is \textbf{Bell's theorem} (Bell, 1964; Clauser--Horne--Shimony--Holt, 1969), which
+we cite rather than derive: no local classical story reproduces the full curve. What
+this lab establishes at the correlation level is the honest core: the measured curve
+is $\cos 2\Delta$, and the classical wave prediction misses it by a factor of 2.
+
+\begin{industrybox}
+\textbf{Entanglement as infrastructure.} The pair source you are firing is the
+physical basis of \textbf{entanglement-based QKD} (the BBM92 protocol): Alice and
+Bob each receive one photon of a pair, measure in randomly switched bases, and the
+matched-angle perfect correlations play the role that Alice's prepared states played
+in Lab 6's BB84 --- with the added property that the correlations themselves certify
+that no third party is entangled with the key. The same correlations, measured
+across 1\,200 km by the \textbf{Micius} satellite, are the record distance for
+entanglement distribution --- Part D at continental scale.
+\end{industrybox}
+
+\newpage
+
+\section{Part E: Guided Activities}
+
+\begin{simulatorbox}
+All activities below run on the Optical Bench of the lab's interactive page
+(\texttt{lab7\_optics.html}); the preset to use is named in each activity. All runs
+are seeded --- the same seed always reproduces the same counts. Activity 6 uses the
+companion Qiskit notebook:\\[4pt]
+\url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab7/lab7_optics.ipynb}
+\end{simulatorbox}
+
+\subsection{Activity 1: Indivisibility Statistics (Preset A)}
+
+\begin{studentbox}
+Fire 100, then 1\,000, then 10\,000 photons (same seed, resetting in between).
+\begin{enumerate}
+    \item How does the deviation of the detector-B fraction from $1/2$ shrink as $n$
+          grows? Compare with the statistical scale $\sqrt{1/(4n)}$.
+    \item Confirm the coincidence counter reads \emph{exactly} 0 in every run --- not
+          just small. Why is this exact even though the simulation is random?
+          (Equation~\eqref{eq:anticorr}.)
+    \item What would a classical wave-pulse model predict for the coincidence
+          counter?
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 2: Mapping the Fringe (Preset B1)}
+
+\begin{studentbox}
+Use the $\varphi$ slider and the sweep button.
+\begin{enumerate}
+    \item Verify the three anchor points: $\varphi = 0^\circ \rightarrow$ 100/0,
+          $\varphi = 60^\circ \rightarrow$ 75/25,
+          $\varphi = 180^\circ \rightarrow$ 0/100 (Table~\ref{tab:mz}).
+    \item Run the $\varphi$ sweep and check the measured dots trace
+          $\cos^2(\varphi/2)$. Where on the curve does a small phase change produce
+          the largest change in counts? (This is where an interferometric sensor
+          operates.)
+    \item Explain in one sentence why a photon that ``chose one arm at BS1'' cannot
+          produce the $\varphi = 0$ result.
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 3: Buying Back the Fringes (Preset B2)}
+
+\begin{studentbox}
+The complementarity dial: visibility $\mathcal{V} = s$.
+\begin{enumerate}
+    \item At $s = 0.5$, verify the fringe extremes 0.75 / 0.25 (fire at
+          $\varphi = 0^\circ$ and $180^\circ$) and read the visibility card
+          $\rightarrow$ 0.5.
+    \item Run the $\varphi$ sweep at $s = 1$, $s = 0.5$, $s = 0$ and compare the
+          three curves' amplitudes.
+    \item Nothing ever reads the marker in this simulation. State precisely what
+          kills the interference --- and connect it to why Eve in Lab 6 cannot
+          listen without leaving a trace.
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 4: Three Polarizers and the Staircase (Preset C)}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Reproduce the pair of experiments: crossed $0^\circ/90^\circ \rightarrow$
+          exactly 0; insert $45^\circ \rightarrow$ 12.5\%. Where do the absorbed
+          photons go in each configuration? (Watch the per-polarizer absorption
+          counts.)
+    \item With the $\ket{H}$ source and a single polarizer at $60^\circ$, verify
+          Malus: 25\% pass.
+    \item Set the staircase $0^\circ/30^\circ/60^\circ/90^\circ$ and check
+          $\tfrac12\,(3/4)^3 = 27/128 \approx 21.1\%$. Explain why \emph{more}
+          absorbing filters transmit \emph{more} light, using the phrase
+          ``post-measurement state''.
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 5: The Factor of 2 (Preset D --- Optional)}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Set $\alpha = \beta = 20^\circ$: verify each side's own counter is
+          $\approx$ 50/50 while agreement is 100\%. Change the common angle; does
+          anything change?
+    \item Set $\alpha = 0^\circ$, $\beta = 22.5^\circ$ and verify
+          $E \approx 0.707$ against the overlay. At $\Delta = 45^\circ$, why is
+          $E = 0$? (Lab 6 vocabulary: what are the two analyzers to each other?)
+    \item Run the $\Delta$ sweep. The dashed curve is the best classical-wave story.
+          Identify the angle where the quantum/classical gap is largest, and say
+          what an experimenter would conclude from data landing on the solid curve.
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 6: The Optics in Qiskit}
+
+The companion notebook rebuilds this guide's optics as quantum circuits: the beam
+splitter as a one-qubit gate on the dual-rail path qubit, the Mach--Zehnder as a
+three-gate circuit swept over $\varphi$ against $\cos^2(\varphi/2)$, which-path
+marking as a controlled-NOT onto an ancilla with the visibility sweep
+$\mathcal{V} = s$, the polarization experiments with Procedure 1 and Procedure 2
+side by side, and (optional) the entangled-pair correlation curve against
+$\cos 2\Delta$. Its core circuit is three gates long:
+
+\begin{lstlisting}[language=Python]
+def mach_zehnder(phi: float) -> QuantumCircuit:
+    """Mach-Zehnder on the dual-rail path qubit: BS - phase - BS."""
+    qc = QuantumCircuit(1)
+    qc.rx(-np.pi / 2, 0)   # beam splitter  B  (the i-on-reflection 50/50)
+    qc.p(phi, 0)           # phase shifter  Phi(phi)  on arm B
+    qc.rx(-np.pi / 2, 0)   # beam splitter  B
+    qc.measure_all()
+    return qc
+\end{lstlisting}
+
+\noindent D1 collects the photons observed in path B (outcome 1), so the counts of
+outcome 1 trace $P(D1) = \cos^2(\varphi/2)$ across the sweep. All notebook
+experiments are seeded and reproducible; expected statistics and tolerances are
+stated inline. A compact optional section runs the interferometer on real IBM
+hardware.
+
+\begin{warningbox}
+\textbf{Qiskit bit-ordering note.} Qiskit orders multi-qubit bitstrings
+little-endian (rightmost bit = qubit $q_0$), while this lab series writes states
+big-endian (qubit 0 leftmost). Unlike Lab 6, where every register held a single
+qubit, this lab genuinely needs the conversion: two-qubit registers appear in the
+which-path model (the $\ket{\text{path}\;\text{marker}}$ states) and in Part D (the
+photon pairs), so \emph{every} displayed bitstring must be converted to the
+leftmost-first ordering. The notebook shows exactly how, and applies it to every
+histogram.
+\end{warningbox}
+
+\subsection{Activity 7: Quick Check}
+
+\begin{reflectionbox}
+\textbf{Question 1:} A single photon in state $(\ket{A} + i\ket{B})/\sqrt 2$ meets
+two detectors, one per path. What is the probability both click?
+\begin{itemize}
+    \item[(a)] $1/4$ \qquad (b) exactly $0$ \qquad (c) small but nonzero
+\end{itemize}
+
+\textbf{Question 2:} A Mach--Zehnder interferometer at $\varphi = 0$ is built from
+two 50/50 beam splitters. What fraction of photons reaches D1?
+\begin{itemize}
+    \item[(a)] 50\% --- each splitter is a fair coin.
+    \item[(b)] 100\% --- the two path amplitudes interfere.
+    \item[(c)] 75\%.
+\end{itemize}
+
+\textbf{Question 3:} A photon passes a polarizer at $45^\circ$ (Procedure 1) and, in
+a second experiment, a half-waveplate at $22.5^\circ$ + polarizing beam splitter
+(Procedure 2), in both cases with the ``+'' outcome. The outcome
+\emph{probabilities} were identical. The exiting photon is\dots
+\begin{itemize}
+    \item[(a)] the same state in both cases --- probabilities fix the state.
+    \item[(b)] $\ket{+}$ after Procedure 1, $\ket{H}$ after Procedure 2 --- overlap
+               only $1/2$.
+    \item[(c)] unpolarized in both cases.
+\end{itemize}
+\end{reflectionbox}
+
+\section{Resources}
+
+\begin{itemize}
+    \item Grangier, P., Roger, G. \& Aspect, A., ``Experimental evidence for a
+          photon anticorrelation effect on a beam splitter: a new light on
+          single-photon interferences,'' \textit{Europhys.\ Lett.}\ \textbf{1}, 173
+          (1986). --- Part A's anti-correlation and Part B's single-photon
+          interference in one experiment.
+    \item Zeilinger, A., ``General properties of lossless beam splitters in
+          interferometry,'' \textit{Am.\ J.\ Phys.}\ \textbf{49}, 882 (1981). ---
+          Beam-splitter unitarity and the phase convention of Part A.
+    \item Loudon, R., \textit{The Quantum Theory of Light}, 3rd ed., Oxford
+          University Press, 2000, \S\S 5--6. --- Beam splitters, single-photon
+          states, and the $g^{(2)}$ correlation cited in Part A.
+    \item Englert, B.-G., ``Fringe visibility and which-way information: an
+          inequality,'' \textit{Phys.\ Rev.\ Lett.}\ \textbf{77}, 2154 (1996). ---
+          The duality relation $\mathcal{V}^2 + \mathcal{D}^2 \leq 1$ behind
+          Part B's remark.
+    \item Kwiat, P. G. et al., ``New high-intensity source of
+          polarization-entangled photon pairs,'' \textit{Phys.\ Rev.\ Lett.}\
+          \textbf{75}, 4337 (1995). --- SPDC pair sources, Part D's physical
+          platform.
+    \item Bell, J. S., ``On the Einstein Podolsky Rosen paradox,''
+          \textit{Physics} \textbf{1}, 195 (1964); Clauser, J. F., Horne, M. A.,
+          Shimony, A. \& Holt, R. A., \textit{Phys.\ Rev.\ Lett.}\ \textbf{23}, 880
+          (1969). --- Cited in Part D to back the ``no classical story'' claim;
+          derivations beyond this lab's scope.
+    \item Nielsen, M. A. \& Chuang, I. L., \textit{Quantum Computation and Quantum
+          Information}, Cambridge University Press, 2010, \S 7.4. --- Optical
+          photon quantum computation (the dual-rail encoding of Part A).
+    \item Kok, P. et al., ``Linear optical quantum computing with photonic
+          qubits,'' \textit{Rev.\ Mod.\ Phys.}\ \textbf{79}, 135 (2007). --- The
+          LOQC/KLM context for Part A's industry anchor.
+    \item Hong, C. K., Ou, Z. Y. \& Mandel, L., \textit{Phys.\ Rev.\ Lett.}\
+          \textbf{59}, 2044 (1987). --- Hong--Ou--Mandel interference: further
+          reading, beyond this lab's scope.
+    \item Lab 5: \textit{Quantum Measurements} and Lab 6: \textit{Quantum Key
+          Distribution (BB84)} (this series). --- Born rule, Procedures 1 and 2,
+          mutual unbiasedness, and the measurement--disturbance--security bridge.
+    \item Companion Jupyter notebook:
+          \texttt{quantum-labs-2026/lab7/lab7\_optics.ipynb} (Colab link in
+          Part E).
+\end{itemize}
+
+\end{document}
