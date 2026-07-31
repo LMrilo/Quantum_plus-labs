@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Lab 7: Quantum Optics — Single Photons, Interference, Entangled Light</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --clr-bg:      #f0f2f8;
+            --clr-hero1:   #02121f;
+            --clr-hero2:   #062f43;
+            --clr-accent:  #f59e0b;
+            --clr-accent2: #0d9488;
+            --clr-blue:    #1d4ed8;
+            --clr-purple:  #6d28d9;
+        }
+        body { background-color: var(--clr-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hero-section {
+            background: linear-gradient(135deg, var(--clr-hero1) 0%, var(--clr-hero2) 55%, #0b3d4d 100%);
+            color: white; padding: 3.8rem 0;
+            border-bottom: 5px solid var(--clr-accent);
+            position: relative; overflow: hidden;
+        }
+        .hero-section::before {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(-45deg,
+                rgba(245,158,11,0.04) 0px, rgba(245,158,11,0.04) 1px,
+                transparent 1px, transparent 50px);
+        }
+        .hero-badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 30px; padding: 5px 16px; font-size: .82rem;
+            display: inline-block; margin: 3px 4px; }
+        .hero-tag { background: var(--clr-accent); color: #062f43;
+            border-radius: 4px; padding: 3px 10px; font-weight: 700;
+            font-size: .8rem; letter-spacing: .5px; display: inline-block; margin: 3px 4px; }
+        .section-title { border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+            margin-bottom: 28px; color: #062f43; }
+        .theory-box { background-color: #eff6ff; border-left: 5px solid var(--clr-blue);
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .context-box { background-color: #fffbeb; border-left: 5px solid var(--clr-accent);
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .procedure-box { background-color: #fef2f2; border-left: 5px solid #dc2626;
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .def-box { background-color: #ecfdf5; border-left: 5px solid #059669;
+            padding: 16px; margin-bottom: 16px; border-radius: 4px; font-size: 0.95rem; }
+        .connection-box { background-color: #f0fdf4; border-left: 5px solid #16a34a;
+            padding: 16px 20px; border-radius: 6px; margin-bottom: 14px; font-size: 0.92rem; }
+        .connection-box .lab-link { display: inline-block; background: #16a34a;
+            color: white; border-radius: 4px; padding: 1px 8px;
+            font-size: .78rem; font-weight: 700; margin-right: 6px; }
+        .outcome-box { background-color: #f5f3ff; border-left: 5px solid var(--clr-purple);
+            padding: 18px 20px; border-radius: 6px; margin-bottom: 10px;
+            display: flex; align-items: flex-start; gap: 14px; }
+        .outcome-number { background: var(--clr-purple); color: white; border-radius: 50%;
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .9rem; flex-shrink: 0; }
+        .deepdive-box { background-color: #f0fdfa; border-left: 5px solid var(--clr-accent2);
+            padding: 18px 20px; margin-top: 18px; border-radius: 4px; font-size: 0.95rem; }
+        .task-box { border: 1px solid #dde4ee; border-radius: 12px; background: white;
+            margin-bottom: 35px; transition: transform 0.2s;
+            box-shadow: 0 3px 12px rgba(0,0,0,.05); overflow: hidden; }
+        .task-box:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,.10); }
+        .task-header { background-color: #f0f9f8; padding: 14px 22px;
+            border-bottom: 1px solid #dde4ee; font-weight: 700; font-size: 1.05rem;
+            display: flex; justify-content: space-between; align-items: center; }
+        .task-body { padding: 26px; }
+        .colab-btn { background:#f9ab00; color:white; font-weight:700; padding:9px 22px;
+            text-decoration:none; border-radius:5px; }
+        .colab-btn:hover { background:#e09b00; color:white; }
+
+        /* ── Pedagogical register boxes ─────────────────────────────────── */
+        .runfirst-box { background: #f0fdfa; border: 2px solid var(--clr-accent2);
+            border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; font-size: .95rem;
+            position: relative; }
+        .runfirst-tag { position: absolute; top: -12px; left: 16px;
+            background: var(--clr-accent2); color: white; border-radius: 4px;
+            padding: 2px 10px; font-size: .75rem; font-weight: 800; letter-spacing: .5px; }
+        .question-box { background: #faf5ff; border-left: 5px solid var(--clr-purple);
+            padding: 18px 22px; margin-bottom: 18px; border-radius: 4px;
+            font-size: 1.08rem; font-style: italic; color: #3b0764; }
+        .question-box .q-icon { color: var(--clr-purple); margin-right: 8px; }
+        .shock-box { background: #fff7ed; border: 2px solid #ea580c;
+            border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; font-size: .95rem;
+            position: relative; }
+        .shock-tag { position: absolute; top: -12px; left: 16px;
+            background: #ea580c; color: white; border-radius: 4px;
+            padding: 2px 10px; font-size: .75rem; font-weight: 800; letter-spacing: .5px; }
+
+        /* ── value tables ───────────────────────────────────────────────── */
+        .born-table { width:100%; border-collapse:separate; border-spacing:2px; }
+        .born-table th { background:#062f43; color:white; text-align:center;
+            padding:8px 6px; border-radius:4px; font-size:.88rem; }
+        .born-table td { text-align:center; padding:8px 6px; border-radius:4px;
+            font-family:monospace; font-weight:700; background:#f8fafc; }
+        .born-cell-det  { background:#d1fae5 !important; color:#065f46; }
+        .born-cell-rand { background:#fef3c7 !important; color:#92400e; }
+
+        /* ── Simulator ─────────────────────────────────────────────────── */
+        .sim-section { background: white; border: 1px solid #dde4ee; border-radius: 12px;
+            overflow: hidden; margin-bottom: 40px; box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+        .sim-header { background: linear-gradient(135deg, #02121f 0%, #0b3d4d 100%);
+            color: white; padding: 14px 22px; font-weight: 700; font-size: 1.05rem;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .sim-badge { background: #f59e0b; color: #062f43; border-radius: 4px;
+            padding: 3px 10px; font-size: .78rem; font-weight: 700; }
+        .sim-body { padding: 24px; }
+        .preset-btn { border: 2px solid #cbd5e1; background: white; border-radius: 8px;
+            padding: 8px 14px; font-weight: 700; font-size: .9rem; color: #334155; }
+        .preset-btn.active { border-color: var(--clr-accent2); background: #f0fdfa;
+            color: #0f766e; }
+        .preset-btn .preset-sub { display:block; font-weight:400; font-size:.72rem; color:#64748b; }
+        .stat-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
+            padding:14px 16px; text-align:center; height:100%; }
+        .stat-value { font-size:1.45rem; font-weight:800; font-family:monospace; color:#062f43; }
+        .stat-theory { font-size:.78rem; color:#64748b; font-family:monospace; }
+        .stat-label { font-size:.8rem; color:#475569; font-weight:600; margin-bottom:2px; }
+        .info-box-interactive { background:#e8f4f8; border-left:4px solid #0dcaf0;
+            padding:14px; border-radius:0 4px 4px 0; font-size:.92rem; color:#222;
+            min-height:60px; margin-top:14px; }
+        .chart-frame { background:#fafafa; border:1px solid #eee; border-radius:6px; padding:12px; }
+        .bench-frame { background:#0f172a; border-radius:8px; padding:10px; }
+        .feedback { display: none; margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .correct { background-color: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .wrong   { background-color: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+        pre { background:#1e1e2e; color:#cdd6f4; padding:18px; border-radius:8px;
+            font-size:.86rem; overflow-x:auto; }
+        code { font-family:'Courier New', monospace; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  HERO                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="hero-section text-center">
+    <div class="container position-relative">
+        <p class="mb-2" style="font-size:.8rem;letter-spacing:2px;text-transform:uppercase;opacity:.7;">
+            Quantum Computing Foundation
+        </p>
+        <h1 class="display-4 fw-bold mb-2">
+            <i class="fa-solid fa-wave-square"></i> Lab 7: Quantum Optics
+        </h1>
+        <p class="lead mb-4 opacity-75">
+            Single Photons, Interference, and Entangled Light — the Hardware of Quantum Technology
+        </p>
+        <div>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Fundamental Concepts of Quantum Technologies &amp; Labs 5–6</span>
+            <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
+            <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 10 h lab work</span>
+            <span class="hero-badge"><i class="fa-solid fa-globe me-1"></i>Mode: Interactive Optical Bench + Qiskit</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5 pb-4">
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  RATIONALE                                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-microscope text-warning me-2"></i>Rationale</h2>
+            <p class="fs-5 text-secondary lh-lg">
+                Labs 5 and 6 gave you the mathematics of qubits and a protocol built on it. This lab
+                shows you the <strong>hardware those abstractions run on</strong>. A single photon
+                <em>is</em> a qubit — twice over: its <strong>path</strong> through an interferometer
+                is one two-level system, its <strong>polarization</strong> is another. Every device on
+                the optical bench — beam splitter, phase shifter, polarizer — is one of the operators
+                you already know, executed by glass and crystal. And every strange number this lab
+                produces (a coincidence counter pinned at zero, two 50/50 elements composing to
+                certainty, a filter that <em>revives</em> blocked light, twin photons that always agree)
+                is a Born-rule computation you have already done abstractly.
+            </p>
+            <div class="connection-box">
+                <span class="lab-link">LAB 5–6 BRIDGE</span>
+                The path states $|A\rangle, |B\rangle$ and the polarization states $|H\rangle, |V\rangle$
+                are both the Lab 5 computational basis; the diagonal polarizations at ±45° are exactly the
+                Lab 5 X-basis states $|{+}\rangle, |{-}\rangle$. The four BB84 signal states of Lab 6 are
+                <em>physically</em> $|H\rangle, |V\rangle, |{+}\rangle, |{-}\rangle$ — Part C of this lab
+                is the transmitter and receiver hardware of a real QKD link, and Part B's which-path
+                result is Lab 6's "Eve leaves fingerprints" theorem restated as an identity about
+                interference.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  LEARNING OUTCOMES                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-star text-warning me-2"></i>Learning Outcomes</h2>
+            <div class="outcome-box"><div class="outcome-number">1</div><div>
+                <strong>Explain the operational principles of single-photon and entangled-photon
+                experiments</strong> — beam splitters as unitaries, detection as projective measurement,
+                anti-correlation, interference, and coincidence counting.</div></div>
+            <div class="outcome-box"><div class="outcome-number">2</div><div>
+                <strong>Design and analyze simple optical setups</strong> — predict the output statistics
+                of a Mach–Zehnder interferometer, a polarizer cascade, or a two-analyzer coincidence
+                experiment, and verify the prediction photon by photon in the simulator.</div></div>
+            <div class="outcome-box"><div class="outcome-number">3</div><div>
+                <strong>Interpret interference and coincidence data</strong> — fringe visibility,
+                which-path complementarity ($\mathcal{V} = s$), and the quantitative gap between quantum
+                and classical-wave predictions.</div></div>
+            <div class="outcome-box"><div class="outcome-number">4</div><div>
+                <strong>Discuss the role of optical platforms in quantum communication and
+                computation</strong> — polarization-encoded and entanglement-based QKD, interferometric
+                sensing, and dual-rail photonic quantum computing.</div></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART A — ONE PHOTON AT A BEAM SPLITTER                              -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-arrows-split-up-and-left text-warning me-2"></i>
+                Part A: One Photon at a Beam Splitter</h2>
+
+            <div class="runfirst-box">
+                <span class="runfirst-tag"><i class="fa-solid fa-play me-1"></i>RUN THIS FIRST</span>
+                Open the optical bench below in <strong>Preset A</strong>: a single-photon source, one
+                50/50 beam splitter, a detector on each output port, and a coincidence counter wired to
+                both. Fire <strong>10&nbsp;000 photons</strong> and watch two things: the two detector
+                tallies, and the coincidence counter. The tallies drift toward 50/50 — but the
+                coincidence counter <em>never moves</em>. Keep that second observation in mind; it is the
+                whole section.
+                <div class="mt-2"><button class="btn btn-sm btn-outline-success"
+                    onclick="jumpToPreset('A')"><i class="fa-solid fa-arrow-down me-1"></i>Open Preset A</button></div>
+            </div>
+
+            <div class="question-box">
+                <i class="fa-solid fa-circle-question q-icon"></i>
+                What does it actually mean that light comes in photons — and what happens when one
+                indivisible photon hits a half-silvered mirror?
+            </div>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                One photon <strong>takes both paths</strong> — the state after the beam splitter is a
+                superposition over the two output arms, and Part B will prove it by interference — yet it
+                <strong>never triggers both detectors</strong>. Not rarely: <em>never</em>. The photon is
+                divisible in amplitude but indivisible in detection.
+            </div>
+
+            <p>A half-silvered mirror (a <strong>50/50 beam splitter</strong>) transmits half the light
+            and reflects half. For a classical wave that sentence is unambiguous: the energy splits, half
+            into each arm. But light arrives in indivisible quanta. A single photon cannot deliver half a
+            click to each detector — so what does "splits 50/50" mean for <em>one photon</em>?</p>
+
+            <p>Quantum mechanics answers with a state, not a story. Write the two output paths as the
+            basis states $|A\rangle$ (transmitted) and $|B\rangle$ (reflected) — the same two-level
+            system as any Lab 5 qubit. A lossless beam splitter must act as a <strong>unitary</strong>
+            on this qubit (unitarity here <em>is</em> energy conservation — the photon must exit
+            somewhere), and the symmetric 50/50 choice is:</p>
+
+            <div class="text-center mb-3">
+                $$B = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & i \\ i & 1 \end{pmatrix}
+                \qquad\Longrightarrow\qquad
+                B|A\rangle = \frac{|A\rangle + i\,|B\rangle}{\sqrt{2}}$$
+            </div>
+
+            <div class="theory-box">
+                <strong><i class="fa-solid fa-circle-info me-1"></i>Why the $i$?</strong> A naive
+                "50/50 without phase", $\frac{1}{\sqrt 2}\bigl(\begin{smallmatrix}1&1\\1&1\end{smallmatrix}\bigr)$,
+                is a singular matrix — it is <em>not a possible physical device</em>, because it would
+                merge two distinguishable inputs into one output and lose a photon in the process. The
+                phase $i$ on reflection is the minimal repair that restores unitarity. This phase
+                convention ($i$ on reflection, used consistently) is fixed for the entire lab — every
+                formula below depends on it, and the simulator uses exactly this matrix.
+            </div>
+
+            <p>Detection at the two output ports is a path-basis measurement — <strong>Procedure 1</strong>
+            from Lab 5, executed destructively (the photon is absorbed by the detector that clicks). The
+            Born rule gives the two outcome probabilities:</p>
+
+            <div class="text-center mb-3">
+                $$P(\text{detector A}) = \left|\tfrac{1}{\sqrt 2}\right|^2 = \frac12, \qquad
+                  P(\text{detector B}) = \left|\tfrac{i}{\sqrt 2}\right|^2 = \frac12,$$
+                $$P(\text{both detectors}) = 0 \;\;\text{exactly.}$$
+            </div>
+
+            <p>That last line deserves a hard look. The state $(|A\rangle + i|B\rangle)/\sqrt 2$ is
+            <strong>one photon in superposition over two paths — not two photons</strong>. A path
+            measurement has exactly two mutually exclusive outcomes; "both detectors click" is not a
+            low-probability event, it is <em>not in the outcome set at all</em>. The zero is structural,
+            not statistical.</p>
+
+            <div class="def-box">
+                <strong><i class="fa-solid fa-calculator me-1"></i>Formula → number → bench.</strong>
+                $P = \tfrac12, \tfrac12$ and $P_{\text{coinc}} = 0$. In <strong>Preset A</strong>: after
+                10&nbsp;000 photons the tallies land within statistical noise of
+                <strong>5&nbsp;000 / 5&nbsp;000</strong> (the theory overlay shows the exact 50% line),
+                while the coincidence counter reads <strong>0 — exactly, after every single photon</strong>.
+                Fire another 10&nbsp;000 and check that the zero is not luck.
+            </div>
+
+            <div class="context-box">
+                <strong><i class="fa-solid fa-scale-balanced me-1"></i>The honest classical contrast.</strong>
+                A classical wave or pulse really does split: half the energy in each arm, and with two
+                detectors both can fire in the same trial — semiclassical models predict coincidences
+                <em>at least</em> at the random-chance level. The quantum prediction is zero. Grangier,
+                Roger and Aspect measured exactly this anti-correlation in 1986; it is the operational
+                meaning of "the photon is indivisible", and it is the first of this lab's four
+                experimental pillars.
+            </div>
+
+            <div class="deepdive-box">
+                <strong><i class="fa-solid fa-industry me-1"></i>Where this is an industry, not a
+                thought experiment.</strong> One photon distributed over two spatial modes is the
+                <strong>dual-rail qubit</strong> — the native encoding of photonic quantum computing.
+                <strong>Quandela</strong> builds the single-photon sources (the "fire one photon on
+                demand" box the simulator idealizes) and dual-rail photonic processors around exactly
+                this $\{|A\rangle, |B\rangle\}$ qubit; <strong>ORCA Computing</strong> builds photonic
+                quantum processors on the same principle that beam-splitter networks perform unitary
+                computation on light. The linear-optical quantum computing literature (KLM protocol)
+                showed such networks plus detection are universal. When you fire photons at the bench
+                below, you are operating the elementary cell of those machines.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART B — MACH-ZEHNDER + WHICH-PATH                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-diagram-project text-warning me-2"></i>
+                Part B: The Mach–Zehnder Interferometer and Which-Path Information</h2>
+
+            <div class="runfirst-box">
+                <span class="runfirst-tag"><i class="fa-solid fa-play me-1"></i>RUN THIS FIRST</span>
+                Switch the bench to <strong>Preset B1</strong>: two beam splitters back to back, mirrors
+                folding the two arms together, and a phase knob $\varphi$ on arm B. Leave
+                $\varphi = 0°$ and fire 10&nbsp;000 photons. Every photon exits at
+                <strong>D1</strong> — 100/0, from a device built of two 50/50 elements. Now sweep the
+                $\varphi$ slider and watch the split move. The counts <em>depend on the phase difference
+                between the two paths</em>.
+                <div class="mt-2"><button class="btn btn-sm btn-outline-success"
+                    onclick="jumpToPreset('B1')"><i class="fa-solid fa-arrow-down me-1"></i>Open Preset B1</button></div>
+            </div>
+
+            <div class="question-box">
+                <i class="fa-solid fa-circle-question q-icon"></i>
+                If the photon went one way <em>or</em> the other, the detector counts could not depend on
+                the path it didn't take. They do. What now?
+            </div>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                Two 50/50 beam splitters in sequence give a <strong>100/0</strong> outcome. Model each
+                splitter as an independent coin flip — the reasonable move if the photon "really" takes
+                one path — and you predict 50/50 at the output. The observed perfect nulls and perfect
+                peaks are the single-photon interference signature: the amplitudes of <em>both</em> paths
+                add before anything is detected.
+            </div>
+
+            <p>The <strong>Mach–Zehnder interferometer</strong> is the workhorse: beam splitter BS1
+            opens two paths, mirrors bring them back together, a <strong>phase shifter</strong>
+            $\Phi(\varphi) = \mathrm{diag}(1, e^{i\varphi})$ on arm B models any path-length difference,
+            and beam splitter BS2 recombines. (The mirrors add the same phase to both arms — a global
+            phase, dropped.) Step the input $|A\rangle$ through the device:</p>
+
+            <div class="text-center mb-3">
+                $$|A\rangle
+                \;\xrightarrow{\;\text{BS1}\;}\; \frac{|A\rangle + i|B\rangle}{\sqrt 2}
+                \;\xrightarrow{\;\Phi(\varphi)\;}\; \frac{|A\rangle + i e^{i\varphi}|B\rangle}{\sqrt 2}
+                \;\xrightarrow{\;\text{BS2}\;}\; \frac{(1 - e^{i\varphi})|A\rangle + i(1 + e^{i\varphi})|B\rangle}{2}$$
+            </div>
+
+            <p>With detector <strong>D1</strong> on output port B and <strong>D2</strong> on output
+            port A, the Born rule and the identity $|1 \pm e^{i\varphi}|^2 = 2 \pm 2\cos\varphi$ give
+            the fringes:</p>
+
+            <div class="text-center mb-3">
+                $$P(D1) = \cos^2\!\frac{\varphi}{2}, \qquad P(D2) = \sin^2\!\frac{\varphi}{2}$$
+            </div>
+
+            <p>At $\varphi = 0$: $P(D1) = 1$ — the 100/0 you just observed. Algebraically this is the
+            composition identity $B^2 = iX$: two symmetric beam splitters are a perfect path swap (up to
+            an overall phase). At $\varphi = \pi$ the same instrument, retuned, sends every photon to D2
+            instead. Between the extremes the split interpolates as a perfect cosine — fringe visibility
+            $\mathcal{V} = (P_{\max} - P_{\min})/(P_{\max} + P_{\min}) = 1$.</p>
+
+            <div class="def-box">
+                <strong><i class="fa-solid fa-calculator me-1"></i>Formula → number → bench.</strong>
+                At $\varphi = \pi/3$ (60°): $P(D1) = \cos^2(30°) = \tfrac34$ — a
+                <strong>75%&nbsp;/&nbsp;25%</strong> split. In <strong>Preset B1</strong>, set the slider
+                to 60° and fire 10&nbsp;000 photons: the tallies land on 75/25 within noise, on top of
+                the theory overlay. Then return to $\varphi = 0°$ and re-verify the
+                <strong>100/0</strong> — two 50/50 splitters, certain outcome.
+            </div>
+
+            <div class="deepdive-box">
+                <strong><i class="fa-solid fa-industry me-1"></i>The fringe as a measuring
+                instrument.</strong> $\varphi$ is optical path-length difference in disguise. Any physical
+                quantity that stretches one arm — rotation in a <strong>fiber-optic gyroscope</strong>
+                (the navigation-grade rotation sensors in aircraft), strain, temperature, or a passing
+                gravitational wave in the kilometer-scale <strong>LIGO-class interferometers</strong> —
+                shifts the fringe. Near the steepest point of the cosine, reading $P(D1)$ to precision
+                $\delta P$ reads the phase to $\delta\varphi \approx 2\,\delta P$: counting photons
+                <em>is</em> the measurement. That is interferometric sensing, and it is this exact
+                circuit.
+            </div>
+
+            <h4 class="mt-4 mb-3">Which-path marking: complementarity, quantified</h4>
+
+            <div class="runfirst-box">
+                <span class="runfirst-tag"><i class="fa-solid fa-play me-1"></i>RUN THIS FIRST</span>
+                Switch to <strong>Preset B2</strong>: the same interferometer, plus a
+                <strong>which-path marker</strong> in the arms — a probe qubit that records which arm the
+                photon took. Its dial is the <strong>marker overlap $s$</strong>: at $s = 1$ the marker
+                states for the two arms are identical (no record); at $s = 0$ they are orthogonal
+                (a perfect record). Set $s = 0$, sweep $\varphi$, and watch the fringes: they are
+                <strong>gone</strong> — flat 50/50 at every phase. Now slide $s$ upward and watch them
+                come back, exactly in proportion.
+                <div class="mt-2"><button class="btn btn-sm btn-outline-success"
+                    onclick="jumpToPreset('B2')"><i class="fa-solid fa-arrow-down me-1"></i>Open Preset B2</button></div>
+            </div>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                An <strong>unread</strong> which-path marker still destroys the fringes. Nobody looks at
+                the record. It is enough that the record <em>exists</em> — that the universe could in
+                principle tell which path was taken. Interference is lost the moment the paths become
+                distinguishable, not the moment someone learns the answer.
+            </div>
+
+            <p>Model the marking honestly. Between the beam splitters, couple the path qubit to a marker
+            qubit: path A tags the marker into state $|M_A\rangle$, path B into $|M_B\rangle$. We write
+            the two-qubit state as $|\text{path}\,\text{marker}\rangle$ with the <strong>path qubit
+            leftmost</strong> — big-endian ordering, qubit 0 is the leftmost symbol (the companion
+            notebook converts Qiskit's opposite bitstring order before displaying anything). After BS1
+            and the marking:</p>
+
+            <div class="text-center mb-3">
+                $$\frac{|A\rangle|M_A\rangle + i e^{i\varphi}\,|B\rangle|M_B\rangle}{\sqrt 2}$$
+            </div>
+
+            <p>Recombine at BS2 and compute $P(D1)$, summing over the marker (read or unread — the
+            arithmetic cannot tell). Everything collapses to one parameter, the overlap
+            $s = \langle M_A|M_B\rangle$:</p>
+
+            <div class="text-center mb-3">
+                $$P(D1;\varphi, s) = \frac{1 + s\cos\varphi}{2}
+                \qquad\Longrightarrow\qquad
+                \boxed{\;\mathcal{V} = s = |\langle M_A|M_B\rangle|\;}$$
+            </div>
+
+            <p><strong>Fringe visibility equals the indistinguishability of the marker states.</strong>
+            $s = 1$: no record, full fringes. $s = 0$: perfect record, no fringes —
+            $P(D1) = \tfrac12$ at every phase, as if the photon really had flipped a coin at BS1. In
+            between, the trade is exactly linear in the fringe term. A perfect marking ($s = 0$) is
+            physically a controlled-NOT: the path controls the marker, and reading the marker afterwards
+            is a genuine path measurement (<strong>Procedure&nbsp;1</strong> on the marker qubit) —
+            same statistics as putting a detector in the arm, but the photon survives to reach BS2.</p>
+
+            <div class="def-box">
+                <strong><i class="fa-solid fa-calculator me-1"></i>Formula → number → bench.</strong>
+                At $s = 0.5$: $\mathcal{V} = 0.5$, so the fringes run between
+                $P_{\max} = \tfrac{1+0.5}{2} = \mathbf{0.75}$ and $P_{\min} = \tfrac{1-0.5}{2} = \mathbf{0.25}$.
+                In <strong>Preset B2</strong>, set $s = 0.5$, fire at $\varphi = 0°$ (→ 75%) and at
+                $\varphi = 180°$ (→ 25%), and read the visibility card: it converges to 0.5 — the dial
+                you set, recovered from counting statistics alone.
+            </div>
+
+            <div class="connection-box">
+                <span class="lab-link">LAB 5–6 BRIDGE</span>
+                Lab 5 said "measurement disturbs the state"; Lab 6 said "Eve's measurement leaves
+                fingerprints". Both are this one identity $\mathcal{V} = |\langle M_A|M_B\rangle|$: an
+                eavesdropper who gains path information ($s < 1$) <em>necessarily</em> degrades the
+                interference any honest party could observe. Information out ⟹ coherence lost, in exact
+                proportion. (The general form is Englert's duality relation
+                $\mathcal{V}^2 + \mathcal{D}^2 \le 1$ with distinguishability
+                $\mathcal{D} = \sqrt{1 - s^2}$ — our ideal marker saturates it.)
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART C — POLARIZATION                                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-glasses text-warning me-2"></i>
+                Part C: Polarization — Quantum Malus and the Three-Polarizer Surprise</h2>
+
+            <div class="runfirst-box">
+                <span class="runfirst-tag"><i class="fa-solid fa-play me-1"></i>RUN THIS FIRST</span>
+                Switch to <strong>Preset C</strong>: an unpolarized source and a rack of polarizing
+                filters. Start with two <strong>crossed</strong> polarizers — 0° and 90°. Fire
+                10&nbsp;000 photons: <strong>nothing gets through</strong>. Now tick
+                "<strong>insert 45° between them</strong>" and fire again: <strong>12.5%</strong> of the
+                photons now pass all three filters. You added an absorber, and the light came back.
+                <div class="mt-2"><button class="btn btn-sm btn-outline-success"
+                    onclick="jumpToPreset('C')"><i class="fa-solid fa-arrow-down me-1"></i>Open Preset C</button></div>
+            </div>
+
+            <div class="question-box">
+                <i class="fa-solid fa-circle-question q-icon"></i>
+                Two crossed filters block everything. Insert a third filter between them and light comes
+                through. Why does adding an absorber <em>increase</em> transmission?
+            </div>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                Adding an absorbing polarizer raises transmission from exactly <strong>0</strong> to
+                <strong>1/8</strong>. No sieve, filter, or "the polarizer lets through the right
+                components" picture survives this: a filter that only ever <em>removes</em> light cannot
+                make more light arrive. Something other than removal is happening. (You can try this at
+                home with three lenses from polarized sunglasses.)
+            </div>
+
+            <p>Polarization is the photon's second qubit: $|H\rangle$ (horizontal) and $|V\rangle$
+            (vertical) form the computational basis, and the state at linear angle $\theta$ from the
+            H-axis is $|\theta\rangle = \cos\theta\,|H\rangle + \sin\theta\,|V\rangle$. The diagonal
+            states at ±45° are exactly the Lab 5 X-basis pair $|{\pm}\rangle$.</p>
+
+            <p>An ideal polarizer at angle $\theta$ is the projector
+            $\Pi_\theta = |\theta\rangle\langle\theta|$, and this is the crucial fact: a polarizer is
+            an inherently <strong>Procedure-1 device</strong>. Each photon either passes —
+            <em>and is then in state $|\theta\rangle$</em> — or is absorbed. There is no fractional
+            photon. For a photon in $|H\rangle$ meeting a polarizer at $\theta$, the Born rule gives
+            the <strong>quantum Malus law</strong>:</p>
+
+            <div class="text-center mb-3">
+                $$P(\text{pass}) = |\langle\theta|H\rangle|^2 = \cos^2\theta,
+                \qquad \text{post-state } |\theta\rangle$$
+            </div>
+
+            <div class="table-responsive mb-3">
+                <table class="born-table" style="max-width:560px;margin:0 auto;">
+                    <tr><th>polarizer angle $\theta$</th><th>0°</th><th>30°</th><th>45°</th><th>60°</th><th>90°</th></tr>
+                    <tr><th>$P(\text{pass})$ from $|H\rangle$</th>
+                        <td class="born-cell-det">1</td><td>3/4</td><td>1/2</td><td>1/4</td>
+                        <td class="born-cell-det">0</td></tr>
+                </table>
+            </div>
+
+            <p>Classical Malus ($I = I_0\cos^2\theta$) reads identically — but the quantum version is
+            <strong>per-photon and probabilistic</strong>: $\cos^2\theta$ is a Born probability, the
+            same $|\langle m|\psi\rangle|^2$ as every measurement since Lab 5, and each individual
+            photon entirely passes or is entirely absorbed.</p>
+
+            <div class="def-box">
+                <strong><i class="fa-solid fa-calculator me-1"></i>Formula → number → bench.</strong>
+                $\cos^2(60°) = \mathbf{25\%}$. In <strong>Preset C</strong>, switch the source to
+                $|H\rangle$, enable a single polarizer at 60°, and fire 10&nbsp;000 photons: the pass
+                fraction lands on 25% within noise. Then rebuild the crossed pair (unpolarized source,
+                0° and 90°) → <strong>exactly 0</strong> — and insert the 45° filter →
+                <strong>1/8 = 12.5%</strong>.
+            </div>
+
+            <p>Now the resolution of the three-polarizer surprise. For a cascade
+            $\theta_1, \dots, \theta_N$, each passage <em>renews</em> the state to the current
+            polarizer's $|\theta_j\rangle$ — the Procedure-1 post-state. So the pass probabilities
+            multiply with the <em>differences</em> between consecutive angles:</p>
+
+            <div class="text-center mb-3">
+                $$P(\text{pass all}) = P_1 \cdot \prod_{j=2}^{N}\cos^2(\theta_j - \theta_{j-1})$$
+            </div>
+
+            <p>with $P_1 = \tfrac12$ for an unpolarized source (no polarization preference — every
+            first filter passes half). The two experiments you ran:</p>
+
+            <div class="text-center mb-3">
+                $$\text{crossed } (0°, 90°):\;\; \tfrac12\cdot\cos^2(90°) = 0
+                \qquad\qquad
+                \text{three } (0°, 45°, 90°):\;\; \tfrac12\cdot\tfrac12\cdot\tfrac12 = \tfrac18$$
+            </div>
+
+            <p>The middle filter does not "let more light through" — it <strong>rewrites the state</strong>.
+            After the 45° polarizer the photon is in $|{+}\rangle$, which is no longer orthogonal to the
+            final 90° filter. The projective post-state — the fact that measurement <em>changes</em> the
+            system, the disturbance you met in Lab 5 — is the entire explanation. The 45° polarizer is
+            an X-basis measurement of the polarization qubit, executed by a plastic film.</p>
+
+            <div class="procedure-box">
+                <strong><i class="fa-solid fa-code-branch me-1"></i>Procedure 1 vs Procedure 2 — two
+                physically different devices.</strong> Lab 5 distinguished two ways to measure in the
+                diagonal basis, and in optics they are <em>different hardware</em>:
+                <ul class="mt-2 mb-2">
+                    <li><strong>Procedure 1</strong> — a polarizer at 45°: probabilities
+                        $|\langle\pm|\psi\rangle|^2$, passed photon left in $|{+}\rangle$ (the $|{-}\rangle$
+                        outcome is an absorbed photon).</li>
+                    <li><strong>Procedure 2</strong> — a half-waveplate at 22.5° (which implements the
+                        canonical basis-change rotation $U_X = H$) followed by a polarizing beam splitter
+                        and two detectors: <em>identical probabilities</em>, but the photon exits in
+                        $|H\rangle$ or $|V\rangle$, not $|{\pm}\rangle$.</li>
+                </ul>
+                Same statistics, different post-measurement states: the overlap between the two devices'
+                "+" outputs is $|\langle + | H\rangle|^2 = \tfrac12$, not 1. Downstream optics see
+                different photons. Lab 6's naive-resend attack — where Eve's forgotten re-encoding turned
+                a 25% error rate into 37.5% — was exactly this distinction carrying a security
+                consequence.
+            </div>
+
+            <div class="deepdive-box">
+                <strong><i class="fa-solid fa-industry me-1"></i>This hardware runs QKD networks
+                today.</strong> Polarization-encoded BB84 uses precisely these components: Lab 6's four
+                signal states <em>are</em> $|H\rangle, |V\rangle, |{+}\rangle, |{-}\rangle$; Alice's
+                transmitter is a polarization preparer, Bob's receiver is a basis-switched analyzer —
+                a rotation plus a polarizing beam splitter, Procedure 2 in glass. Metropolitan QKD fiber
+                networks (deployed in Europe and Asia, and the building block of the planned EuroQCI
+                infrastructure) run this lab's Part C optics at telecom scale: every "secure key bit"
+                started life as a photon meeting a polarization analyzer.
+            </div>
+
+            <div class="deepdive-box">
+                <strong><i class="fa-solid fa-stairs me-1"></i>Deep dive — the polarizer staircase.</strong>
+                Generalize the insertion trick: between 0° and 90°, insert $N-1$ intermediate filters in
+                equal steps of $90°/N$ (so $N+1$ polarizers in total, counting both ends). The
+                transmission $\tfrac12\cos^{2N}(90°/N)$ <em>rises</em> toward $\tfrac12$ as $N$ grows —
+                many gentle projections approximate a lossless rotation of the polarization. Try
+                $0°, 30°, 60°, 90°$ in Preset C: $\tfrac12(3/4)^3 = 27/128 \approx 21\%$, already far
+                above the 12.5% of the single insertion.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART D — ENTANGLED PAIRS (OPTIONAL)                                 -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-link text-warning me-2"></i>
+                Part D: Entangled Photon Pairs
+                <span class="badge bg-secondary align-middle" style="font-size:.75rem;">OPTIONAL</span></h2>
+
+            <p class="text-muted" style="font-size:.9rem;">This part is optional enrichment: nothing in
+            the exercises or the notebook's core sections depends on it. It is also the doorway to the
+            deepest experimental result in the field — read on if you want to see it.</p>
+
+            <div class="runfirst-box">
+                <span class="runfirst-tag"><i class="fa-solid fa-play me-1"></i>RUN THIS FIRST</span>
+                Switch to <strong>Preset D</strong>: a crystal that emits <strong>pairs</strong> of
+                photons, one to each side, each side ending in an analyzer (angle dial + two detectors,
+                "+" and "−"). Set both dials to the <strong>same angle</strong> — any angle — and fire
+                10&nbsp;000 pairs. Each side alone clicks "+" or "−" like a fair coin. But the
+                <strong>agreement</strong> counter reads <strong>100%</strong>: the two sides always give
+                the same answer. Now change the common angle and fire again — still 100%.
+                <div class="mt-2"><button class="btn btn-sm btn-outline-success"
+                    onclick="jumpToPreset('D')"><i class="fa-solid fa-arrow-down me-1"></i>Open Preset D</button></div>
+            </div>
+
+            <div class="question-box">
+                <i class="fa-solid fa-circle-question q-icon"></i>
+                Two photons, each individually a perfect coin toss, always agree when asked the same
+                question — at any angle, chosen after they separated. What kind of correlation is that?
+            </div>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                Entangled photons are <strong>individually random at every angle, perfectly correlated
+                whenever the angles match</strong> — and the best classical wave model is not just
+                vaguely wrong about this, it is off by <strong>exactly a factor of 2</strong> in the
+                correlation amplitude. The simulator plots both curves; the gap between them is the
+                measurement.
+            </div>
+
+            <p>Nonlinear crystals (spontaneous parametric down-conversion — the workhorse
+            entangled-pair source since the 1990s) emit two photons in the joint polarization state</p>
+
+            <div class="text-center mb-3">
+                $$|\Phi^{+}\rangle = \frac{|HH\rangle + |VV\rangle}{\sqrt 2}$$
+            </div>
+
+            <p>written photon 1 leftmost, photon 2 rightmost (the same leftmost-first, big-endian
+            ordering as Part B's $|\text{path}\,\text{marker}\rangle$ kets). Each side passes a
+            two-channel analyzer at angle $\alpha$ (photon 1) or $\beta$ (photon 2): outcome "+" means
+            the photon exited the $|\theta_{\text{analyzer}}\rangle$ port, "−" the orthogonal port.
+            Two facts, both exact:</p>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="theory-box h-100 mb-0">
+                        <strong>Each photon alone: a perfect coin.</strong> Summing over the partner's
+                        outcomes leaves photon 1 (or 2) in the maximally mixed state — <em>exactly</em>
+                        unpolarized. $P({+}) = \tfrac12$ at <em>every</em> analyzer angle. No analyzer
+                        setting on one side is visible in the other side's single rates.
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="theory-box h-100 mb-0">
+                        <strong>The pair together: locked.</strong> With $\Delta = \alpha - \beta$:
+                        $$P({+}{+}) = P({-}{-}) = \frac{\cos^2\Delta}{2}, \quad
+                          P({+}{-}) = P({-}{+}) = \frac{\sin^2\Delta}{2}$$
+                        At matched angles ($\Delta = 0$): agreement with certainty.
+                    </div>
+                </div>
+            </div>
+
+            <p>The standard summary is the <strong>correlation function</strong>
+            $E(\alpha,\beta) = P({+}{+}) + P({-}{-}) - P({+}{-}) - P({-}{+})$, which collapses to a
+            function of the angle <em>difference</em> alone — the state $|\Phi^{+}\rangle$ is invariant
+            when both analyzers rotate together:</p>
+
+            <div class="text-center mb-3">
+                $$E(\alpha, \beta) = \cos 2\Delta, \qquad \Delta = \alpha - \beta$$
+            </div>
+
+            <div class="def-box">
+                <strong><i class="fa-solid fa-calculator me-1"></i>Formula → number → bench.</strong>
+                $E(0°, 22.5°) = \cos 45° = \tfrac{\sqrt 2}{2} \approx \mathbf{0.707}$. In
+                <strong>Preset D</strong>, set $\alpha = 0°, \beta = 22.5°$, fire 10&nbsp;000 pairs, and
+                read the measured $E$ against the theory overlay. Then set the dials equal
+                ($\Delta = 0$) and confirm <strong>100% agreement</strong> — against the classical-wave
+                overlay's <strong>75%</strong> — while each side's own counter stays at 50/50. At
+                $\Delta = 45°$, $E = 0$: the two analyzers have become mutually unbiased — Lab 6's key
+                concept reappearing as zero correlation.
+            </div>
+
+            <p>Why is this <em>deep</em> and not just pretty? Try the obvious classical story: each pair
+            is emitted with a shared random polarization $\lambda$, and each analyzer responds by
+            classical Malus, $\cos^2$ of the angle to $\lambda$. Average over $\lambda$ and the model
+            produces a correlation of the same shape — but <strong>half the size</strong>:</p>
+
+            <div class="text-center mb-3">
+                $$E_{\text{cl}}(\Delta) = \frac{\cos 2\Delta}{2}$$
+            </div>
+
+            <p>At matched analyzers the classical wave model manages only 75% agreement
+            ($E_{\text{cl}}(0) = \tfrac12$) against the observed 100%. This is not a philosophical
+            complaint — it is a <strong>device-verifiable factor of 2</strong>, and the simulator's
+            overlay draws both curves so you can watch the measured points choose the quantum one. More
+            sophisticated classical models (predetermined answers for every angle) can patch the
+            matched-angle agreement but then fail elsewhere on the $\cos 2\Delta$ curve — that is
+            Bell's theorem, which we cite rather than derive: no local classical story reproduces the
+            full curve. What this lab establishes at the correlation level is the honest core: the
+            measured curve is $\cos 2\Delta$, and the classical wave prediction misses it by a factor
+            of 2.</p>
+
+            <div class="deepdive-box">
+                <strong><i class="fa-solid fa-industry me-1"></i>Entanglement as infrastructure.</strong>
+                The pair source you are firing is the physical basis of <strong>entanglement-based
+                QKD</strong> (the BBM92 protocol): Alice and Bob each receive one photon of a pair,
+                measure in randomly switched bases, and the matched-angle perfect correlations play the
+                role that Alice's prepared states played in Lab 6's BB84 — with the added property that
+                the correlations themselves certify that no third party is entangled with the key. The
+                same correlations, measured across 1&nbsp;200 km by the Micius satellite, are the record
+                distance for entanglement distribution — Part D at continental scale.
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  THE SIMULATOR — OPTICAL BENCH                                       -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title" id="simulator"><i class="fa-solid fa-satellite-dish text-warning me-2"></i>
+        The Optical Bench</h2>
+    <p class="text-secondary mb-4">
+        Built for this lab. Five guided presets reproduce exactly the experiments of Parts A–D — pick a
+        preset, adjust its controls, and fire photons singly or in batches. Every displayed probability
+        comes from the same Born-rule pipeline as the formulas above (the bench never uses a hardcoded
+        percentage), and all runs are seeded: the same seed and the same sequence of actions always
+        reproduce the same counts.
+    </p>
+
+    <div class="sim-section">
+        <div class="sim-header">
+            <span><i class="fa-solid fa-bezier-curve me-2"></i>Lab 7 Optical Bench</span>
+            <span class="sim-badge">SEEDED &amp; REPRODUCIBLE</span>
+        </div>
+        <div class="sim-body">
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <button class="preset-btn" id="pb-A"  onclick="selectPreset('A')">Preset A
+                    <span class="preset-sub">beam splitter + coincidence</span></button>
+                <button class="preset-btn" id="pb-B1" onclick="selectPreset('B1')">Preset B1
+                    <span class="preset-sub">Mach–Zehnder fringes</span></button>
+                <button class="preset-btn" id="pb-B2" onclick="selectPreset('B2')">Preset B2
+                    <span class="preset-sub">which-path marker</span></button>
+                <button class="preset-btn" id="pb-C"  onclick="selectPreset('C')">Preset C
+                    <span class="preset-sub">polarizer cascade</span></button>
+                <button class="preset-btn" id="pb-D"  onclick="selectPreset('D')">Preset D
+                    <span class="preset-sub">entangled pairs — optional</span></button>
+            </div>
+
+            <div class="bench-frame mb-3">
+                <svg id="bench-svg" viewBox="0 0 900 270" style="width:100%;"></svg>
+            </div>
+
+            <div class="row g-3 align-items-end mb-2">
+                <div class="col-md-4" id="ctl-phi" style="display:none;">
+                    <label class="form-label fw-bold mb-1" style="font-size:.85rem;">
+                        Phase &phi; = <span id="phi-label">0</span>&deg;</label>
+                    <input type="range" class="form-range" id="phi-slider" min="0" max="360"
+                           value="0" step="5" oninput="controlsChanged()">
+                </div>
+                <div class="col-md-4" id="ctl-s" style="display:none;">
+                    <label class="form-label fw-bold mb-1" style="font-size:.85rem;">
+                        Marker overlap s = <span id="s-label">0.50</span>
+                        <span class="text-muted fw-normal">(1 = no record, 0 = perfect record)</span></label>
+                    <input type="range" class="form-range" id="s-slider" min="0" max="100"
+                           value="50" step="5" oninput="controlsChanged()">
+                </div>
+                <div class="col-md-3" id="ctl-source" style="display:none;">
+                    <label class="form-label fw-bold mb-1" style="font-size:.85rem;">Source</label>
+                    <select class="form-select form-select-sm" id="c-source" onchange="controlsChanged()">
+                        <option value="unpolarized" selected>Unpolarized</option>
+                        <option value="H">|H&rangle; (horizontal)</option>
+                    </select>
+                </div>
+                <div class="col-md-9" id="ctl-cascade" style="display:none;">
+                    <label class="form-label fw-bold mb-1" style="font-size:.85rem;">
+                        Polarizer rack — tick a slot to place it in the beam (angles in degrees)</label>
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <span id="rack-slots"></span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="setRack([[1,0],[0,45],[1,90],[0,0]])">
+                            Crossed 0&deg;/90&deg;</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="setRack([[1,0],[1,45],[1,90],[0,0]])">
+                            Insert 45&deg; between them</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="setRack([[1,0],[1,30],[1,60],[1,90]])">
+                            Staircase 0/30/60/90</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="setRack([[1,60],[0,45],[0,90],[0,0]])">
+                            Single 60&deg;</button>
+                    </div>
+                </div>
+                <div class="col-md-8" id="ctl-pairs" style="display:none;">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-auto">
+                            <label class="form-label fw-bold mb-1" style="font-size:.85rem;">
+                                Analyzer &alpha; (photon 1)</label>
+                            <input type="number" class="form-control form-control-sm" id="alpha-deg"
+                                   value="0" step="22.5" style="width:100px" onchange="controlsChanged()">
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label fw-bold mb-1" style="font-size:.85rem;">
+                                Analyzer &beta; (photon 2)</label>
+                            <input type="number" class="form-control form-control-sm" id="beta-deg"
+                                   value="0" step="22.5" style="width:100px" onchange="controlsChanged()">
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setAngles(20,20)">
+                                Matched 20&deg;/20&deg;</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setAngles(0,22.5)">
+                                &alpha;=0&deg;, &beta;=22.5&deg;</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="setAngles(0,45)">
+                                &Delta;=45&deg;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <button class="btn btn-primary btn-sm" onclick="firePhotons(1)">
+                    <i class="fa-solid fa-bolt me-1"></i>Fire 1</button>
+                <button class="btn btn-primary btn-sm" onclick="firePhotons(100)">Fire 100</button>
+                <button class="btn btn-primary btn-sm" onclick="firePhotons(10000)">Fire 10&thinsp;000</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="resetRun()">
+                    <i class="fa-solid fa-rotate-left me-1"></i>Reset counters</button>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <label class="fw-bold" for="sim-seed" style="font-size:.9rem;">Seed</label>
+                    <input type="number" class="form-control form-control-sm" id="sim-seed"
+                           value="42" style="width:90px" onchange="resetRun()">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3" id="stat-row"></div>
+
+            <div id="chart-block-fringe" style="display:none;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                    <h6 class="text-muted fw-bold mb-0">P(D1) vs phase &phi; — theory curve + measured points</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="sweepPhi()">
+                        <i class="fa-solid fa-arrow-trend-up me-1"></i>Sweep &phi; (2&thinsp;000 photons &times; 25 phases)</button>
+                </div>
+                <div class="chart-frame"><svg id="chart-fringe" viewBox="0 0 860 240" style="width:100%;"></svg></div>
+                <p class="text-muted mb-0" style="font-size:.78rem;">
+                    Curve = $(1 + s\cos\varphi)/2$ for the current marker setting ($s = 1$ when there is no
+                    marker); marker line = current &phi;; dots appear when you press <em>Sweep</em>.</p>
+            </div>
+
+            <div id="chart-block-corr" style="display:none;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                    <h6 class="text-muted fw-bold mb-0">Correlation E(&Delta;) — quantum vs classical wave</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="sweepDelta()">
+                        <i class="fa-solid fa-arrow-trend-up me-1"></i>Sweep &Delta; (2&thinsp;000 pairs &times; 25 angles)</button>
+                </div>
+                <div class="chart-frame"><svg id="chart-corr" viewBox="0 0 860 240" style="width:100%;"></svg></div>
+                <p class="text-muted mb-0" style="font-size:.78rem;">
+                    Solid curve = quantum $E = \cos 2\Delta$; dashed curve = classical wave
+                    $E_{\text{cl}} = \cos(2\Delta)/2$ — note the factor of 2; marker line = current
+                    &Delta;; dots appear when you press <em>Sweep</em>.</p>
+            </div>
+
+            <div class="info-box-interactive" id="sim-info"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  EXERCISES                                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title"><i class="fa-solid fa-flask text-warning me-2"></i>Exercises</h2>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 1 — Indivisibility statistics
+            <span class="badge bg-primary">Preset A</span></div>
+        <div class="task-body">
+            <p>Fire 100, then 1&nbsp;000, then 10&nbsp;000 photons (same seed, resetting in between).</p>
+            <ul>
+                <li>How does the deviation of the detector-B fraction from $1/2$ shrink as $n$ grows?
+                    Compare with the statistical scale $\sqrt{1/(4n)}$.</li>
+                <li>Confirm the coincidence counter reads <em>exactly</em> 0 in every run — not just
+                    small. Why is this exact even though the simulation is random?</li>
+                <li>What would a classical wave-pulse model predict for the coincidence counter?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 2 — Mapping the fringe
+            <span class="badge bg-primary">Preset B1</span></div>
+        <div class="task-body">
+            <p>Use the &phi; slider and the sweep button.</p>
+            <ul>
+                <li>Verify the three anchor points: &phi; = 0&deg; &rarr; 100/0, &phi; = 60&deg; &rarr;
+                    75/25, &phi; = 180&deg; &rarr; 0/100.</li>
+                <li>Press <em>Sweep &phi;</em> and check the measured dots trace $\cos^2(\varphi/2)$.
+                    Where on the curve does a small phase change produce the largest change in counts?
+                    (This is where an interferometric sensor operates.)</li>
+                <li>Explain in one sentence why a photon that "chose one arm at BS1" cannot produce the
+                    &phi; = 0 result.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 3 — Buying back the fringes
+            <span class="badge bg-primary">Preset B2</span></div>
+        <div class="task-body">
+            <p>The complementarity dial: visibility $\mathcal{V} = s$.</p>
+            <ul>
+                <li>At $s = 0.5$, verify the fringe extremes 0.75 / 0.25 (fire at &phi; = 0&deg; and
+                    180&deg;) and read the visibility card &rarr; 0.5.</li>
+                <li>Press <em>Sweep &phi;</em> at $s = 1$, $s = 0.5$, $s = 0$ and compare the three
+                    curves' amplitudes.</li>
+                <li>Nothing ever reads the marker in this simulation. State precisely what kills the
+                    interference — and connect it to why Eve in Lab 6 cannot listen without leaving
+                    a trace.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 4 — Three polarizers and the staircase
+            <span class="badge bg-primary">Preset C</span></div>
+        <div class="task-body">
+            <ul>
+                <li>Reproduce the pair: crossed 0&deg;/90&deg; &rarr; exactly 0; insert 45&deg; &rarr;
+                    12.5%. Where do the absorbed photons go in each configuration? (Watch the
+                    per-polarizer absorption counts.)</li>
+                <li>With the $|H\rangle$ source and a single polarizer at 60&deg;, verify Malus:
+                    25% pass.</li>
+                <li>Set the staircase 0/30/60/90 and check
+                    $\tfrac12 (3/4)^3 = 27/128 \approx 21.1\%$. Explain why <em>more</em> absorbing
+                    filters transmit <em>more</em> light, using the phrase "post-measurement state".</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 5 — The factor of 2
+            <span class="badge bg-secondary">Preset D — optional</span></div>
+        <div class="task-body">
+            <ul>
+                <li>Set &alpha; = &beta; = 20&deg;: verify each side's own counter is ~50/50 while
+                    agreement is 100%. Change the common angle; does anything change?</li>
+                <li>Set &alpha; = 0&deg;, &beta; = 22.5&deg; and verify $E \approx 0.707$ against the
+                    overlay. At &Delta; = 45&deg;, why is $E = 0$? (Lab 6 vocabulary: what are the two
+                    analyzers to each other?)</li>
+                <li>Press <em>Sweep &Delta;</em>. The dashed curve is the best classical-wave story.
+                    Identify the angle where the quantum/classical gap is largest, and say what an
+                    experimenter would conclude from data landing on the solid curve.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="task-box">
+        <div class="task-header">Exercise 6 — Quick check</div>
+        <div class="task-body">
+            <p class="fw-bold mb-2">Q1. A single photon in state $(|A\rangle + i|B\rangle)/\sqrt2$ meets
+            two detectors, one per path. What is the probability both click?</p>
+            <div class="mb-1"><label><input type="radio" name="q1" value="a"> 1/4</label></div>
+            <div class="mb-1"><label><input type="radio" name="q1" value="b"> exactly 0</label></div>
+            <div class="mb-2"><label><input type="radio" name="q1" value="c"> small but nonzero</label></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q1','b')">Check</button>
+            <div class="feedback" id="fb-q1"></div>
+            <hr>
+            <p class="fw-bold mb-2">Q2. A Mach–Zehnder interferometer at &phi; = 0 is built from two
+            50/50 beam splitters. What fraction of photons reaches D1?</p>
+            <div class="mb-1"><label><input type="radio" name="q2" value="a"> 50% — each splitter is a
+                fair coin</label></div>
+            <div class="mb-1"><label><input type="radio" name="q2" value="b"> 100% — the two path
+                amplitudes interfere</label></div>
+            <div class="mb-2"><label><input type="radio" name="q2" value="c"> 75%</label></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q2','b')">Check</button>
+            <div class="feedback" id="fb-q2"></div>
+            <hr>
+            <p class="fw-bold mb-2">Q3. A photon passes a polarizer at 45&deg; (Procedure 1) and, in a
+            second experiment, a half-waveplate at 22.5&deg; + polarizing beam splitter (Procedure 2),
+            in both cases with the "+" outcome. The outcome <em>probabilities</em> were identical.
+            The exiting photon is…</p>
+            <div class="mb-1"><label><input type="radio" name="q3" value="a"> the same state in both
+                cases — probabilities fix the state</label></div>
+            <div class="mb-1"><label><input type="radio" name="q3" value="b"> $|{+}\rangle$ after
+                Procedure 1, $|H\rangle$ after Procedure 2 — overlap only 1/2</label></div>
+            <div class="mb-2"><label><input type="radio" name="q3" value="c"> unpolarized in both
+                cases</label></div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkAnswer('q3','b')">Check</button>
+            <div class="feedback" id="fb-q3"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  QISKIT / COLAB                                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title"><i class="fa-solid fa-code text-warning me-2"></i>
+        Qiskit Notebook — the Same Optics as Quantum Circuits</h2>
+
+    <div class="task-box">
+        <div class="task-header d-flex justify-content-between align-items-center">
+            <span>Dual-rail circuits, which-path CNOT, Malus sweeps, entangled pairs</span>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab7/lab7_optics.ipynb"
+               class="btn btn-sm colab-btn">
+                <i class="fa-solid fa-terminal me-1"></i>Open Colab Notebook
+            </a>
+        </div>
+        <div class="task-body">
+            <p>The companion notebook rebuilds this page's optics as quantum circuits: the beam splitter
+            as a one-qubit gate on the dual-rail path qubit, the Mach–Zehnder as a three-gate circuit
+            swept over &phi; against $\cos^2(\varphi/2)$, which-path marking as a CNOT onto an ancilla
+            with the visibility sweep $\mathcal{V} = s$, the polarization experiments with Procedure 1
+            and Procedure 2 side by side, and (optional) the entangled-pair correlation curve against
+            $\cos 2\Delta$. Since two-qubit registers appear, every displayed bitstring is converted to
+            this lab's leftmost-first ordering — the notebook shows exactly how.</p>
+            <p class="text-muted mb-0" style="font-size:.88rem;">
+                <i class="fa-solid fa-circle-info me-1"></i>All notebook experiments are seeded and
+                reproducible; expected statistics and tolerances are stated inline. A compact optional
+                section runs the interferometer on real IBM hardware.</p>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  FOOTER                                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer class="text-center py-4 mt-2 bg-light border-top">
+    <p class="mb-1" style="font-size:.9rem;">
+        <span class="text-muted">Series:</span>
+        Lab 5 — Quantum Measurements
+        <i class="fa-solid fa-arrow-right mx-1 text-muted"></i>
+        Lab 6 — Quantum Key Distribution (BB84)
+        <i class="fa-solid fa-arrow-right mx-1 text-muted"></i>
+        <strong>Lab 7 — Quantum Optics</strong>
+    </p>
+    <p class="mb-0 text-muted">Quantum Computing Foundation — Lab Module 7</p>
+</footer>
+
+<!-- MathJax -->
+<script>
+    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  LAB7 OPTICS CORE — pure Born-rule logic, no DOM.
+ *  A direct port of the lab's verified reference pipeline (spec §4, checked
+ *  by the §7 invariants). Amplitudes are complex {re, im}; every displayed
+ *  probability below flows through these functions — no percentage is ever
+ *  hardcoded in the UI layer.
+ *    - buildBeamSplitter:      B = (1/√2)[[1, i],[i, 1]] — the binding 50/50
+ *                              convention, i on reflection (spec §4.2, §7 A.3)
+ *    - bsOutputProbabilities:  Born rule on B|in⟩ (spec §4.3, §7 B.1–B.2)
+ *    - mzProbabilities:        pipeline B·Φ(φ)·B|A⟩, D1 at port B
+ *                              → [cos²(φ/2), sin²(φ/2)] (spec §4.4, §7 C.1–C.2)
+ *    - markedMzProbabilityD1:  two-qubit |path marker⟩ pipeline, path qubit
+ *                              leftmost/first factor (big-endian, spec §4.5,
+ *                              §7 D.4) → (1 + s·cosφ)/2
+ *    - mzVisibility:           (P_max − P_min)/(P_max + P_min) from φ = 0, π
+ *                              → 𝒱 = s (spec §4.5, §7 C.4/D.1–D.2)
+ *    - polarizerCascadeProbability: sequential Π ρ Π with post-state renewal
+ *                              (Procedure 1; spec §4.6, §7 E.2–E.4)
+ *    - malusProbability:       ⟨H|Π_θ|H⟩ = cos²θ (spec §4.6, §7 E.1)
+ *    - pairJointProbability:   |⟨o₁(α)|⊗⟨o₂(β)|Φ+⟩|², photon 1 leftmost
+ *                              (spec §4.7, §7 F.4–F.5)
+ *    - pairCorrelation:        E = P(++)+P(−−)−P(+−)−P(−+) = cos2Δ (§7 F.6)
+ *    - classicalWaveCorrelation: E_cl = cos(2Δ)/2 — the averaged-Malus
+ *                              shared-λ model (spec §4.7, §7 F.10)
+ *  Samplers: mulberry32 seeded; ONE rng stream per run; each photon/pair
+ *  consumes draws in a fixed order, and every sampling probability is taken
+ *  from the verified functions above (the Lab 6 rule, unchanged).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+function mulberry32(seed) {
+    let s = seed >>> 0;
+    return function () {
+        s |= 0; s = (s + 0x6D2B79F5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+/* ── complex arithmetic ({re, im} pairs) ─────────────────────────────────── */
+function C(re, im) { return { re: re, im: im || 0 }; }
+function cAdd(a, b) { return C(a.re + b.re, a.im + b.im); }
+function cMul(a, b) { return C(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re); }
+function cScale(a, s) { return C(a.re * s, a.im * s); }
+function cConj(a) { return C(a.re, -a.im); }
+function cAbs2(a) { return a.re * a.re + a.im * a.im; }
+function cExpI(phi) { return C(Math.cos(phi), Math.sin(phi)); }
+
+function matVec(M, v) {
+    const out = [];
+    for (let i = 0; i < M.length; i++) {
+        let acc = C(0, 0);
+        for (let j = 0; j < v.length; j++) acc = cAdd(acc, cMul(M[i][j], v[j]));
+        out.push(acc);
+    }
+    return out;
+}
+
+/* Kronecker product of two 2×2 matrices → 4×4; FIRST argument is the
+   leftmost (big-endian) factor — index of |q0 q1⟩ is 2·q0 + q1. */
+function kron2(A, B) {
+    const out = [];
+    for (let i = 0; i < 4; i++) {
+        const row = [];
+        for (let j = 0; j < 4; j++) {
+            row.push(cMul(A[i >> 1][j >> 1], B[i & 1][j & 1]));
+        }
+        out.push(row);
+    }
+    return out;
+}
+
+function kronVec2(a, b) {
+    return [cMul(a[0], b[0]), cMul(a[0], b[1]), cMul(a[1], b[0]), cMul(a[1], b[1])];
+}
+
+function bornProbabilities(psi) { return psi.map(cAbs2); }
+
+/* ── Part A/B components (spec §4.2) ─────────────────────────────────────── */
+
+/* Beam splitter, the binding convention: 50/50 with phase i on reflection
+   (spec §4.2, pinned entrywise by §7 A.3). */
+function buildBeamSplitter() {
+    const r = 1 / Math.sqrt(2);
+    return [[C(r, 0), C(0, r)], [C(0, r), C(r, 0)]];
+}
+
+/* Phase shifter on arm B: Φ(φ) = diag(1, e^{iφ}) (spec §4.2, §7 A.5). */
+function buildPhaseShifter(phi) {
+    return [[C(1, 0), C(0, 0)], [C(0, 0), cExpI(phi)]];
+}
+
+const I2 = [[C(1, 0), C(0, 0)], [C(0, 0), C(1, 0)]];
+
+/* §4.3 / §7 B.1–B.2: Born rule on B|in⟩ → [P(port A), P(port B)]. */
+function bsOutputProbabilities(inputPort) {
+    const ketIn = inputPort === 'B' ? [C(0, 0), C(1, 0)] : [C(1, 0), C(0, 0)];
+    return bornProbabilities(matVec(buildBeamSplitter(), ketIn));
+}
+
+/* §4.4 / §7 C.1–C.2: matrix pipeline B·Φ(φ)·B|A⟩, D1 at output port B,
+   D2 at port A → [P(D1), P(D2)] = [cos²(φ/2), sin²(φ/2)]. */
+function mzProbabilities(phi) {
+    const B = buildBeamSplitter();
+    let v = matVec(B, [C(1, 0), C(0, 0)]);
+    v = matVec(buildPhaseShifter(phi), v);
+    v = matVec(B, v);
+    const p = bornProbabilities(v);
+    return [p[1], p[0]];
+}
+
+/* §4.5 / §7 D: which-path marking. Marker states M_A = |0⟩,
+   M_B = s|0⟩ + √(1−s²)|1⟩ (exact overlap s). State after BS1 + marking:
+   ψ = (|A⟩|M_A⟩ + i e^{iφ}|B⟩|M_B⟩)/√2 in big-endian |path marker⟩ order
+   (path = leftmost = first Kronecker factor). Apply BS2 ⊗ I and sum the
+   path-B weight (big-endian indices 2, 3) → P(D1) = (1 + s·cosφ)/2. */
+function markedMzProbabilityD1(phi, s) {
+    const r = 1 / Math.sqrt(2);
+    const mB1 = Math.sqrt(1 - s * s);
+    const ie = cMul(C(0, 1), cExpI(phi));            /* i·e^{iφ} */
+    const psi = [C(r, 0), C(0, 0), cScale(ie, s * r), cScale(ie, mB1 * r)];
+    const out = matVec(kron2(buildBeamSplitter(), I2), psi);
+    return cAbs2(out[2]) + cAbs2(out[3]);
+}
+
+/* §4.4–4.5 / §7 C.4, D.1–D.2: 𝒱 from P(D1) at φ = 0 and φ = π → 𝒱 = s. */
+function mzVisibility(s) {
+    const p0 = markedMzProbabilityD1(0, s);
+    const ppi = markedMzProbabilityD1(Math.PI, s);
+    const pmax = Math.max(p0, ppi), pmin = Math.min(p0, ppi);
+    return (pmax - pmin) / (pmax + pmin);
+}
+
+/* ── Part C polarization (spec §4.6) ─────────────────────────────────────── */
+
+/* |θ⟩ = cosθ|H⟩ + sinθ|V⟩ and the orthogonal port |θ⊥⟩ (spec §2). */
+function polarizationState(theta) { return [C(Math.cos(theta), 0), C(Math.sin(theta), 0)]; }
+function polarizationStateOrth(theta) { return [C(-Math.sin(theta), 0), C(Math.cos(theta), 0)]; }
+
+/* Π_θ = |θ⟩⟨θ| (spec §4.2, §7 A.7). */
+function polarizerProjector(theta) {
+    const k = polarizationState(theta);
+    return [
+        [cMul(k[0], cConj(k[0])), cMul(k[0], cConj(k[1]))],
+        [cMul(k[1], cConj(k[0])), cMul(k[1], cConj(k[1]))]
+    ];
+}
+
+/* Input density matrix: 'unpolarized' → I/2 (no polarization preference),
+   'H' → |H⟩⟨H| (spec §4.6). */
+function inputDensity(name) {
+    if (name === 'H') return [[C(1, 0), C(0, 0)], [C(0, 0), C(0, 0)]];
+    return [[C(0.5, 0), C(0, 0)], [C(0, 0), C(0.5, 0)]];
+}
+
+function matMul2(A, B) {
+    const out = [];
+    for (let i = 0; i < 2; i++) {
+        const row = [];
+        for (let j = 0; j < 2; j++) {
+            row.push(cAdd(cMul(A[i][0], B[0][j]), cMul(A[i][1], B[1][j])));
+        }
+        out.push(row);
+    }
+    return out;
+}
+
+/* §4.6 / §7 E.2–E.4: explicit sequential projection with Procedure-1
+   post-state renewal — ρ ← Π ρ Π per polarizer; P(pass all) = Tr ρ. */
+function polarizerCascadeProbability(anglesRad, inputName) {
+    let rho = inputDensity(inputName);
+    for (let k = 0; k < anglesRad.length; k++) {
+        const P = polarizerProjector(anglesRad[k]);
+        rho = matMul2(matMul2(P, rho), P);
+    }
+    return rho[0][0].re + rho[1][1].re;
+}
+
+/* §4.6 / §7 E.1: quantum Malus — ⟨H|Π_θ|H⟩ = cos²θ. */
+function malusProbability(theta) {
+    const h = [C(1, 0), C(0, 0)];
+    const v = matVec(polarizerProjector(theta), h);
+    return v[0].re;
+}
+
+/* Per-stage conditional pass probabilities, derived from the verified
+   cascade function (P(pass 1..k) / P(pass 1..k−1)) — used by the sampler
+   so per-polarizer absorption events follow the verified pipeline. */
+function cascadeStageProbabilities(anglesRad, inputName) {
+    const stages = [];
+    let prev = 1;
+    for (let k = 1; k <= anglesRad.length; k++) {
+        const pk = polarizerCascadeProbability(anglesRad.slice(0, k), inputName);
+        stages.push(prev > 0 ? pk / prev : 0);
+        prev = pk;
+    }
+    return stages;
+}
+
+/* ── Part D entangled pairs (spec §4.7) ──────────────────────────────────── */
+
+/* |Φ+⟩ = (|HH⟩ + |VV⟩)/√2, photon 1 leftmost (spec §4.7, §7 F.1–F.2). */
+function pairState() {
+    const r = 1 / Math.sqrt(2);
+    return [C(r, 0), C(0, 0), C(0, 0), C(r, 0)];
+}
+
+/* Analyzer port states: '+' → |θ⟩, '−' → |θ⊥⟩. */
+function outcomeKet(angle, outcome) {
+    return outcome === '+' ? polarizationState(angle) : polarizationStateOrth(angle);
+}
+
+/* §7 F.4–F.5: P(o₁o₂) = |⟨o₁(α)| ⊗ ⟨o₂(β)| Φ+⟩|². */
+function pairJointProbability(alpha, beta, outcomes) {
+    const bra = kronVec2(outcomeKet(alpha, outcomes[0]), outcomeKet(beta, outcomes[1]));
+    const psi = pairState();
+    let acc = C(0, 0);
+    for (let i = 0; i < 4; i++) acc = cAdd(acc, cMul(cConj(bra[i]), psi[i]));
+    return cAbs2(acc);
+}
+
+/* [[P(++), P(+−)], [P(−+), P(−−)]] (§7 F.5). */
+function pairJointProbabilityTable(alpha, beta) {
+    return [
+        [pairJointProbability(alpha, beta, '++'), pairJointProbability(alpha, beta, '+-')],
+        [pairJointProbability(alpha, beta, '-+'), pairJointProbability(alpha, beta, '--')]
+    ];
+}
+
+/* §7 F.6: E = P(++) + P(−−) − P(+−) − P(−+) = cos 2Δ. */
+function pairCorrelation(alpha, beta) {
+    const t = pairJointProbabilityTable(alpha, beta);
+    return t[0][0] + t[1][1] - t[0][1] - t[1][0];
+}
+
+/* §4.7 / §7 F.10: classical-wave (shared-λ, Malus-response) model —
+   E_cl(Δ) = cos(2Δ)/2, half the quantum amplitude. */
+function classicalWaveCorrelation(delta) { return Math.cos(2 * delta) / 2; }
+
+/* ── seeded samplers (one rng stream; Born weights from the pipeline) ────── */
+
+/* Preset A: photon clicks port B iff u < P(port B); the other detector
+   clicks otherwise — one photon, one click, so the coincidence event
+   (both in the same trial) is structurally impossible (spec §4.3, §7 B.3):
+   the counter is computed per photon and can only ever add 0. */
+function sampleBs(n, rng) {
+    const pB = bsOutputProbabilities('A')[1];
+    let a = 0, b = 0, coinc = 0;
+    for (let i = 0; i < n; i++) {
+        const clickB = rng() < pB;
+        const clickA = !clickB;
+        if (clickB) b++;
+        if (clickA) a++;
+        if (clickA && clickB) coinc++;   /* never true: one click per photon */
+    }
+    return { a: a, b: b, coinc: coinc };
+}
+
+/* Presets B1/B2: photon clicks D1 iff u < P(D1; φ, s) from the verified
+   marked-MZ pipeline (s = 1 reproduces the unmarked interferometer). */
+function sampleMz(phi, s, n, rng) {
+    const p1 = markedMzProbabilityD1(phi, s);
+    let d1 = 0;
+    for (let i = 0; i < n; i++) if (rng() < p1) d1++;
+    return { d1: d1, d2: n - d1 };
+}
+
+/* Preset C: each photon walks the rack; stage-k survival uses the
+   conditional probabilities derived from the verified cascade pipeline.
+   Returns pass count + absorption count per polarizer. */
+function sampleCascade(anglesRad, inputName, n, rng) {
+    const stages = cascadeStageProbabilities(anglesRad, inputName);
+    let passed = 0;
+    const absorbed = anglesRad.map(function () { return 0; });
+    for (let i = 0; i < n; i++) {
+        let alive = true;
+        for (let k = 0; k < stages.length && alive; k++) {
+            if (rng() >= stages[k]) { alive = false; absorbed[k]++; }
+        }
+        if (alive) passed++;
+    }
+    return { passed: passed, absorbed: absorbed };
+}
+
+/* Preset D: one u per pair selects among the four coincidence outcomes
+   with the verified joint probabilities (order ++, +−, −+, −−). */
+function samplePairs(alpha, beta, n, rng) {
+    const t = pairJointProbabilityTable(alpha, beta);
+    const p = [t[0][0], t[0][1], t[1][0], t[1][1]];
+    const counts = [0, 0, 0, 0];
+    for (let i = 0; i < n; i++) {
+        const u = rng();
+        let acc = 0, sel = 3;
+        for (let k = 0; k < 3; k++) { acc += p[k]; if (u < acc) { sel = k; break; } }
+        counts[sel]++;
+    }
+    return { pp: counts[0], pm: counts[1], mp: counts[2], mm: counts[3] };
+}
+/* ═══ END LAB7 OPTICS CORE ════════════════════════════════════════════════ */
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  BENCH UI — presets, controls, SVG bench, counters, charts.
+ *  All probabilities are fetched from the CORE functions above.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+const D2R = Math.PI / 180;
+let preset = 'A';
+let run = null;             /* { rng, counts, sweep } */
+
+const RACK_DEFAULT = [[1, 0], [0, 45], [1, 90], [0, 0]];
+
+function $id(x) { return document.getElementById(x); }
+
+function currentSeed() { return parseInt($id('sim-seed').value) || 42; }
+function currentPhi() { return parseInt($id('phi-slider').value) * D2R; }
+function currentS() { return parseInt($id('s-slider').value) / 100; }
+function currentAlpha() { return (parseFloat($id('alpha-deg').value) || 0) * D2R; }
+function currentBeta() { return (parseFloat($id('beta-deg').value) || 0) * D2R; }
+
+function rackConfig() {
+    const cfg = [];
+    for (let k = 0; k < 4; k++) {
+        cfg.push([$id('pol-on-' + k).checked ? 1 : 0,
+                  parseFloat($id('pol-ang-' + k).value) || 0]);
+    }
+    return cfg;
+}
+function rackActiveAngles() {
+    return rackConfig().filter(function (s) { return s[0]; })
+        .map(function (s) { return s[1] * D2R; });
+}
+
+function renderRackInputs() {
+    let html = '';
+    for (let k = 0; k < 4; k++) {
+        html += '<span class="me-3" style="white-space:nowrap;">' +
+            '<input type="checkbox" class="form-check-input" id="pol-on-' + k + '"' +
+            (RACK_DEFAULT[k][0] ? ' checked' : '') + ' onchange="controlsChanged()"> ' +
+            '<input type="number" class="form-control form-control-sm d-inline-block" ' +
+            'id="pol-ang-' + k + '" value="' + RACK_DEFAULT[k][1] + '" step="15" ' +
+            'style="width:72px" onchange="controlsChanged()">&deg;</span>';
+    }
+    $id('rack-slots').innerHTML = html;
+}
+
+function setRack(cfg) {
+    for (let k = 0; k < 4; k++) {
+        $id('pol-on-' + k).checked = !!cfg[k][0];
+        $id('pol-ang-' + k).value = cfg[k][1];
+    }
+    controlsChanged();
+}
+
+function setAngles(a, b) {
+    $id('alpha-deg').value = a;
+    $id('beta-deg').value = b;
+    controlsChanged();
+}
+
+/* ── preset switching ────────────────────────────────────────────────────── */
+
+const PRESET_INFO = {
+    A:  'Part A. One photon per trial at a 50/50 beam splitter. Watch the two tallies approach ' +
+        '50/50 while the coincidence counter stays at 0 — after every photon, not just on average.',
+    B1: 'Part B. The Mach&ndash;Zehnder interferometer. Anchor points to verify: ' +
+        '&phi; = 0&deg; &rarr; 100/0 (two 50/50 splitters, certain outcome), &phi; = 60&deg; &rarr; ' +
+        '75/25, &phi; = 180&deg; &rarr; 0/100. Press <em>Sweep &phi;</em> to map the whole fringe.',
+    B2: 'Part B, which-path marking. The marker overlap s is the complementarity dial: fringe ' +
+        'visibility 𝒱 = s. At s = 0.5 the fringe runs between 0.75 and 0.25. Nothing ever reads ' +
+        'the marker — the record&rsquo;s existence is enough.',
+    C:  'Part C. Polarizer cascade with per-polarizer absorption counts. Crossed 0&deg;/90&deg; ' +
+        'blocks everything; inserting 45&deg; between them revives 12.5%. With the |H&rangle; source ' +
+        'and one polarizer you get quantum Malus: cos&sup2;&theta;.',
+    D:  'Part D (optional). Entangled pairs at two analyzers. Matched angles: each side is a fair ' +
+        'coin, yet agreement is 100%. The E(&Delta;) chart overlays the quantum curve cos 2&Delta; ' +
+        'and the classical-wave curve cos(2&Delta;)/2 — the factor-of-2 gap is the point.'
+};
+
+function selectPreset(p) {
+    preset = p;
+    ['A', 'B1', 'B2', 'C', 'D'].forEach(function (q) {
+        $id('pb-' + q).classList.toggle('active', q === p);
+    });
+    $id('ctl-phi').style.display = (p === 'B1' || p === 'B2') ? '' : 'none';
+    $id('ctl-s').style.display = (p === 'B2') ? '' : 'none';
+    $id('ctl-source').style.display = (p === 'C') ? '' : 'none';
+    $id('ctl-cascade').style.display = (p === 'C') ? '' : 'none';
+    $id('ctl-pairs').style.display = (p === 'D') ? '' : 'none';
+    $id('chart-block-fringe').style.display = (p === 'B1' || p === 'B2') ? '' : 'none';
+    $id('chart-block-corr').style.display = (p === 'D') ? '' : 'none';
+    $id('sim-info').innerHTML = PRESET_INFO[p];
+    resetRun();
+}
+
+function jumpToPreset(p) {
+    selectPreset(p);
+    $id('simulator').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetRun() {
+    run = {
+        rng: mulberry32(currentSeed()),
+        n: 0,
+        bs: { a: 0, b: 0, coinc: 0 },
+        mz: { d1: 0, d2: 0 },
+        cascade: { passed: 0, absorbed: [0, 0, 0, 0] },
+        pairs: { pp: 0, pm: 0, mp: 0, mm: 0 },
+        sweep: (run && run.keepSweep) ? run.sweep : [],
+        keepSweep: false
+    };
+    renderAll();
+}
+
+function controlsChanged() {
+    $id('phi-label').textContent = $id('phi-slider').value;
+    $id('s-label').textContent = currentS().toFixed(2);
+    /* changing any control changes the experiment: restart the counters
+       (deterministically, from the seed). Sweep dots survive a φ change
+       (same curve) but not an s change (different curve). */
+    if (run) run.keepSweep = (preset === 'B1');
+    resetRun();
+}
+
+/* ── firing ──────────────────────────────────────────────────────────────── */
+
+function firePhotons(n) {
+    let last = '';
+    if (preset === 'A') {
+        const r = sampleBs(n, run.rng);
+        run.bs.a += r.a; run.bs.b += r.b; run.bs.coinc += r.coinc;
+        if (n === 1) last = r.b ? 'detector B clicked' : 'detector A clicked';
+    } else if (preset === 'B1' || preset === 'B2') {
+        const s = preset === 'B1' ? 1 : currentS();
+        const r = sampleMz(currentPhi(), s, n, run.rng);
+        run.mz.d1 += r.d1; run.mz.d2 += r.d2;
+        if (n === 1) last = r.d1 ? 'D1 clicked' : 'D2 clicked';
+    } else if (preset === 'C') {
+        const angles = rackActiveAngles();
+        const r = sampleCascade(angles, $id('c-source').value, n, run.rng);
+        run.cascade.passed += r.passed;
+        /* map absorption counts back onto the active slots */
+        let j = 0;
+        rackConfig().forEach(function (slot, k) {
+            if (slot[0]) { run.cascade.absorbed[k] += r.absorbed[j]; j++; }
+        });
+        if (n === 1) last = r.passed ? 'photon passed the whole rack' : 'photon absorbed';
+    } else if (preset === 'D') {
+        const r = samplePairs(currentAlpha(), currentBeta(), n, run.rng);
+        run.pairs.pp += r.pp; run.pairs.pm += r.pm;
+        run.pairs.mp += r.mp; run.pairs.mm += r.mm;
+        if (n === 1) {
+            const labels = { pp: '+ / +', pm: '+ / −', mp: '− / +', mm: '− / −' };
+            for (const k in labels) if (r[k]) last = 'outcome ' + labels[k];
+        }
+    }
+    run.n += n;
+    renderAll();
+    if (last) $id('sim-info').innerHTML = PRESET_INFO[preset] +
+        '<br><strong>Last photon:</strong> ' + last + '.';
+}
+
+/* ── sweeps ──────────────────────────────────────────────────────────────── */
+
+function sweepPhi() {
+    const s = preset === 'B1' ? 1 : currentS();
+    const seed = currentSeed();
+    const dots = [];
+    for (let i = 0; i <= 24; i++) {
+        const phi = 2 * Math.PI * i / 24;
+        const r = sampleMz(phi, s, 2000, mulberry32(seed + 100 + i));
+        dots.push({ x: phi, y: r.d1 / 2000 });
+    }
+    run.sweep = dots;
+    renderAll();
+}
+
+function sweepDelta() {
+    const seed = currentSeed();
+    const dots = [];
+    for (let i = 0; i <= 24; i++) {
+        const delta = Math.PI * i / 24;
+        const r = samplePairs(delta, 0, 2000, mulberry32(seed + 200 + i));
+        dots.push({ x: delta, y: (r.pp + r.mm - r.pm - r.mp) / 2000 });
+    }
+    run.sweep = dots;
+    renderAll();
+}
+
+/* ── stat cards ──────────────────────────────────────────────────────────── */
+
+function statCard(label, value, theory) {
+    return '<div class="col-md-3 col-6"><div class="stat-card">' +
+        '<div class="stat-label">' + label + '</div>' +
+        '<div class="stat-value">' + value + '</div>' +
+        '<div class="stat-theory">' + theory + '</div></div></div>';
+}
+
+function frac(x, n) { return n > 0 ? (x / n).toFixed(4) : '–'; }
+
+function renderStats() {
+    let html = '';
+    const n = run.n;
+    if (preset === 'A') {
+        const p = bsOutputProbabilities('A');
+        html += statCard('Photons fired', n, 'one per trial');
+        html += statCard('Detector A', run.bs.a + ' (' + frac(run.bs.a, n) + ')',
+            'theory: ' + p[0].toFixed(4));
+        html += statCard('Detector B', run.bs.b + ' (' + frac(run.bs.b, n) + ')',
+            'theory: ' + p[1].toFixed(4));
+        html += statCard('Coincidences', run.bs.coinc, 'theory: 0 — exactly');
+    } else if (preset === 'B1' || preset === 'B2') {
+        const s = preset === 'B1' ? 1 : currentS();
+        const p1 = markedMzProbabilityD1(currentPhi(), s);
+        html += statCard('Photons fired', n, 'one per trial');
+        html += statCard('D1', run.mz.d1 + ' (' + frac(run.mz.d1, n) + ')',
+            'theory: ' + p1.toFixed(4));
+        html += statCard('D2', run.mz.d2 + ' (' + frac(run.mz.d2, n) + ')',
+            'theory: ' + (1 - p1).toFixed(4));
+        let vMeas = '–';
+        if (run.sweep.length) {
+            let mx = 0, mn = 1;
+            run.sweep.forEach(function (d) { mx = Math.max(mx, d.y); mn = Math.min(mn, d.y); });
+            vMeas = ((mx - mn) / (mx + mn)).toFixed(3);
+        }
+        html += statCard('Visibility 𝒱 (from sweep)', vMeas,
+            'theory: 𝒱 = s = ' + mzVisibility(s).toFixed(3));
+    } else if (preset === 'C') {
+        const angles = rackActiveAngles();
+        const pTh = polarizerCascadeProbability(angles, $id('c-source').value);
+        const absTot = run.cascade.absorbed.reduce(function (a, b) { return a + b; }, 0);
+        html += statCard('Photons fired', n, 'one per trial');
+        html += statCard('Passed all polarizers',
+            run.cascade.passed + ' (' + frac(run.cascade.passed, n) + ')',
+            'theory: ' + pTh.toFixed(4));
+        html += statCard('Absorbed', absTot, 'per-polarizer counts on the bench');
+        html += statCard('Rack', angles.length + ' polarizer' + (angles.length === 1 ? '' : 's'),
+            angles.map(function (a) { return Math.round(a / D2R) + '&deg;'; }).join(' &rarr; ') || 'empty');
+    } else if (preset === 'D') {
+        const a = currentAlpha(), b = currentBeta();
+        const t = pairJointProbabilityTable(a, b);
+        const agreeTh = t[0][0] + t[1][1];
+        const eTh = pairCorrelation(a, b);
+        const agree = run.pairs.pp + run.pairs.mm;
+        const eMeas = n > 0 ? ((run.pairs.pp + run.pairs.mm - run.pairs.pm - run.pairs.mp) / n) : null;
+        html += statCard('Pairs fired', n, '++/+&minus;/&minus;+/&minus;&minus;: ' +
+            run.pairs.pp + '/' + run.pairs.pm + '/' + run.pairs.mp + '/' + run.pairs.mm);
+        html += statCard('Agreement', frac(agree, n), 'theory: ' + agreeTh.toFixed(4));
+        html += statCard('Measured E', eMeas === null ? '–' : eMeas.toFixed(4),
+            'theory: E = ' + eTh.toFixed(4));
+        html += statCard('Classical wave would give',
+            'E = ' + classicalWaveCorrelation(a - b).toFixed(4),
+            'half the quantum amplitude');
+    }
+    $id('stat-row').innerHTML = html;
+}
+
+/* ── bench SVG ───────────────────────────────────────────────────────────── */
+
+function svgRect(x, y, w, h, stroke, fill, dash) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h +
+        '" rx="6" fill="' + (fill || 'none') + '" stroke="' + stroke + '" stroke-width="2"' +
+        (dash ? ' stroke-dasharray="5,4" opacity="0.45"' : '') + '/>';
+}
+function svgLine(x1, y1, x2, y2, stroke, dash, w) {
+    return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+        '" stroke="' + (stroke || '#fbbf24') + '" stroke-width="' + (w || 2.5) + '"' +
+        (dash ? ' stroke-dasharray="6,5"' : '') + '/>';
+}
+function svgText(x, y, txt, size, fill, anchor, bold) {
+    return '<text x="' + x + '" y="' + y + '" font-size="' + (size || 12) +
+        '" fill="' + (fill || '#e2e8f0') + '" text-anchor="' + (anchor || 'middle') + '"' +
+        (bold ? ' font-weight="bold"' : '') + ' font-family="monospace">' + txt + '</text>';
+}
+function svgDetector(x, y, label, count) {
+    return '<circle cx="' + x + '" cy="' + y + '" r="16" fill="#064e3b" stroke="#6ee7b7" stroke-width="2.5"/>' +
+        svgText(x, y + 4, count, 11, '#6ee7b7', 'middle', true) +
+        svgText(x, y + 34, label, 11, '#94a3b8');
+}
+function svgBS(cx, cy, label) {
+    return svgRect(cx - 22, cy - 22, 44, 44, '#f59e0b', '#1e293b') +
+        svgLine(cx - 22, cy + 22, cx + 22, cy - 22, '#f59e0b', false, 2) +
+        svgText(cx, cy + 40, label, 11, '#f59e0b');
+}
+function svgMirror(cx, cy) {
+    return svgLine(cx - 16, cy + 16, cx + 16, cy - 16, '#cbd5e1', false, 4) +
+        svgText(cx + 4, cy + 28, 'mirror', 9, '#64748b');
+}
+
+function drawBench() {
+    let s = '';
+    if (preset === 'A') {
+        s += svgRect(20, 108, 130, 54, '#38bdf8', '#082f49') +
+             svgText(85, 130, 'SOURCE', 12, '#38bdf8', 'middle', true) +
+             svgText(85, 148, 'one photon/trial', 10, '#7dd3fc');
+        s += svgLine(150, 135, 408, 135);
+        s += svgBS(430, 135, '50/50 BS');
+        s += svgLine(452, 135, 744, 135);
+        s += svgLine(430, 113, 430, 66);
+        s += svgDetector(760, 135, 'detector A', run.bs.a);
+        s += svgDetector(430, 50, 'detector B', run.bs.b);
+        s += svgLine(446, 50, 610, 50, '#64748b', true, 1.5);
+        s += svgLine(776, 135, 800, 135, '#64748b', true, 1.5) +
+             svgLine(800, 135, 800, 74, '#64748b', true, 1.5) +
+             svgLine(800, 74, 790, 74, '#64748b', true, 1.5);
+        s += svgRect(610, 30, 180, 44, '#f87171', '#1e293b');
+        s += svgText(700, 48, 'COINCIDENCE (A AND B)', 11, '#f87171', 'middle', true);
+        s += svgText(700, 66, run.bs.coinc + ' events', 12, '#fca5a5', 'middle', true);
+    } else if (preset === 'B1' || preset === 'B2') {
+        const phiDeg = $id('phi-slider').value;
+        s += svgRect(10, 200, 104, 50, '#38bdf8', '#082f49') +
+             svgText(62, 220, 'SOURCE', 11, '#38bdf8', 'middle', true) +
+             svgText(62, 238, '|A&#x27E9; input', 10, '#7dd3fc');
+        s += svgLine(114, 225, 198, 225);
+        s += svgBS(220, 225, 'BS1');
+        /* arm A: lower rail */
+        s += svgLine(242, 225, 604, 225) + svgText(420, 245, 'arm A', 10, '#94a3b8');
+        s += svgMirror(620, 225);
+        s += svgLine(620, 209, 620, 139);
+        /* arm B: upper rail */
+        s += svgLine(220, 203, 220, 111);
+        s += svgMirror(220, 95);
+        s += svgText(268, 82, 'arm B', 10, '#94a3b8');
+        s += svgLine(236, 95, (preset === 'B2' ? 318 : 368), 95);
+        if (preset === 'B2') {
+            s += svgRect(318, 70, 88, 50, '#a78bfa', '#1e1b4b') +
+                 svgText(362, 90, 'MARKER', 10, '#a78bfa', 'middle', true) +
+                 svgText(362, 108, 's = ' + currentS().toFixed(2), 11, '#c4b5fd');
+            s += svgLine(406, 95, 448, 95);
+            s += svgRect(448, 70, 82, 50, '#f472b6', '#3b0a2e') +
+                 svgText(489, 90, '&Phi;(&phi;)', 11, '#f472b6', 'middle', true) +
+                 svgText(489, 108, '&phi; = ' + phiDeg + '&deg;', 11, '#f9a8d4');
+            s += svgLine(530, 95, 598, 95);
+        } else {
+            s += svgRect(368, 70, 96, 50, '#f472b6', '#3b0a2e') +
+                 svgText(416, 90, 'PHASE &Phi;(&phi;)', 10, '#f472b6', 'middle', true) +
+                 svgText(416, 108, '&phi; = ' + phiDeg + '&deg;', 11, '#f9a8d4');
+            s += svgLine(464, 95, 598, 95);
+        }
+        s += svgBS(620, 117, 'BS2');
+        s += svgLine(642, 117, 744, 117);
+        s += svgLine(620, 95, 620, 46);
+        s += svgDetector(760, 117, 'D1', run.mz.d1);
+        s += svgDetector(620, 30, 'D2', run.mz.d2);
+    } else if (preset === 'C') {
+        const src = $id('c-source').value;
+        s += svgRect(10, 108, 118, 54, '#38bdf8', '#082f49') +
+             svgText(69, 130, 'SOURCE', 11, '#38bdf8', 'middle', true) +
+             svgText(69, 148, src === 'H' ? '|H&#x27E9; polarized' : 'unpolarized', 10, '#7dd3fc');
+        s += svgLine(128, 135, 794, 135);
+        const xs = [260, 400, 540, 680];
+        const cfg = rackConfig();
+        for (let k = 0; k < 4; k++) {
+            const on = cfg[k][0];
+            s += svgRect(xs[k] - 9, 80, 18, 110, on ? '#14b8a6' : '#475569', on ? '#042f2e' : 'none', !on);
+            s += svgText(xs[k], 66, cfg[k][1] + '&deg;', 12, on ? '#5eead4' : '#64748b', 'middle', !!on);
+            if (on) s += svgText(xs[k], 212, 'absorbed: ' + run.cascade.absorbed[k], 10, '#f87171');
+        }
+        s += svgDetector(820, 135, 'passed: ' + run.cascade.passed, run.cascade.passed);
+    } else if (preset === 'D') {
+        const aDeg = $id('alpha-deg').value, bDeg = $id('beta-deg').value;
+        s += svgRect(390, 105, 120, 60, '#38bdf8', '#082f49') +
+             svgText(450, 128, 'PAIR SOURCE', 11, '#38bdf8', 'middle', true) +
+             svgText(450, 148, '(|HH&#x27E9;+|VV&#x27E9;)/&#8730;2', 10, '#7dd3fc');
+        s += svgLine(390, 135, 262, 135) + svgLine(510, 135, 638, 135);
+        s += svgRect(180, 105, 82, 60, '#14b8a6', '#042f2e') +
+             svgText(221, 128, 'ANALYZER', 10, '#5eead4', 'middle', true) +
+             svgText(221, 148, '&alpha; = ' + aDeg + '&deg;', 11, '#5eead4');
+        s += svgRect(638, 105, 82, 60, '#14b8a6', '#042f2e') +
+             svgText(679, 128, 'ANALYZER', 10, '#5eead4', 'middle', true) +
+             svgText(679, 148, '&beta; = ' + bDeg + '&deg;', 11, '#5eead4');
+        s += svgLine(180, 120, 122, 78) + svgLine(180, 150, 122, 192);
+        s += svgLine(720, 120, 778, 78) + svgLine(720, 150, 778, 192);
+        s += svgDetector(104, 70, '+ port', run.pairs.pp + run.pairs.pm);
+        s += svgDetector(104, 200, '&minus; port', run.pairs.mp + run.pairs.mm);
+        s += svgDetector(796, 70, '+ port', run.pairs.pp + run.pairs.mp);
+        s += svgDetector(796, 200, '&minus; port', run.pairs.pm + run.pairs.mm);
+        s += svgLine(104, 240, 796, 240, '#64748b', true, 1.5);
+        s += svgText(450, 232, 'coincidence logic: agreement ' +
+            (run.n > 0 ? (100 * (run.pairs.pp + run.pairs.mm) / run.n).toFixed(1) + '%' : '&ndash;'),
+            11, '#94a3b8');
+    }
+    $id('bench-svg').innerHTML = s;
+}
+
+/* ── charts ──────────────────────────────────────────────────────────────── */
+
+function chartAxes(W, H, PL, PB, yMin, yMax, yLabel, xLabel) {
+    let s = '';
+    s += '<line x1="' + PL + '" y1="10" x2="' + PL + '" y2="' + (H - PB) + '" stroke="#cbd5e1"/>';
+    s += '<line x1="' + PL + '" y1="' + (H - PB) + '" x2="' + (W - 8) + '" y2="' + (H - PB) +
+         '" stroke="#cbd5e1"/>';
+    for (let f = 0; f <= 4; f++) {
+        const yv = yMin + (yMax - yMin) * f / 4;
+        const y = (H - PB) - (H - PB - 10) * f / 4;
+        s += '<text x="' + (PL - 5) + '" y="' + (y + 3) + '" text-anchor="end" font-size="9" ' +
+             'fill="#94a3b8">' + yv.toFixed(2) + '</text>';
+        s += '<line x1="' + PL + '" y1="' + y + '" x2="' + (W - 8) + '" y2="' + y +
+             '" stroke="#f1f5f9"/>';
+    }
+    s += '<text x="' + (W / 2) + '" y="' + (H - 2) + '" text-anchor="middle" font-size="10" ' +
+         'fill="#64748b">' + xLabel + '</text>';
+    s += '<text x="12" y="' + (H / 2) + '" text-anchor="middle" font-size="10" fill="#64748b" ' +
+         'transform="rotate(-90 12 ' + (H / 2) + ')">' + yLabel + '</text>';
+    return s;
+}
+
+function polyline(pts, stroke, dash, w) {
+    return '<polyline fill="none" stroke="' + stroke + '" stroke-width="' + (w || 2) + '"' +
+        (dash ? ' stroke-dasharray="6,4"' : '') +
+        ' points="' + pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') + '"/>';
+}
+
+function renderFringeChart() {
+    if (preset !== 'B1' && preset !== 'B2') return;
+    const W = 860, H = 240, PL = 42, PB = 28;
+    const sVal = preset === 'B1' ? 1 : currentS();
+    const toXY = function (phi, y) {
+        return [PL + (W - PL - 8) * phi / (2 * Math.PI),
+                (H - PB) - (H - PB - 10) * y];
+    };
+    let s = chartAxes(W, H, PL, PB, 0, 1, 'P(D1)', 'phase &phi; (0 to 360&deg;)');
+    const curve = [];
+    for (let i = 0; i <= 96; i++) {
+        const phi = 2 * Math.PI * i / 96;
+        curve.push(toXY(phi, markedMzProbabilityD1(phi, sVal)));
+    }
+    s += polyline(curve, '#f59e0b', false, 2.5);
+    const xNow = toXY(currentPhi(), 0)[0];
+    s += '<line x1="' + xNow + '" y1="10" x2="' + xNow + '" y2="' + (H - PB) +
+         '" stroke="#6d28d9" stroke-width="1.5" stroke-dasharray="4,4"/>';
+    run.sweep.forEach(function (d) {
+        const p = toXY(d.x, d.y);
+        s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) +
+             '" r="4" fill="#1d4ed8" opacity="0.85"/>';
+    });
+    $id('chart-fringe').innerHTML = s;
+}
+
+function renderCorrChart() {
+    if (preset !== 'D') return;
+    const W = 860, H = 240, PL = 42, PB = 28;
+    const toXY = function (delta, y) {
+        return [PL + (W - PL - 8) * delta / Math.PI,
+                (H - PB) - (H - PB - 10) * (y + 1) / 2];
+    };
+    let s = chartAxes(W, H, PL, PB, -1, 1, 'E(&Delta;)', 'analyzer difference &Delta; (0 to 180&deg;)');
+    const qc = [], cc = [];
+    for (let i = 0; i <= 96; i++) {
+        const d = Math.PI * i / 96;
+        qc.push(toXY(d, pairCorrelation(d, 0)));
+        cc.push(toXY(d, classicalWaveCorrelation(d)));
+    }
+    s += polyline(qc, '#f59e0b', false, 2.5);
+    s += polyline(cc, '#94a3b8', true, 2);
+    const dNow = Math.abs(currentAlpha() - currentBeta());
+    if (dNow <= Math.PI) {
+        const xNow = toXY(dNow, 0)[0];
+        s += '<line x1="' + xNow + '" y1="10" x2="' + xNow + '" y2="' + (H - PB) +
+             '" stroke="#6d28d9" stroke-width="1.5" stroke-dasharray="4,4"/>';
+    }
+    run.sweep.forEach(function (d) {
+        const p = toXY(d.x, d.y);
+        s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) +
+             '" r="4" fill="#1d4ed8" opacity="0.85"/>';
+    });
+    $id('chart-corr').innerHTML = s;
+}
+
+function renderAll() {
+    renderStats();
+    drawBench();
+    renderFringeChart();
+    renderCorrChart();
+}
+
+/* ── quiz ────────────────────────────────────────────────────────────────── */
+
+function checkAnswer(q, correct) {
+    const sel = document.querySelector('input[name="' + q + '"]:checked');
+    const fb = $id('fb-' + q);
+    fb.style.display = 'block';
+    if (!sel) {
+        fb.className = 'feedback wrong';
+        fb.textContent = 'Choose an answer first.';
+        return;
+    }
+    if (sel.value === correct) {
+        fb.className = 'feedback correct';
+        fb.innerHTML = '✓ Correct.';
+        if (q === 'q1') fb.innerHTML += ' One photon in superposition is not two photons: the path ' +
+            'measurement has two mutually exclusive outcomes, and "both click" is not in the outcome set.';
+        if (q === 'q2') fb.innerHTML += ' The two path amplitudes add before detection; at $\\varphi = 0$ ' +
+            'they cancel entirely toward D2 — a coin-flip-per-splitter model predicts 50/50 and is refuted.';
+        if (q === 'q3') fb.innerHTML += ' Identical probabilities, different post-measurement states — ' +
+            'the Lab 6 naive-resend attack failed on exactly this distinction.';
+    } else {
+        fb.className = 'feedback wrong';
+        fb.innerHTML = '✗ Not quite — revisit ';
+        if (q === 'q1') fb.innerHTML += 'Part A: how many outcomes does a one-photon path measurement have?';
+        if (q === 'q2') fb.innerHTML += 'Part B: what does the identity of two beam splitters in sequence do to the paths?';
+        if (q === 'q3') fb.innerHTML += 'the Procedure 1 vs Procedure 2 box in Part C: what state does each device leave?';
+    }
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([fb]);
+}
+
+/* init */
+renderRackInputs();
+selectPreset('A');
+</script>
+
+</body>
+</html>
