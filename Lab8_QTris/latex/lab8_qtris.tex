@@ -1,0 +1,1134 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{booktabs}
+
+% Page geometry
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% Custom colours
+\definecolor{ibmblue}{RGB}{0, 45, 156}
+\definecolor{ibmred}{RGB}{250, 75, 76}
+\definecolor{purpleaccent}{RGB}{109, 40, 217}
+\definecolor{amberaccent}{RGB}{245, 158, 11}
+\definecolor{tealaccent}{RGB}{13, 148, 136}
+\definecolor{shockorange}{RGB}{234, 88, 12}
+\definecolor{erratumrose}{RGB}{190, 24, 93}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Python code style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Custom boxes (titles always in braced form)
+\newtcolorbox{studentbox}{colback=blue!5!white,colframe=blue!75!black,title={Student Activity}}
+\newtcolorbox{theorybox}{colback=gray!5!white,colframe=gray!50!black,title={Theory Recap}}
+\newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title={Important}}
+\newtcolorbox{simulatorbox}{colback=purple!5!white,colframe=purple!75!black,title={Simulator}}
+\newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title={Quick Check}}
+\newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title={Connections to Previous Labs}}
+\newtcolorbox{procedurebox}{colback=red!4!white,colframe=red!70!black,title={Procedure 1 vs Procedure 2}}
+\newtcolorbox{questionbox}{colback=violet!4!white,colframe=violet!70!black,title={The Question}}
+\newtcolorbox{shockbox}{colback=shockorange!8!white,colframe=shockorange,title={Counterintuitive --- and Real}}
+\newtcolorbox{benchbox}{colback=teal!6!white,colframe=tealaccent,title={Open the Simulator First}}
+\newtcolorbox{playbox}{colback=teal!6!white,colframe=tealaccent,title={Play First}}
+\newtcolorbox{numberbox}{colback=green!4!white,colframe=green!50!black,title={Formula $\rightarrow$ Number $\rightarrow$ Bench}}
+\newtcolorbox{industrybox}{colback=amberaccent!10!white,colframe=amberaccent!90!black,title={Real-World Anchor}}
+\newtcolorbox{deepdivebox}{colback=cyan!4!white,colframe=cyan!60!black,title={Deep Dive}}
+\newtcolorbox{erratumbox}{colback=erratumrose!5!white,colframe=erratumrose,title={Erratum}}
+\newtcolorbox{creditsbox}{colback=amberaccent!8!white,colframe=amberaccent!80!black,title={About the Original Game}}
+
+% Bra-ket shorthands (guarded: never clash with package-provided macros)
+\providecommand{\ket}[1]{|#1\rangle}
+\providecommand{\bra}[1]{\langle#1|}
+\providecommand{\braket}[2]{\langle#1|#2\rangle}
+\providecommand{\ketbra}[2]{|#1\rangle\langle#2|}
+
+\title{\textbf{Laboratory Guide 8: QTris --- Quantum Mechanics as a Board Game}\\
+\large A Verified Digital Adaptation of QTris}
+\author{Course: Quantum Computing Foundation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction and Objectives}
+
+QTris plays tic-tac-toe on a $3 \times 3$ grid whose nine cells are \textbf{nine
+qubits}. Every tile is a quantum state, every move card is a reversible operation, and
+the endgame is a dice-resolved measurement that collapses the whole board to black and
+white before a single point can be scored. Its rulebook makes a bold claim: \emph{there
+is no fundamental difference between QTris and quantum mechanics.} That claim is
+checkable --- and this lab checks it. Every probability in the digital adaptation you
+will play is computed by an engine whose numbers were verified, state by state and table
+by table, against the game's printed measurement tables. Where the print and the physics
+agree (38 of the 40 printed rows, within a stated rounding of at most half a percentage
+point), you play the print. Where they provably cannot both be right (two rows --- see
+the erratum section), the physics wins, openly.
+
+You will play first and formalize second. The tally counters, the printed dice tables
+and an optional exact mode are all part of the instrument: the game is not an analogy
+for quantum mechanics --- it \emph{is} a quantum system you operate by hand, the same
+physics that runs Stern--Gerlach spin measurements and commercial quantum random-number
+generators.
+
+\vspace{0.3cm}
+\noindent\textbf{Prerequisites:}
+\begin{itemize}
+    \item \textit{Fundamental Concepts of Quantum Technologies} (lecture series).
+    \item Lab 5: \textit{Quantum Measurements} --- the Born rule, measurement
+          Procedures 1 and 2, the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$ and the
+          four Bell states.
+    \item Lab 6: \textit{Quantum Key Distribution (BB84)} --- mutually unbiased bases
+          (this lab's colour and orientation are exactly that pair).
+    \item Lab 7: \textit{Quantum Optics} --- the invariance of $\ket{\Phi^+}$ when both
+          members of a pair are rotated together, which this lab reuses and sharpens.
+    \item Familiarity with Dirac notation: $\ket{\psi}$, $\bra{\phi}$, $\braket{\phi}{\psi}$.
+\end{itemize}
+
+\begin{connectionbox}
+\textbf{The Lab 5--7 bridge.} The game's tiles are the Lab 5 states: white and black
+are the computational basis $\ket{0}, \ket{1}$, the two half-and-half tiles are
+$\ket{+}, \ket{-}$. Its colour and orientation questions are Lab 6's mutually unbiased
+pair, $Z$ versus $X$. Its entangled pairs are Lab 7's photon pairs with the analyzers
+replaced by dice, and the double-pink-square analysis in the erratum section is Lab 7's
+``rotate both analyzers together'' invariance --- now shown to hold for exactly two of the
+four Bell states.
+\end{connectionbox}
+
+\noindent\textbf{Mode:} Playable Board Game + Qiskit \quad\textbf{Credits:} 1 ECTS
+\quad\textbf{Estimated time:} $\approx$ 8 h
+
+\vspace{0.3cm}
+\noindent\textbf{Learning Objectives:}
+\begin{enumerate}
+    \item \textbf{Translate every QTris component into quantum-mechanical language} ---
+          tiles as states $\ket{W} = \ket{0}$, $\ket{B} = \ket{1}$, $\ket{R} = \ket{+}$,
+          $\ket{L} = \ket{-}$; cards as unitaries; dice as the Born rule.
+    \item \textbf{Predict measurement statistics} for single tiles and entangled pairs,
+          decorated or not, and confirm them against both the printed d100 tables and
+          the exact probabilities.
+    \item \textbf{Explain why the pink-square gate is a single canonical rotation}
+          $R(-60^\circ)$, and how one rotation produces the game's 25, 75, 93 and 7 ---
+          including where the $\sqrt{3}$ comes from.
+    \item \textbf{Distinguish Procedure 1 and Procedure 2} for a rotated-basis
+          measurement: identical statistics, different post-measurement states --- on
+          the game's own tiles.
+    \item \textbf{Recognize state-dependent rotational invariance}: why two pink squares
+          cancel exactly on two of the four entangled pair types and provably not on the
+          other two --- and how that catches a printed table in an error its own authors
+          missed.
+    \item \textbf{Operate sequential incompatible measurements} (colour vs orientation)
+          and connect them to Stern--Gerlach physics and spin qubits.
+\end{enumerate}
+
+\begin{creditsbox}
+\textbf{QTris} (\emph{QTris e Meccanica Quantistica}) was created by \textbf{Alioscia
+Hamma} (concept and physics) with the creative team \textbf{Immacolata De Simone},
+\textbf{Michela Nazzaro} and \textbf{Michele Viscardi} (illustrations by M.~Viscardi),
+produced by AH Quantum Lab and Communikart, and published online in 2024 by
+\textbf{NQSTI} --- the National Quantum Science and Technology Institute
+(\url{https://www.nqsti.it}), Italy's national quantum research partnership. The
+original rulebook is in Italian and is the authoritative source for every rule and
+printed table this adaptation implements. This lab is an independent educational
+adaptation built inside the same national ecosystem, with respect and with every
+deviation from the printed game declared explicitly (Section~\ref{sec:deviations}).
+The rulebook's own philosophy is worth quoting in spirit: the rules are not a metaphor
+for quantum mechanics --- the rules \emph{are} quantum mechanics. This adaptation takes
+that philosophy literally enough to verify it. No artwork from the original is
+reproduced here; only the printed numeric tables are transcribed, for the audit.
+\end{creditsbox}
+
+\noindent The original terms appear throughout the Italian rulebook; this guide uses
+the English terms below.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{p{3.6cm}p{4.6cm}p{6.6cm}}
+\toprule
+Italian (rulebook) & English (this guide) & Meaning \\
+\midrule
+tris & tris (three-in-a-row) & kept as the game's name element \\
+griglia / casella & grid / cell & the $3\times 3$ board; cells numbered 1--9 \\
+tessera & tile & the piece occupying a cell \\
+bianconera & \emph{bianconera} --- the half-and-half tile & the white-and-black tile; kept as a loanword \\
+orientata a destra / sinistra & right- / left-oriented & white half on the right / on the left \\
+carta mossa & move card & a playable operation: $I, X, Y, Z, H, U, C_X$ \\
+tessera quadrata rosa $U$ / rossa $H$ & pink $U$ square / red $H$ square & a marker placed under a tile \\
+decorare & to decorate & placing a square marker under a tile \\
+gattini di Schr\"odinger & Schr\"odinger's kittens & the rulebook's name for the bianconere \\
+stato entangled & entangled state & one state on two cells (triangle tiles) \\
+fase di preparazione / operazioni / misura & preparation / operations / measurement phase & the three phases of a game \\
+mulligan & mulligan & one optional opening redraw (rulebook's own loanword) \\
+Espansione & deck preset & Base, $+U$, $+C_X$, $+U{+}C_X$ \\
+\bottomrule
+\end{tabular}
+\caption{Translation glossary.}
+\label{tab:glossary}
+\end{table}
+
+\begin{simulatorbox}
+The lab's interactive page (\texttt{lab8\_qtris.html}) hosts the \textbf{playable
+game} built for this lab --- hot-seat, two players at one screen --- and it is the bench
+of this guide. Its \textbf{Play QTris} tab offers the four official deck presets
+(\textbf{Base}, \textbf{+U}, \textbf{+C$_X$} --- the didactic default ---
+and \textbf{+U+C$_X$}), a \textbf{dice toggle} between \emph{printed-tables} mode
+(d100 rolled against the published bands, the consulted row shown on every roll) and
+\emph{exact} mode (full-precision Born sampling), a seeded random setup or the
+rulebook's own example board, an opt-in probability preview, session tallies, and a
+scoring overlay on the eight lines. Its \textbf{Sandbox} tab is a single cell with a
+free card rack, colour measurement, and orientation measurement by Procedure~1 and by
+Procedure~2. Every displayed probability flows through the same verified reference
+engine as the formulas in this guide, and all runs are seeded: the same seed and the
+same sequence of actions always reproduce the same game.
+
+\medskip
+\textbf{This guide is written play-first.} Each Part opens with a ``Play First'' box.
+Do that two-minute run \emph{before} reading the theory: what you see at the board
+poses exactly the question the section then answers. The companion Qiskit notebook
+rebuilds the same states as quantum circuits and audits the printed tables in code:\\[4pt]
+\url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab8/lab8_qtris.ipynb}
+\end{simulatorbox}
+
+\newpage
+
+\section{Part 1: The Board --- Nine Cells, Nine Qubits}
+
+\begin{playbox}
+Start a game in the default preset (\textbf{+C$_X$}) with the dice toggle on
+\textbf{printed tables}. Play the ten turns any way you like, then run the measurement
+sweep and watch the dice panel: every roll names the printed row it consults and the
+band it lands in. Look at the session tally afterwards --- the fraction of half-and-half
+tiles that came up white. Play a few games: it drifts toward \textbf{50\%}. Keep that
+number in mind; Part~2 will do something to it that no coin allows.
+\end{playbox}
+
+\begin{questionbox}
+Every cell is full from move one, and yet nobody knows who's winning. What kind of
+board game can't tell you its own score until the dice say so?
+\end{questionbox}
+
+A game of QTris has three phases. In \textbf{preparation}, all nine cells are filled
+with tiles. In the \textbf{operations phase}, the players alternate for ten turns (five
+each), each turn drawing two cards and playing two --- cards act on any cell; there is
+no cell ownership. In the \textbf{measurement phase}, the cells are visited in order
+$1 \to 9$ and every unresolved tile is collapsed by a dice roll to plain white or
+black. Only then is the board scored: one point per three-in-a-row of your colour over
+the eight lines (three rows, three columns, two diagonals); most points wins.
+
+The tiles are states of a two-level system --- a qubit per cell:
+
+\begin{equation}
+    \ket{W} = \ket{0}, \qquad \ket{B} = \ket{1}, \qquad
+    \ket{R} = \ket{+} = \frac{\ket{0} + \ket{1}}{\sqrt 2}, \qquad
+    \ket{L} = \ket{-} = \frac{\ket{0} - \ket{1}}{\sqrt 2}.
+    \label{eq:tiles}
+\end{equation}
+
+White and black are the computational basis. The \emph{bianconera} --- half white,
+half black, with an orientation --- is an equal superposition; drawn with the white half
+on the \textbf{right} it is $\ket{+}$ (``right-oriented''), mirrored it is $\ket{-}$.
+This orientation convention is the one under which every drawing and every passage of
+the rulebook is self-consistent (one early caption is the sole exception --- erratum E3
+in Section~\ref{sec:erratum}). The colour measurement asks a superposed tile a question
+it does not have a definite answer to, and the Born rule replies with probabilities:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+tile & state & $P(W)$ & printed white band (d100) \\
+\midrule
+white & $\ket{0}$ & $1$ & 1--100 \\
+black & $\ket{1}$ & $0$ & --- (no white band) \\
+bianconera, right-oriented & $\ket{+}$ & $1/2$ & 1--50 \\
+bianconera, left-oriented & $\ket{-}$ & $1/2$ & 1--50 \\
+\bottomrule
+\end{tabular}
+\caption{The four undecorated tiles and their printed dice rows. A roll of 1--50 on a
+bianconera is white, 51--100 black.}
+\label{tab:tiles}
+\end{table}
+
+\begin{numberbox}
+$P(W \mid R) = |\braket{0}{+}|^2 = \tfrac12$, i.e.\ $0.500$ --- and the printed dice
+row for the bianconera is exactly 1--50 white, 51--100 black. At the board: measure a
+few games with bianconere on them and watch the white tally converge to 50\%. Then
+remember that this 50/50 is \emph{not} a coin: Part~2 un-flips it.
+\end{numberbox}
+
+\begin{theorybox}
+\textbf{Global phase is discarded --- by the game, deliberately.} A quantum state and
+the same state multiplied by a phase factor give identical probabilities for every
+measurement, so the game identifies them. Two consequences you can check on the move
+cards: the card $Z$ does nothing visible to a monochrome tile ($Z\ket{0} = \ket{0}$,
+$Z\ket{1} = -\ket{1}$) and the card $X$ does nothing visible to a bianconera
+($X\ket{\pm} = \pm\ket{\pm}$), so both are \emph{legal but invisible} plays --- the
+digital game lets you make them and tells you so. The card $Y$ acts as ``$X$ and $Z$
+at once'': $Y = iXZ$, and the $i$ is exactly what the game discards. Even the card $I$
+--- do nothing --- is a legal tempo move. A move that provably does nothing is itself
+teachable: it is what \emph{global phase} means.
+\end{theorybox}
+
+\begin{industrybox}
+\textbf{A research institute's outreach instrument.} QTris is not a classroom toy
+invented for this course. It is an instrument of Italy's national quantum initiative:
+conceived by a physicist, produced by a design team, playtested by university
+researchers and published by NQSTI --- the same ecosystem this course belongs to.
+Game-based learning is an active research line in quantum education (see the survey by
+Seskir et al.\ in the Resources), and QTris sits at its most literal end: the rules are
+not a metaphor for the theory, they \emph{are} the theory, which is why an engine can
+audit them.
+\end{industrybox}
+
+\section{Part 2: The Bianconera --- Why Orientation Matters}
+
+\begin{playbox}
+In any preset, find a right-oriented bianconera on the board (or make one: play $H$ on
+a white tile). Now play $H$ on it and run the sweep. The tile needs no dice at all ---
+it is white, with certainty. Do it with a left-oriented one: black, with certainty.
+The rulebook itself recommends this tactic.
+\end{playbox}
+
+\begin{questionbox}
+A half-white-half-black tile turns up white exactly half the time. So does a coin. Why
+does the game bother printing an orientation on the tile --- what could the direction
+of a 50/50 tile possibly change?
+\end{questionbox}
+
+The move cards answer it. The card $H$ connects the two families: it turns white into a
+right-oriented bianconera and back, black into a left-oriented one and back. So play $H$
+on a bianconera and the superposition \emph{closes}:
+
+\begin{equation}
+    H\ket{+} = \ket{0}, \qquad H\ket{-} = \ket{1}.
+    \label{eq:hclose}
+\end{equation}
+
+\begin{shockbox}
+\textbf{One card un-flips the coin.} No operation on a fair coin can make its next toss
+certain --- a probability distribution has no handle to grab. But $H$ on a
+right-oriented bianconera yields a \emph{certainly white} tile: 100\%, not 50. The
+bianconera was never a distribution; it is a state with a definite \emph{orientation},
+and the orientation is the handle. The rulebook calls these tiles Schr\"odinger's
+kittens for exactly this reason: the superposition is a real, manipulable thing.
+\end{shockbox}
+
+The same logic exposes the phase. The card $Z$ flips orientation,
+$Z\ket{\pm} = \ket{\mp}$, yet changes \emph{nothing} a colour measurement can see ---
+both orientations measure 50/50. Invisible? Only until an $H$ converts the hidden
+difference into opposite certainties: $H\ket{+} = \ket{0}$ (white for sure) while
+$H\ket{-} = \ket{1}$ (black for sure).
+
+\begin{shockbox}
+\textbf{The $Z$ card changes nothing you can see --- until it changes everything.}
+Phase is not bookkeeping. The game tracks it with tile orientation, and one $H$ card
+cashes it out as opposite certain colours. This is the same relative phase that Lab 7's
+interferometer converted into which-detector certainty.
+\end{shockbox}
+
+\begin{numberbox}
+$H\ket{+} = \ket{0}$, so $P(W \mid H \text{ on } R) = 1$: the number is $1.000$ --- not
+$0.500$. At the board: play $H$ on a bianconera, then measure. This is how you build a
+guaranteed tris piece out of chance.
+\end{numberbox}
+
+\begin{deepdivebox}
+\textbf{The single-tile card algebra.} The rulebook's operation map for single tiles is
+the Pauli/Hadamard action on the dictionary of equation~\eqref{eq:tiles}, taken modulo
+global phase: $X$ is the colour flip ($X\ket{0} = \ket{1}$; invisible on bianconere),
+$Z$ is the orientation flip ($Z\ket{\pm} = \ket{\mp}$; invisible on monochrome tiles),
+$Y$ does both at once ($Y = iXZ$, phase discarded), and $H$ is the two bridges
+$W \leftrightarrow R$, $B \leftrightarrow L$. Every one of these cards is its own
+inverse: $X^2 = Y^2 = Z^2 = H^2 = I$, so any card played twice on the same tile is a
+round trip --- the rulebook's own unitarity note, made tactile. Playing $H$ twice on a
+bianconera therefore returns the bianconera; playing $Z$ between the two $H$'s returns
+the \emph{opposite} colour --- phase, converted twice.
+\end{deepdivebox}
+
+\begin{connectionbox}
+Lab 7 converted a relative phase between two paths into a certain detector click at
+the second beam splitter. Equation~\eqref{eq:hclose} is the same conversion with the
+beam splitter replaced by an $H$ card and the two paths by the two colours: the
+orientation of a bianconera is a phase, and $H$ is the device that reads it.
+\end{connectionbox}
+
+\section{Part 3: Entanglement --- One State on Two Cells}
+
+\begin{playbox}
+In preset \textbf{+C$_X$}, play the $C_X$ card with a bianconera as control and a
+monochrome tile as target (the game asks you to declare which is which). The two cells
+become a pair of triangles --- one state on two cells. Run the sweep, and watch the pair
+counter in the session tally over several games: \textbf{100\% agreement}, while each
+member's own colour tally sits at 50/50. Entangle cells 1 and 9 --- opposite corners ---
+and check that distance changes nothing.
+\end{playbox}
+
+\begin{questionbox}
+Two triangles on opposite corners of the board always come up the same colour, every
+game, though each alone is a perfect coin toss. Where does the agreement live?
+\end{questionbox}
+
+The two-cell card $C_X$ (a controlled-NOT: the player declares which cell is control
+and which is target) is the game's only source of correlation. Played with a bianconera
+as control and a monochrome tile as target, it \emph{entangles} them into one of the
+four Bell states, shown on the board as a pair of triangles:
+
+\begin{equation}
+    (R, W) \to \Phi^+, \qquad (R, B) \to \Psi^+, \qquad
+    (L, W) \to \Phi^-, \qquad (L, B) \to \Psi^-
+    \label{eq:bellrecipe}
+\end{equation}
+
+\noindent --- control orientation $\mapsto$ sign of the pair, target colour $\mapsto$
+same-colour ($\Phi$) or opposite-colour ($\Psi$) type. The recipe is one line of algebra:
+with the control written first,
+
+\begin{equation}
+    \ket{+}\ket{0} = \frac{\ket{00} + \ket{10}}{\sqrt 2}
+    \;\xrightarrow{\;C_X\;}\;
+    \frac{\ket{00} + \ket{11}}{\sqrt 2} = \ket{\Phi^+},
+    \label{eq:cxderiv}
+\end{equation}
+
+\noindent and likewise $\ket{+}\ket{1} \to (\ket{01} + \ket{10})/\sqrt 2 = \ket{\Psi^+}$,
+$\ket{-}\ket{0} \to (\ket{00} - \ket{11})/\sqrt 2 = \ket{\Phi^-}$,
+$\ket{-}\ket{1} \to (\ket{01} - \ket{10})/\sqrt 2 = \ket{\Psi^-}$.
+
+\medskip
+\noindent\textbf{Reading order} (used everywhere in this guide, on the interactive page
+and in the notebook): pair outcomes like $WB$ are written \textbf{big-endian} --- the
+lower-numbered cell is the \textbf{leftmost} letter, exactly as $\ket{q_0 q_1}$ puts
+qubit 0 leftmost. Amplitude vectors are listed in the order
+$(WW, WB, BW, BB) = (\ket{00}, \ket{01}, \ket{10}, \ket{11})$. The companion notebook
+shows how to convert the opposite ordering used by common circuit software.
+
+A $\Phi^+$ pair measures $WW$ or $BB$ --- never mixed --- each with probability
+$\tfrac12$: each member alone is perfectly random, the two together perfectly agreed.
+The agreement does not live in either cell; it lives in the pair. Adjacency is
+irrelevant --- cells 1 and 9 entangle as happily as neighbours. And the same card played
+again on the pair \emph{disentangles} it back into the tiles it came from (the player
+chooses which output tile lands on which cell): every operation in the game is
+reversible; only the dice are not.
+
+\begin{shockbox}
+\textbf{Two cells that never touched agree forever.} One $C_X$ card creates perfect
+correlation with individually perfect randomness, at any board distance. This is the
+same resource measured in Lab 7's entangled-photon correlations, and the resource behind
+quantum key distribution (Lab 6): the correlation is a property of the joint state,
+stored in neither place.
+\end{shockbox}
+
+\begin{numberbox}
+$P(\text{same colour} \mid \Phi^+) = |\braket{00}{\Phi^+}|^2 + |\braket{11}{\Phi^+}|^2
+= \tfrac12 + \tfrac12 = 1$: agreement $1.000$, and the mixed outcomes have probability
+exactly $0$ --- bands that simply do not exist on the printed row (1--50 $\to WW$,
+51--100 $\to BB$, nothing else). At the board (preset +C$_X$): entangle two cells,
+measure many games, and watch the pair counter pin agreement at 100\% while each
+member's own tally sits at 50/50.
+\end{numberbox}
+
+\begin{deepdivebox}
+\textbf{The marker calculus --- how decorations compose.} A pair member may carry
+markers under its triangle: a red $H$ square (the $H$ card played on that member) and a
+pink $U$ square (Part~4). Each member's stack is one of $\{I, H, U, UH\}$, read from the
+tile outward, with $U$ always outermost: the $H$ card toggles the layer next to the
+tile, the $U$ card toggles the top layer. Three identities make the printed operation
+tables come out exactly:
+\begin{itemize}
+    \item \textbf{Both members marked $H$ normalize away.} $(H \otimes H)$ leaves
+          $\ket{\Phi^+}$ and $\ket{\Psi^-}$ unchanged and \emph{swaps} the other two:
+          $(H \otimes H)\ket{\Phi^-} = \tfrac{1}{\sqrt 2}(\ket{{+}{+}} - \ket{{-}{-}})
+          = \tfrac{1}{\sqrt 2}(\ket{01} + \ket{10}) = \ket{\Psi^+}$. So when the second
+          member receives an $H$ marker too, both markers come off and the pair is
+          relabelled $\Phi^- \leftrightarrow \Psi^+$ --- the rulebook prints exactly this
+          column.
+    \item \textbf{Paulis commute through $H$ with $X \leftrightarrow Z$.} $HX = ZH$ and
+          $HZ = XH$ (and $Y$ passes through up to phase). A $Z$ card on an $H$-marked
+          member therefore acts as $X$ on the core --- which is why the rulebook needs
+          \emph{two} $X$ columns and \emph{two} $Z$ columns for marked pairs (played on
+          the marked vs the unmarked member) but only one $Y$ column.
+    \item \textbf{Phase kickback.} $C_X$ with a bianconera control \emph{and} a
+          bianconera target flips the \emph{control's} orientation exactly when the
+          target is left-oriented: $C_X\,\ket{+}\ket{-} = \ket{-}\ket{-}$, while a
+          right-oriented target is an eigenstate and the play is invisible. The X-basis
+          CNOT runs backwards --- the case the printed tables do not cover, fixed by the
+          physics.
+\end{itemize}
+\textbf{Counting the state space.} 8 single-cell states (4 tiles $\times$ with/without
+pink square) and $4 \times 12 = 48$ entangled states (4 Bell cores $\times$ the
+$4 \times 4 = 16$ stack pairs minus the 4 in which both members carry $H$, which
+normalize away): 56 states in all, closed under every card. Small enough that every
+claim in this guide was checked exhaustively, not sampled.
+\end{deepdivebox}
+
+\begin{theorybox}
+\textbf{No signalling, printed.} Whatever markers sit under \emph{one} member of a pair,
+the \emph{other} member alone is a perfect coin: both single-cell marginals of every
+pair row are exactly $\tfrac12$, because local operations cannot change the reduced
+state $I/2$ of a Bell pair (Lab 7's ``each photon alone is a perfect coin''). The
+printed tables respect this \emph{even after rounding}: where the exact eighths
+$12.5/37.5$ had to become integers, the authors rounded them in opposite directions
+(12 and 38) so that every row still tiles 1--100 and both marginals still sum to
+exactly 50. Table~\ref{tab:pairs} shows the result.
+\end{theorybox}
+
+\begin{connectionbox}
+Lab 7's Part D showed photon pairs agreeing at matched analyzer angles while each side
+alone stayed 50/50; Lab 6 used the same correlations as the raw material of a key. The
+$C_X$ card is the pair source, the sweep is the pair of analyzers, and the printed
+$\Phi^+$ row --- $WW$ or $BB$, nothing else --- is the matched-angle perfect correlation.
+\end{connectionbox}
+
+\section{Part 4: The Pink Square --- One Hidden Rotation \textnormal{\normalsize(advanced)}}
+
+\begin{playbox}
+Switch to preset \textbf{+U}. Play the $U$ card on a right-oriented bianconera --- a pink
+square appears under it --- and run the sweep in printed-tables mode: the dice panel
+consults a \textbf{1--93} row. Flip the toggle to \textbf{exact} mode and measure again:
+the panel now serves $0.933013$ with all its digits. Decorate a white tile instead:
+\textbf{1--25}.
+\end{playbox}
+
+\begin{questionbox}
+One pink square turns your certain white tile into a 25\% underdog. What single
+operation produces 25, 75, 93 \emph{and} 7 --- and why does the 93 come with a
+$\sqrt{3}$ in it?
+\end{questionbox}
+
+The rulebook never writes the pink square's matrix --- it only prints its measurement
+table: a decorated white tile measures white 25\%, decorated black 75\%, decorated
+bianconere 93\% and 7\%. Those four rows pin the gate completely. Take the square to be
+a canonical (real) rotation by an angle $\theta$,
+
+\begin{equation}
+    R(\theta) = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix},
+    \qquad R(\theta)\ket{0} = \cos\theta\,\ket{0} + \sin\theta\,\ket{1}.
+    \label{eq:rot}
+\end{equation}
+
+\noindent The decorated-white row demands $\cos^2\theta = \tfrac14$, hence
+$\theta = \pm 60^\circ$; matching the 93 to the \emph{right}-oriented bianconera (and
+the 7 to the left-oriented one) fixes the sense:
+
+\begin{equation}
+    U = R(-60^\circ) = \begin{pmatrix} 1/2 & \sqrt{3}/2 \\ -\sqrt{3}/2 & 1/2 \end{pmatrix}.
+    \label{eq:ugate}
+\end{equation}
+
+\noindent Now $\ket{+} = R(45^\circ)\ket{0}$, and rotations compose by adding angles, so
+
+\begin{equation}
+    U\ket{+} = R(-60^\circ)\,R(45^\circ)\ket{0} = R(-15^\circ)\ket{0},
+    \label{eq:u15}
+\end{equation}
+\begin{equation}
+    P(W \mid U \text{ on } R) = \cos^2 15^\circ = \frac{1 + \cos 30^\circ}{2}
+    = \frac{2 + \sqrt{3}}{4} \approx 0.9330.
+    \label{eq:cos15}
+\end{equation}
+
+The game's mysterious 93 is $\cos^2$ of fifteen degrees --- an irrational probability,
+printed to two digits. Table~\ref{tab:single} lists all eight single-cell rows against
+the print.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llccc}
+\toprule
+tile & state & exact $P(W)$ & printed white band & gap \\
+\midrule
+white & $\ket{0}$ & $1$ & 1--100 & 0 \\
+black & $\ket{1}$ & $0$ & --- & 0 \\
+bianconera right & $\ket{+}$ & $1/2$ & 1--50 & 0 \\
+bianconera left & $\ket{-}$ & $1/2$ & 1--50 & 0 \\
+white $+\,U$ & $U\ket{0}$ & $1/4$ & 1--25 & 0 \\
+black $+\,U$ & $U\ket{1}$ & $3/4$ & 1--75 & 0 \\
+bianconera right $+\,U$ & $U\ket{+} = R(-15^\circ)\ket{0}$ & $(2+\sqrt 3)/4 \approx 0.9330$ & 1--93 & $0.0030$ \\
+bianconera left $+\,U$ & $U\ket{-}$ & $(2-\sqrt 3)/4 \approx 0.0670$ & 1--7 & $0.0030$ \\
+\bottomrule
+\end{tabular}
+\caption{The eight single-cell states and their printed dice rows. The two irrational
+rows are rounded by the print to two digits; the gap is $0.0030$.}
+\label{tab:single}
+\end{table}
+
+Unlike $X$, $Y$, $Z$ and $H$, this rotation does not map the simple tile family onto
+itself ($U\ket{0}$ is none of the four tiles) --- which is exactly why the pink square
+must \emph{stay on the board} as a marker instead of being absorbed into a relabelled
+tile, and why the +U presets are the advanced tier: one little square carries the game
+beyond the flip-and-mix world into genuinely new probabilities. In the language of Lab 5,
+$U$ is not a Clifford operation: it does not send Pauli operators to Pauli operators.
+
+\begin{numberbox}
+$P(W \mid U \text{ on } R) = \cos^2 15^\circ = \tfrac{2+\sqrt 3}{4}$. As a float64
+number this is $0.9330127018922193$ (exact mode displays $0.933013$); the print's 93
+rounds the physics by $0.0030$, within its stated half-point tolerance. At the board
+(preset +U): decorate a bianconera, roll against the printed 93/7 row, then flip to exact
+mode and see the value served with all its digits.
+\end{numberbox}
+
+\begin{deepdivebox}
+\textbf{Where the stack order is pinned, and where the eighths come from.} Two facts
+about decorated \emph{pairs} follow from equation~\eqref{eq:ugate}.
+\begin{itemize}
+    \item \textbf{$U$ outermost, not innermost.} A member carrying both a red and a pink
+          square could mean $UH$ (apply $H$, then $U$) or $HU$. The two differ:
+          $|\bra{0}UH\ket{0}|^2 = |\bra{0}U\ket{+}|^2 = \tfrac{2+\sqrt 3}{4}$ while
+          $|\bra{0}HU\ket{0}|^2 = \tfrac{2-\sqrt 3}{4}$. On a $\Phi^+$ pair the first
+          gives the outcome probabilities $(q_+, q_-, q_-, q_+)$ with
+          $q_\pm = \tfrac{2 \pm \sqrt 3}{8} \approx 0.4665,\ 0.0335$ --- the printed
+          \textbf{47/3/3/47} row --- and the second gives $(q_-, q_+, q_+, q_-)$, i.e.\
+          3/47/47/3. The print decides: the pink square sits outermost.
+    \item \textbf{The eighth family.} With a pink square on member 1 only,
+          $(U \otimes I)\ket{\Phi^+} = \tfrac{1}{\sqrt 2}\bigl(U\ket{0}\ket{0} +
+          U\ket{1}\ket{1}\bigr)$, and $U\ket{0} = (\tfrac12, -\tfrac{\sqrt 3}{2})$,
+          $U\ket{1} = (\tfrac{\sqrt 3}{2}, \tfrac12)$ give the amplitude vector
+          $\tfrac{1}{2\sqrt 2}\,(1, \sqrt 3, -\sqrt 3, 1)$ over $(WW, WB, BW, BB)$,
+          hence the probabilities $(\tfrac18, \tfrac38, \tfrac38, \tfrac18)$ --- the
+          rows the rulebook resolves exactly with an eight-sided die.
+    \item \textbf{Mirror symmetry.} Swapping the two members' stacks swaps the $WB$ and
+          $BW$ columns and nothing else, which is why the rulebook may tabulate
+          marker-on-member-1 configurations without loss.
+\end{itemize}
+\end{deepdivebox}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llcc}
+\toprule
+pattern & exact $(WW, WB, BW, BB)$ & printed d100 bands & exact die \\
+\midrule
+corr & $(\tfrac12, 0, 0, \tfrac12)$ & 1--50 / --- / --- / 51--100 & \\
+anti & $(0, \tfrac12, \tfrac12, 0)$ & --- / 1--50 / 51--100 / --- & \\
+unif & $(\tfrac14, \tfrac14, \tfrac14, \tfrac14)$ & 1--25 / 26--50 / 51--75 / 76--100 & \\
+$e^{8}$ & $(\tfrac18, \tfrac38, \tfrac38, \tfrac18)$ & 1--12 / 13--50 / 51--88 / 89--100 & d8: 1 / 2--4 / 5--7 / 8 \\
+$\bar e^{8}$ & $(\tfrac38, \tfrac18, \tfrac18, \tfrac38)$ & 1--38 / 39--50 / 51--62 / 63--100 & d8: 1--3 / 4 / 5 / 6--8 \\
+$g$ & $(q_+, q_-, q_-, q_+)$ & 1--47 / 48--50 / 51--53 / 54--100 & \\
+$\bar g$ & $(q_-, q_+, q_+, q_-)$ & 1--3 / 4--50 / 51--97 / 98--100 & \\
+\bottomrule
+\end{tabular}
+\caption{The seven outcome patterns of the printed pair tables, with
+$q_\pm = (2 \pm \sqrt 3)/8$. The rulebook's footnotes give the eight-sided-die
+procedure for the eighth-family rows and call their d100 bands an approximation.}
+\label{tab:patterns}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llcccc}
+\toprule
+member 1 & member 2 & $\Phi^+$ & $\Psi^+$ & $\Phi^-$ & $\Psi^-$ \\
+\midrule
+$I$ & $I$ & corr & anti & corr & anti \\
+$H$ & $I$ & unif & unif & unif & unif \\
+$U$ & $I$ & $e^{8}$ & $\bar e^{8}$ & $e^{8}$ & $\bar e^{8}$ \\
+$UH$ & $I$ & $g$ & $\bar g$ & $g$ & $\bar g$ \\
+$I$ & $U$ & $e^{8}$ & $\bar e^{8}$ & $e^{8}$ & $\bar e^{8}$ \\
+$H$ & $U$ & $g$ & $g$ & $\bar g$ & $\bar g$ \\
+$U$ & $U$ & corr & $\mathbf{\bar e^{8}}$\,$^\dagger$ & $\mathbf{e^{8}}$\,$^\dagger$ & anti \\
+$UH$ & $U$ & $\bar g$ & unif & unif & $g$ \\
+\bottomrule
+\end{tabular}
+\caption{The 32 printed pair rows (8 marker configurations $\times$ 4 Bell cores),
+every entry the exact Born distribution of the decorated state. All 32 printed rows
+match these patterns within the rounding of Table~\ref{tab:patterns} --- except the two
+marked $^\dagger$, which the rulebook prints as anti and corr respectively: erratum E2,
+Section~\ref{sec:erratum}. Note the $(H, U)$ row grouping by \emph{sign} rather than by
+colour type --- non-obvious, and exactly right.}
+\label{tab:pairs}
+\end{table}
+
+\begin{warningbox}
+\textbf{The rounding bound, audited.} Every printed d100 band is an integer, so the
+exact values $\{0, 1, \tfrac12, \tfrac14, \tfrac34, \tfrac18, \tfrac38, p_\pm, q_\pm\}$
+appear as $\{0, 100, 50, 25, 75, 12, 38, 93, 7, 47, 3\}$ out of 100. Over all 38
+conforming rows (8 single-cell + 30 pair rows) the largest gap between print and physics
+is \textbf{exactly $0.005$} --- half a percentage point, attained by the $12.5 \to 12$ and
+$37.5 \to 38$ roundings; the irrational rows err by $0.0030$ (93/7) and $0.0035$ (47/3).
+For the eighth-family rows the rulebook itself supplies an exact eight-sided-die
+procedure and calls the d100 version an approximation --- the source documents its own
+rounding layer. The digital game's exact mode extends that exactness to every row,
+including the irrational ones no die can realize.
+\end{warningbox}
+
+\begin{industrybox}
+\textbf{Randomness as a resource.} The measurement phase is a hand-executed Born
+sampler --- the same physics that commercial quantum random-number generators package in
+a chip: a superposed state, a projective measurement, an outcome no algorithm predicts.
+The dice toggle is that industry's central distinction made playable: printed-tables
+mode is a fixed integer approximation of the distribution (a pseudo-randomness of the
+values), exact mode samples the true Born probabilities. On 38 of 40 rows you cannot
+tell them apart to better than half a percentage point; on the two erratum rows only
+the physics is served.
+\end{industrybox}
+
+\section{Part 5: Measurement --- The Only Move You Can't Take Back}
+
+\begin{playbox}
+Open the \textbf{Sandbox} tab. Reset the cell to $W$ and press the guided chain:
+\emph{orientation $\to$ colour $\to$ orientation}. Run it many times and read the
+counters: \textbf{50/50 at every step}. The white tile you started from is gone after
+the first orientation measurement --- and measuring the colour again does not bring it
+back. Then run both orientation procedures on the same decorated tile and compare what
+is left on the cell afterwards.
+\end{playbox}
+
+\begin{questionbox}
+You just measured the tile white. Measure its orientation, then look at the colour
+again: half your whites turned black. Who repainted the tile?
+\end{questionbox}
+
+The endgame sweep visits cells $1 \to 9$. Monochrome tiles are skipped; every superposed
+or decorated tile resolves by one roll against its printed row; a triangle pair resolves
+\emph{jointly} --- one roll for both cells --- when the sweep first reaches it (at its
+lower-numbered cell; the partner is monochrome by the time the sweep arrives there).
+Every resolved state is replaced by a plain, undecorated outcome tile. Sweep again and
+nothing changes and no dice are consumed: that is collapse, operationally --- outcomes,
+once real, are stable.
+
+\begin{shockbox}
+\textbf{Measurement is the game's only irreversible move.} Every card can be undone
+--- $X$, $Y$, $Z$, $H$ and the pink square are their own inverses, $C_X$ un-entangles
+what it entangled. The dice cannot be un-rolled, and a white tile carries no memory of
+the bianconera it came from. Reversible dynamics, irreversible measurement: the deepest
+asymmetry in quantum mechanics, playable with cardboard.
+\end{shockbox}
+
+The \textbf{sandbox} lifts the rulebook's single-cell solitaire into a lab instrument.
+A colour measurement asks the $\ket{0}/\ket{1}$ question. An \emph{orientation}
+measurement asks the $\ket{+}/\ket{-}$ question, and the game offers it in two
+equivalent-but-different ways, named as in Lab 5.
+
+\begin{procedurebox}
+\textbf{Two ways to ask the orientation question.}
+\begin{itemize}
+    \item \textbf{Procedure 1} projects directly onto the orientation states
+          $\{\ket{+}, \ket{-}\}$: probabilities $|\braket{\pm}{\psi}|^2$, and the
+          post-measurement state is an oriented bianconera tile.
+    \item \textbf{Procedure 2} is the rulebook's own construction: apply $H$ --- the
+          canonical rotation for this basis --- measure \emph{colour}, and relabel the
+          outcomes (``swap the labels on the apparatus''). The post-measurement state is
+          a monochrome tile.
+\end{itemize}
+Identical statistics, different post-states. The statistics agree because
+$|\bra{0}H\ket{\psi}|^2 = |\braket{+}{\psi}|^2$ for every $\psi$ --- checked in the
+sandbox on a state where the answer is \emph{not} 50/50: for the decorated tile
+$U\ket{+} = R(-15^\circ)\ket{0}$ both procedures give $P(+) = \tfrac14$,
+$P(-) = \tfrac34$ (since $\cos 15^\circ - \sin 15^\circ = \sqrt{1 - \sin 30^\circ}$).
+The post-states differ: the overlap between Procedure 1's $\ket{+}$ tile and
+Procedure 2's $\ket{0}$ tile is $|\braket{+}{0}|^2 = \tfrac12$, not 1. Downstream
+cards see different tiles --- the Lab 5 and Lab 7 distinction, now on cardboard.
+\end{procedurebox}
+
+Colour and orientation are \emph{incompatible}: measuring one completely randomizes the
+other. Starting from a white tile, the chain orientation $\to$ colour $\to$ orientation
+gives 50/50 at every step. Nobody repainted the tile --- the colour question simply has
+no answer while the orientation is definite, and vice versa.
+
+\begin{numberbox}
+$|\braket{0}{+}|^2 = |\braket{+}{0}|^2 = \tfrac12$ --- the two bases are mutually
+unbiased (Lab 6's key-distribution pair, in tile form), so the chain reads $0.500$ at
+every step, forever. In the sandbox: run the guided chain from $W$; then run both
+procedures on the same decorated tile and compare post-states. And for the scoring
+rule, three boards you can set up and verify: an all-white board scores 8--0 (every
+line); white on the odd cells 1, 3, 5, 7, 9 and black elsewhere scores 2--0 (both
+diagonals); a white top row over a black remainder scores 1--2.
+\end{numberbox}
+
+\begin{industrybox}
+\textbf{Stern--Gerlach as a solitaire.} Replace colour/orientation by spin-$z$/spin-$x$
+and the sandbox chain is the sequential Stern--Gerlach experiment: a spin-up beam,
+measured along $x$, then along $z$ again, is 50/50 at every stage. That is exactly the
+readout principle of today's spin-qubit hardware, which reads one electron's spin at a
+time and pays the same price --- a measurement along one axis erases the other. The
+game's single cell is the same physics with dice.
+\end{industrybox}
+
+\begin{connectionbox}
+Lab 6 needed two bases that reveal nothing about each other --- $Z$ and $X$ --- so that
+an eavesdropper measuring in the wrong one both learns nothing and leaves a trace. The
+sandbox chain is that property on one tile: colour and orientation are exactly those two
+bases, and ``half your whites turned black'' is the trace.
+\end{connectionbox}
+
+\section{The Erratum Section: When Formalism Referees the Referee}
+\label{sec:erratum}
+
+This adaptation verified every printed measurement row against the underlying quantum
+mechanics. The result honours the game: \textbf{38 of the 40 printed rows are exact
+within their own stated rounding} --- the largest gap is half a percentage point, and the
+authors even rounded 12.5/37.5 in opposite directions (12 and 38) so the row totals and
+marginals stay perfect. Three small slips remain, declared here openly, because the
+game's own philosophy --- the rules \emph{are} the physics --- deserves to be taken
+seriously.
+
+\begin{shockbox}
+\textbf{The printed game itself slipped --- and the formalism catches it.} The
+double-pink-square table claims two pink squares never matter on an entangled pair.
+That is exactly true for two of the four pair types --- and provably impossible for the
+other two. Rotational invariance is a property of \emph{specific states}, not of
+entanglement in general. An engine that checks every number caught a table that
+playtesting could not.
+\end{shockbox}
+
+\begin{erratumbox}
+\textbf{E2 --- the double-$U$ rows.} The printed table for pairs with a pink square on
+\emph{each} member (the rulebook's Fig.~2.16, top) shows all four pair types unchanged
+--- perfect correlation or anticorrelation, as if the squares cancelled. Here is the
+derivation, step by step.
+
+\medskip
+\noindent\textbf{Step 1 --- the matrix picture.} Write a two-cell amplitude vector as a
+$2 \times 2$ matrix $M$ whose entry $M_{jk}$ is the amplitude of $\ket{jk}$. Then
+$\ket{\Phi^+} \leftrightarrow I/\sqrt 2$, $\ket{\Phi^-} \leftrightarrow Z/\sqrt 2$,
+$\ket{\Psi^+} \leftrightarrow X/\sqrt 2$, $\ket{\Psi^-} \leftrightarrow ZX/\sqrt 2$, and
+a product operation acts as
+\begin{equation}
+    (A \otimes B)\ket{\Phi^+} \;\leftrightarrow\; A\,B^{T}/\sqrt 2,
+    \qquad\text{so}\qquad
+    (U \otimes U)\ket{\Phi^-} \;\leftrightarrow\; U Z U^{T}/\sqrt 2 .
+    \label{eq:matrixpic}
+\end{equation}
+\textbf{Step 2 --- the two rows that are right.} $U U^{T} = I$ for any rotation, so
+$(U \otimes U)\ket{\Phi^+} = \ket{\Phi^+}$ exactly (Lab 7's ``rotate both together''
+invariance). And $U\,(ZX)\,U^{T} = ZX$ for every rotation, because $ZX$ is itself the
+rotation by $90^\circ$ and rotations commute --- so the singlet $\ket{\Psi^-}$ is
+invariant too. Rows 1 and 4 of the printed table are exactly right.
+
+\medskip
+\noindent\textbf{Step 3 --- the two rows that cannot be.} For the printed $\Phi^-$
+row (perfect correlation) the matrix $U Z U^{T}$ would have to be \emph{diagonal}. But for
+$U = R(\theta)$,
+\begin{equation}
+    R(\theta)\,Z\,R(\theta)^{T} = \begin{pmatrix} \cos 2\theta & \sin 2\theta \\
+    \sin 2\theta & -\cos 2\theta \end{pmatrix},
+    \qquad \theta = -60^\circ:\quad
+    U Z U^{T} = \begin{pmatrix} -\tfrac12 & -\tfrac{\sqrt 3}{2} \\
+    -\tfrac{\sqrt 3}{2} & \tfrac12 \end{pmatrix},
+    \label{eq:uzut}
+\end{equation}
+so the off-diagonal amplitude is $-\tfrac{\sqrt 3}{2}\cdot\tfrac{1}{\sqrt 2}$ and
+\begin{equation}
+    \bigl|(U Z U^{T})_{01}\bigr|^2 = \sin^2 120^\circ = \tfrac34 \;\ne\; 0 .
+    \label{eq:obstruction}
+\end{equation}
+The exact distribution of the double-$U$ $\Phi^-$ pair is therefore
+$(\tfrac18, \tfrac38, \tfrac38, \tfrac18)$ over $(WW, WB, BW, BB)$; the same computation
+with $X$ in place of $Z$ gives $(\tfrac38, \tfrac18, \tfrac18, \tfrac38)$ for the
+double-$U$ $\Psi^+$ pair. Against the printed $(\tfrac12, 0, 0, \tfrac12)$ and
+$(0, \tfrac12, \tfrac12, 0)$ that is a deviation of exactly $\tfrac38$ in every outcome
+--- not a rounding of anything.
+
+\medskip
+\noindent\textbf{Step 4 --- no other gate would help.} Suppose \emph{some} unitary
+$U$ made both the printed $\Phi^+$ row and the printed $\Phi^-$ row true. Then
+$U U^{T}$ and $U Z U^{T}$ would both be diagonal, hence so would their average
+$U\,\tfrac{I + Z}{2}\,U^{T} = U\ketbra{0}{0}U^{T} = u\,u^{T}$ with $u = U\ket{0}$. Its
+off-diagonal entry is $u_0 u_1$, so $u_0 u_1 = 0$ and $|\bra{0}U\ket{0}|^2 \in \{0, 1\}$
+--- flatly contradicting the printed 25/75 row for a decorated white tile. The same
+argument rules out any \emph{pair} of gates $U \otimes V$. No assignment of any rotation,
+indeed any unitary, to the pink square can make the printed table true.
+
+\medskip
+\noindent\textbf{Resolution in this adaptation.} The two rows resolve by the exact
+eighth-partitions on an eight-sided die --- $\Psi^+$: 1--3 / 4 / 5 / 6--8,
+$\Phi^-$: 1 / 2--4 / 5--7 / 8 --- in \emph{both} dice modes (the same exact-die
+procedure the rulebook itself provides for its other eighth-valued rows); the printed
+bands for these two rows are shown only in the interactive page's erratum panel, as
+documentation. Framing matters: this is a transcription slip in an otherwise remarkably
+accurate physical game --- two rows out of forty, in the hardest table of the book. The
+design is sound; the formalism simply referees everyone, authors included. That is the
+point of formalism.
+\end{erratumbox}
+
+\begin{erratumbox}
+\textbf{E1 --- one number in a margin note.} A collapse-stability note late in the
+rulebook (p.~37) quotes probability $\tfrac14$ for a decorated right-oriented
+bianconera turning up white. The book's own printed table (the 1--93 row) and the
+physics give $\tfrac{2 + \sqrt 3}{4} \approx 0.933$; the quoted $\tfrac14$ belongs to the
+decorated \emph{white} tile two rows up. An authorial slip with no effect on any rule
+--- the note's actual argument (collapsed outcomes are stable) is untouched. Recorded so
+nobody re-quotes the number.
+\end{erratumbox}
+
+\begin{erratumbox}
+\textbf{E3 --- two swapped words in one caption.} One early figure caption (the
+rulebook's Fig.~2.3) names its right-oriented cell ``left-oriented'' and vice versa ---
+the words are swapped relative to the drawing. Every other orientation-bearing figure
+and passage in the book (five drawings, four independent prose passages) agrees with the
+drawing, so the drawing is authoritative and this adaptation's tiles follow it:
+right-oriented means \emph{white half on the right}. Worth recording because readers
+comparing this guide against that one caption would otherwise think the adaptation had
+it backwards. No probability is affected.
+\end{erratumbox}
+
+\section{Declared Deviations from the Printed Game}
+\label{sec:deviations}
+
+Everything this adaptation does differently from the physical edition, in one list:
+
+\begin{enumerate}
+    \item \textbf{Ambiguity resolutions.} Where the printed rules are silent --- the
+          exact mulligan procedure, tie handling, who is control and who is target when
+          $C_X$ is played, how stacked markers compose, how the d100 is read, the
+          three-pair limit --- this adaptation fixes each gap physics-first, guided by
+          the rulebook's own examples, and enforces the result consistently. Notably: the
+          player \emph{declares} control and target on every $C_X$; marker stacks
+          compose with the pink square outermost (the unique order matching the printed
+          47/3 rows); ties re-roll; equal scores are a draw.
+    \item \textbf{Exact mode.} The physical game rolls d100 against printed integer
+          bands. This adaptation adds an optional exact mode that samples the true
+          probabilities in full precision --- and documents that on 38 of 40 rows the
+          printed bands sit within $0.005$ of the truth. The printed-tables mode remains
+          the default and reproduces the published bands verbatim.
+    \item \textbf{English translation.} The original is Italian; this guide and the
+          interactive page are English, with the glossary of Table~\ref{tab:glossary}.
+          Rule semantics are unchanged in translation.
+    \item \textbf{A seam for a computer opponent.} The engine is a pure state machine
+          with no assumptions about who chooses moves, so a vs-computer mode can attach
+          later. It is deliberately \emph{not} implemented: hot-seat play between two
+          humans is the mode the original game is designed around.
+    \item \textbf{The two erratum rows are not playable as printed.} The double-$U$
+          rows for $\Psi^+$ and $\Phi^-$ resolve by the exact eighth-partitions in
+          \emph{both} dice modes; the impossible printed bands appear only in the
+          erratum panel. Serving the physics --- openly --- was judged more faithful to
+          the game's philosophy than serving the typo.
+\end{enumerate}
+
+\noindent For completeness, the game's own numbers as implemented: the four deck
+presets are Base ($I$ 6, $X$ 12, $Y$ 6, $Z$ 14, $H$ 18), +U (5, 10, 5, 11, 11, $U$ 10),
++C$_X$ (5, 10, 5, 11, 11, $C_X$ 10) and +U+C$_X$ (4, 8, 4, 9, 9, $U$ 9, $C_X$ 9); six
+cards are dealt to each player, at most one mulligan each, then ten turns of draw two /
+play two, so the deck is never exhausted ($12 + 20 + 12 = 44$ cards at most, counting a
+worst-case mulligan, against the smallest preset); turn order and the colour White go to
+the higher of two eight-sided dice; at most three entangled pairs coexist on the board.
+
+\newpage
+
+\section{Part 6: Guided Activities}
+
+\begin{simulatorbox}
+All activities below run on the game and sandbox of the lab's interactive page
+(\texttt{lab8\_qtris.html}); the preset to use is named in each activity. All runs
+are seeded --- the same seed always reproduces the same game. Activity 6 uses the
+companion Qiskit notebook:\\[4pt]
+\url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab8/lab8_qtris.ipynb}
+\end{simulatorbox}
+
+\subsection{Activity 1: The Bianconera Tally and the \texorpdfstring{$H$}{H} Rescue (Preset \texorpdfstring{+C$_X$}{+CX})}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Play several games in printed-tables mode and read the session tally: what
+          fraction of half-and-half tiles came up white? Explain the number with
+          equation~\eqref{eq:tiles} and the Born rule.
+    \item In the operations phase, play $H$ on a right-oriented bianconera and run the
+          sweep. Why does this tile consume no dice roll? Which state was it in before,
+          and which after? (Equation~\eqref{eq:hclose}.)
+    \item Play $Z$ on a bianconera, then $H$, then measure. Compare with $H$ alone.
+          Where was the difference stored while the tile still measured 50/50?
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 2: The Pair Counter (Preset \texorpdfstring{+C$_X$}{+CX})}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Entangle two far-apart cells with $C_X$ (bianconera control, monochrome
+          target). Over several games, verify that the pair counter reads 100\%
+          agreement while each member's own tally stays near 50/50.
+    \item Using the recipe of equation~\eqref{eq:bellrecipe}, prepare each of the four
+          Bell pairs from tiles and check, with the probability preview, which two give
+          $WW/BB$ and which two give $WB/BW$. Why is the sign of the pair invisible to
+          the colour measurement?
+    \item Play $C_X$ again on the pair you made. What comes back, and who chooses where?
+          Starting from a white and a black tile, prepare the $\Psi^-$ pair using only
+          cards --- one solution uses two cards.
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 3: The 93 and Exact Mode (Preset +U)}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Decorate a right-oriented bianconera with the pink square and measure it in
+          printed-tables mode: name the row consulted. Switch to exact mode and measure
+          again: read the probability the panel serves and compare with
+          equation~\eqref{eq:cos15}.
+    \item Decorate a white tile, then a black tile. Verify 25\% and 75\% against
+          Table~\ref{tab:single}, and explain both from the matrix~\eqref{eq:ugate}.
+    \item Why can no card stack ever make a pink-decorated tile \emph{certain}? (Its
+          four possible values of $P(W)$ are $\tfrac14$, $\tfrac34$ and
+          $(2 \pm \sqrt 3)/4$.) What single card removes the problem?
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 4: Making the Erratum Visible (Preset \texorpdfstring{+U+C$_X$}{+U+CX})}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Build a $\Phi^-$ pair (left-oriented control on a white target), decorate
+          \emph{both} members with pink squares, and measure many times in either dice
+          mode. Compare your tallies with the exact eighths
+          $(\tfrac18, \tfrac38, \tfrac38, \tfrac18)$ and with the printed row shown in
+          the erratum panel.
+    \item Do the same with a $\Phi^+$ pair. Why do two pink squares cancel here and not
+          on $\Phi^-$? Point to the line of Section~\ref{sec:erratum} that decides it.
+    \item State in one sentence why \emph{no} choice of gate for the pink square could
+          make the printed double-$U$ table right (Step~4 of erratum E2).
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 5: The Sandbox Chain and the Two Procedures}
+
+\begin{studentbox}
+\begin{enumerate}
+    \item Run the guided chain $W \to$ orientation $\to$ colour $\to$ orientation many
+          times. Record the counters at each step and explain the three 50/50 results
+          with mutual unbiasedness.
+    \item On the same decorated tile $U\ket{+}$, run Procedure 1 and Procedure 2 many
+          times each. Confirm the statistics agree (and are not 50/50). Then compare the
+          tiles left on the cell afterwards.
+    \item Try to find a state for which Procedures 1 and 2 give different
+          \emph{statistics}. (You can't --- that is the theorem. Then say precisely
+          what \emph{does} differ.)
+\end{enumerate}
+\end{studentbox}
+
+\subsection{Activity 6: The Game in Qiskit}
+
+The companion notebook rebuilds this guide's states as quantum circuits: the eight
+single-cell tiles (the pink square as an explicit $R(-60^\circ)$, also written as a
+standard $R_y$ gate), the four Bell pairs prepared exactly the way the $C_X$ card
+prepares them, the full printed measurement table reproduced from state-vector
+probabilities --- including a computed, not asserted, verdict on the two erratum rows
+--- seeded sampling runs beside the exact numbers, and the two orientation procedures
+side by side. Its tile-preparation circuit is a few lines long:
+
+\begin{lstlisting}[language=Python]
+def single_cell_circuit(name: str) -> QuantumCircuit:
+    """Preparation circuit of a tile state ('W', 'B', 'R', 'L', 'UW', ...)."""
+    qc = QuantumCircuit(1)
+    base = name[-1]
+    if base == "B":
+        qc.x(0)
+    elif base == "R":
+        qc.h(0)
+    elif base == "L":
+        qc.x(0)
+        qc.h(0)
+    if len(name) == 2:                       # the pink square, outermost
+        qc.ry(-2 * np.pi / 3, 0)
+    return qc
+\end{lstlisting}
+
+\noindent The pink square is $R_y(-2\pi/3)$ --- the same matrix as
+equation~\eqref{eq:ugate}, pinned entrywise in the notebook before use. All notebook
+experiments are seeded and reproducible; expected values are stated with full-precision
+literals and tolerances.
+
+\begin{warningbox}
+\textbf{Qiskit bit-ordering note.} Qiskit orders multi-qubit bitstrings little-endian
+(rightmost bit = qubit $q_0$), while this lab series writes states big-endian (qubit 0
+leftmost). Every entangled pair in QTris is a two-qubit register with qubit 0 = the
+lower-numbered cell, so \emph{every} displayed pair outcome must be converted to the
+leftmost-first ordering of this guide. The notebook shows exactly how --- a string
+reversal --- and applies it to every histogram and state vector.
+\end{warningbox}
+
+\subsection{Activity 7: Quick Check}
+
+\begin{reflectionbox}
+\textbf{Question 1:} A right-oriented bianconera is on cell 5. Which single card makes
+the upcoming colour measurement \emph{certain}, and with which outcome?
+\begin{itemize}
+    \item[(a)] $X$ --- certain black \qquad (b) $H$ --- certain white \qquad
+               (c) $Z$ --- certain white
+\end{itemize}
+
+\textbf{Question 2:} A $\Psi^+$ pair (no markers) is measured. What is the probability
+that the two cells come up the \emph{same} colour?
+\begin{itemize}
+    \item[(a)] $1/2$ \qquad (b) $1$ \qquad (c) $0$
+\end{itemize}
+
+\textbf{Question 3:} $P(W)$ for a pink-decorated right-oriented bianconera is
+$\cos^2 15^\circ$. Which printed band encodes it, and how far is the print from the
+physics?
+\begin{itemize}
+    \item[(a)] 1--75; off by $0.005$ \qquad (b) 1--93; off by $0.003$ \qquad
+               (c) 1--93; exact
+\end{itemize}
+
+\textbf{Question 4:} Why can \emph{no} choice of gate for the pink square make the
+printed double-$U$ table right?
+\begin{itemize}
+    \item[(a)] Because the printed $\Phi^+$ and $\Phi^-$ rows together would force
+               decorated colours to stay definite, contradicting the 25/75 row.
+    \item[(b)] Because two rotations can never cancel.
+\end{itemize}
+\end{reflectionbox}
+
+\section{Resources}
+
+\begin{itemize}
+    \item Hamma, A.; De Simone, I.; Nazzaro, M.; Viscardi, M., \textit{QTris e
+          Meccanica Quantistica}, AH Quantum Lab / Communikart, online edition for the
+          NQSTI site, 2024 (Italian). --- The original game: rulebook and printable
+          components; the normative source for every rule and printed table in this
+          guide.
+    \item NQSTI --- National Quantum Science and Technology Institute,
+          \url{https://www.nqsti.it}. --- Publisher of the online edition and the
+          ecosystem this adaptation belongs to.
+    \item Rudolph, T., \textit{Q is for Quantum}, 2017 (Italian translation
+          \textit{Quanti}, Adelphi, 2020 --- the edition the rulebook recommends). ---
+          The black-and-white-ball pedagogy the game's tiles descend from.
+    \item Nielsen, M. A. \& Chuang, I. L., \textit{Quantum Computation and Quantum
+          Information}, Cambridge University Press, 2010. --- Pauli and Clifford
+          algebra, Bell states, CNOT conventions.
+    \item Seskir, Z. C. et al., ``Quantum games and interactive tools for quantum
+          technologies outreach and education,'' \textit{Optical Engineering}
+          \textbf{61}(8), 081809 (2022). --- Where games like QTris sit in quantum
+          education.
+    \item Lab 5: \textit{Quantum Measurements}, Lab 6: \textit{Quantum Key Distribution
+          (BB84)} and Lab 7: \textit{Quantum Optics} (this series). --- Born rule,
+          Procedures 1 and 2, mutual unbiasedness, and the pair-rotation invariance
+          reused in the erratum section.
+    \item Companion Jupyter notebook:
+          \texttt{quantum-labs-2026/lab8/lab8\_qtris.ipynb} (Colab link in Part 6).
+\end{itemize}
+
+\end{document}
