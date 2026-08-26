@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Lab 8: QTris — Quantum Mechanics as a Board Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --clr-hero1: #1e1b4b; --clr-hero2: #4c1d95;
+            --clr-accent: #f59e0b; --clr-accent2: #0d9488;
+            --clr-white-tile: #fafafa; --clr-black-tile: #1f2937;
+            --pair-0: #eab308; --pair-1: #22c55e; --pair-2: #3b82f6;
+        }
+        body { background: #f6f7fb; color: #1f2430; }
+        .hero-section { background: linear-gradient(135deg, var(--clr-hero1), var(--clr-hero2));
+            color: #fff; padding: 56px 0 48px; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.35); border-radius: 20px;
+            padding: 5px 14px; font-size: .82rem; margin: 3px; }
+        .hero-tag { display: inline-block; background: var(--clr-accent); color: #1f2430;
+            border-radius: 20px; padding: 5px 14px; font-size: .82rem; font-weight: 700; margin: 3px; }
+        .section-title { border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+            margin-bottom: 18px; font-weight: 700; }
+        .question-box { background: #eef2ff; border-left: 5px solid #6366f1;
+            border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 14px 0 20px;
+            font-size: 1.06rem; font-style: italic; color: #312e81; }
+        .question-box .q-tag { display: block; font-style: normal; font-weight: 800;
+            font-size: .72rem; letter-spacing: 1.5px; color: #6366f1; margin-bottom: 4px; }
+        .formula-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 14px 18px; margin: 14px 0; }
+        .triple-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px;
+            padding: 14px 18px; margin: 14px 0; font-size: .95rem; }
+        .triple-box .t-step { font-weight: 800; color: #0f766e; margin-right: 6px; }
+        .shock-box { background: #fff7ed; border: 2px solid #ea580c; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 22px 0; position: relative; }
+        .shock-tag { position: absolute; top: -12px; left: 16px; background: #ea580c;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .erratum-box { background: #fdf2f8; border: 2px solid #be185d; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 22px 0; position: relative; }
+        .erratum-tag { position: absolute; top: -12px; left: 16px; background: #be185d;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .glossary-table td, .glossary-table th { font-size: .9rem; }
+        .sim-shell { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+            box-shadow: 0 8px 26px rgba(15,23,42,.08); overflow: hidden; }
+        .sim-head { background: #0f172a; color: #fff; padding: 14px 22px; }
+        .sim-body { padding: 22px; }
+        .preset-btn { border: 2px solid #cbd5e1; background: #fff; border-radius: 8px;
+            padding: 7px 12px; font-weight: 700; font-size: .86rem; color: #334155; }
+        .preset-btn.active { border-color: var(--clr-accent2); background: #f0fdfa; color: #0f766e; }
+        .preset-btn .preset-sub { display: block; font-weight: 400; font-size: .7rem; color: #64748b; }
+        .mode-btn { border: 2px solid #cbd5e1; background: #fff; border-radius: 8px;
+            padding: 7px 12px; font-weight: 700; font-size: .86rem; color: #334155; }
+        .mode-btn.active { border-color: #b45309; background: #fffbeb; color: #92400e; }
+        .qt-board { display: grid; grid-template-columns: repeat(3, 108px);
+            grid-template-rows: repeat(3, 108px); gap: 8px; justify-content: center; }
+        .qt-cell { background: #f1f5f9; border: 2px solid #cbd5e1; border-radius: 10px;
+            position: relative; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: box-shadow .12s, border-color .12s; }
+        .qt-cell:hover { border-color: #94a3b8; }
+        .qt-cell.sel-control { border-color: #7c3aed; box-shadow: 0 0 0 3px #ddd6fe; }
+        .qt-cell.sel-target { border-color: #0d9488; box-shadow: 0 0 0 3px #99f6e4; }
+        .qt-cell.resolving { border-color: #ea580c; box-shadow: 0 0 0 3px #fed7aa; }
+        .qt-cell.line-win { background: #fef9c3; border-color: #ca8a04; }
+        .qt-cell .cell-num { position: absolute; top: 3px; left: 7px; font-size: .68rem;
+            color: #94a3b8; font-weight: 700; }
+        .hand-card { border: 2px solid #cbd5e1; background: #fff; border-radius: 8px;
+            min-width: 52px; padding: 8px 0; font-weight: 800; font-size: 1.05rem;
+            color: #1e293b; text-align: center; cursor: pointer; }
+        .hand-card:hover { border-color: #64748b; }
+        .hand-card.selected { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+        .hand-card.discard-sel { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+        .status-banner { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px;
+            padding: 10px 16px; font-weight: 600; color: #312e81; font-size: .95rem; }
+        .roll-panel { background: #0f172a; color: #e2e8f0; border-radius: 10px;
+            padding: 16px 18px; font-size: .9rem; }
+        .roll-panel .prov { color: #94a3b8; font-size: .8rem; }
+        .die-face { display: inline-flex; width: 44px; height: 44px; background: #fff;
+            color: #0f172a; border-radius: 8px; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.3rem; margin-right: 8px; }
+        .band-strip { display: flex; height: 26px; border-radius: 6px; overflow: hidden;
+            border: 1px solid #334155; margin: 8px 0; }
+        .band-seg { display: flex; align-items: center; justify-content: center;
+            font-size: .68rem; font-weight: 700; color: #0f172a; min-width: 0; }
+        .band-seg.hit { outline: 3px solid #f59e0b; outline-offset: -3px; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 12px 14px; text-align: center; height: 100%; }
+        .stat-value { font-size: 1.35rem; font-weight: 800; font-family: monospace; color: #062f43; }
+        .stat-label { font-size: .78rem; color: #475569; font-weight: 600; margin-bottom: 2px; }
+        .info-box-interactive { background: #e8f4f8; border-left: 4px solid #0dcaf0;
+            padding: 13px; border-radius: 0 4px 4px 0; font-size: .92rem; color: #222;
+            min-height: 52px; margin-top: 12px; }
+        .handoff-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.93);
+            z-index: 1060; display: flex; align-items: center; justify-content: center;
+            color: #fff; text-align: center; cursor: pointer; }
+        .feedback { display: none; margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .correct { background-color: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .wrong   { background-color: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+        .task-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            overflow: hidden; margin: 16px 0; }
+        .task-header { background: #f1f5f9; padding: 12px 18px; font-weight: 700; }
+        .task-body { padding: 16px 18px; }
+        .colab-btn { background: #f59e0b; color: #1f2430; font-weight: 700; }
+        .dev-list li { margin-bottom: 10px; }
+        pre { background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 8px;
+            font-size: .85rem; overflow-x: auto; }
+        code { font-family: 'Courier New', monospace; }
+        .sandbox-cell { width: 130px; height: 130px; margin: 0 auto; background: #f1f5f9;
+            border: 2px solid #cbd5e1; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; }
+        .prob-bar-row { display: flex; align-items: center; gap: 8px; font-size: .82rem;
+            font-family: monospace; margin: 3px 0; }
+        .prob-bar-shell { flex: 1; background: #e2e8f0; border-radius: 4px; height: 14px; }
+        .prob-bar-fill { background: #0d9488; height: 14px; border-radius: 4px; }
+        .prob-bar-fill.printed { background: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  HERO                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="hero-section text-center">
+    <div class="container position-relative">
+        <p class="mb-2" style="font-size:.8rem;letter-spacing:2px;text-transform:uppercase;opacity:.7;">
+            Quantum Computing Foundation
+        </p>
+        <h1 class="display-4 fw-bold mb-2">
+            <i class="fa-solid fa-chess-board"></i> Lab 8: QTris
+        </h1>
+        <p class="lead mb-2 opacity-75">
+            Quantum Mechanics as a Board Game — a Verified Digital Adaptation of QTris
+        </p>
+        <p class="mb-4" style="font-size:.85rem;opacity:.65;">
+            Original game: <em>QTris e Meccanica Quantistica</em> — Alioscia Hamma / AH Quantum Lab,
+            NQSTI online edition 2024. Adapted with full attribution; see the credits section below.
+        </p>
+        <div>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Labs 5–7</span>
+            <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
+            <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 8 h lab work</span>
+            <span class="hero-badge"><i class="fa-solid fa-dice me-1"></i>Mode: Playable Board Game + Qiskit</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5 pb-4">
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  RATIONALE                                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-microscope text-warning me-2"></i>Rationale</h2>
+            <div class="question-box">
+                <span class="q-tag">THE DRIVING QUESTION</span>
+                Every cell of the board is full from move one, and yet nobody knows who's winning.
+                What kind of board game can't tell you its own score until the dice say so?
+            </div>
+            <p class="fs-5 text-secondary lh-lg">
+                QTris plays tic-tac-toe on a 3×3 grid whose nine cells are nine qubits. Every tile is a
+                quantum state, every move card is a reversible operation, and the endgame is a dice-resolved
+                measurement that collapses the whole board to black and white before a single point can be
+                scored. Its rulebook makes a bold claim: <em>there is no fundamental difference between QTris
+                and quantum mechanics.</em> That claim is checkable — and this lab checks it. Every
+                probability in this digital adaptation is computed by an engine whose numbers were verified,
+                state by state and table by table, against the game's printed measurement tables. Where the
+                print and the physics agree (38 of 40 rows, within a stated rounding of at most half a
+                percentage point), you play the print. Where they provably cannot both be right (two rows —
+                see the erratum panel), the physics wins, openly.
+            </p>
+            <p class="text-secondary lh-lg">
+                You will play first and formalize second. The tally counters, the printed dice tables, and
+                an optional exact mode are all part of the instrument: the game is not an analogy for
+                quantum mechanics — it <em>is</em> a quantum system you operate by hand, the same physics
+                that runs Stern-Gerlach spin measurements and commercial quantum random-number generators.
+            </p>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  LEARNING OUTCOMES                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-star text-warning me-2"></i>Learning Outcomes</h2>
+            <ul class="lh-lg text-secondary">
+                <li>Translate every QTris component into quantum-mechanical language: tiles as states
+                    $|W\rangle = |0\rangle$, $|B\rangle = |1\rangle$, $|R\rangle = |+\rangle$,
+                    $|L\rangle = |-\rangle$; cards as unitaries; dice as the Born rule.</li>
+                <li>Predict measurement statistics for single tiles and entangled pairs, decorated or not,
+                    and confirm them against both the printed d100 tables and the exact probabilities.</li>
+                <li>Explain why the pink-square gate is a single canonical rotation $R(-60°)$, and how one
+                    rotation produces the game's 25, 75, 93 and 7 — including where the $\sqrt{3}$
+                    comes from.</li>
+                <li>Distinguish Procedure 1 and Procedure 2 for a rotated-basis measurement: identical
+                    statistics, different post-measurement states — on the game's own tiles.</li>
+                <li>Recognize state-dependent rotational invariance: why two pink squares cancel exactly on
+                    two of the four entangled pair types and provably not on the other two — and how that
+                    catches a printed table in an error its own authors missed.</li>
+                <li>Operate sequential incompatible measurements (color vs orientation) and connect them to
+                    Stern-Gerlach physics and spin qubits.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  ABOUT THE ORIGINAL GAME + GLOSSARY                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-heart text-warning me-2"></i>About the Original Game</h2>
+            <p class="text-secondary lh-lg">
+                <strong>QTris</strong> (<em>QTris e Meccanica Quantistica</em>) was created by
+                <strong>Alioscia Hamma</strong> (concept and physics) with the creative team
+                <strong>Immacolata De Simone</strong>, <strong>Michela Nazzaro</strong> and
+                <strong>Michele Viscardi</strong> (illustrations by M. Viscardi), produced by
+                AH Quantum Lab and Communikart, and published online in 2024 by
+                <strong>NQSTI</strong> — the National Quantum Science and Technology Institute
+                (<a href="https://www.nqsti.it" target="_blank" rel="noopener">nqsti.it</a>), Italy's
+                national quantum research partnership. The original rulebook is in Italian and is the
+                authoritative source for every rule and printed table this adaptation implements. This lab
+                is an educational adaptation built inside the same national ecosystem, with respect and
+                with every deviation from the printed game declared explicitly (see the deviations section).
+            </p>
+            <p class="text-secondary lh-lg mb-2">
+                The rulebook's own philosophy is worth quoting in spirit: the rules are not a metaphor for
+                quantum mechanics — the rules <em>are</em> quantum mechanics. This adaptation takes that
+                philosophy literally enough to verify it.
+            </p>
+            <h5 class="mt-4 mb-2">Translation glossary</h5>
+            <p class="text-secondary" style="font-size:.9rem;">The original terms appear throughout the
+                Italian rulebook; this page uses the English terms below.</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped glossary-table">
+                    <thead><tr><th>Italian (rulebook)</th><th>English (this page)</th><th>Meaning</th></tr></thead>
+                    <tbody>
+                        <tr><td>tris</td><td>tris (three-in-a-row)</td><td>kept as the game's name element</td></tr>
+                        <tr><td>griglia / casella</td><td>grid / cell</td><td>the 3×3 board; cells numbered 1–9</td></tr>
+                        <tr><td>tessera</td><td>tile</td><td>the piece occupying a cell</td></tr>
+                        <tr><td>bianconera</td><td><em>bianconera</em> — the half-and-half tile</td><td>the white-and-black tile; kept as a loanword</td></tr>
+                        <tr><td>orientata a destra / sinistra</td><td>right- / left-oriented</td><td>white half on the right / on the left</td></tr>
+                        <tr><td>carta mossa</td><td>move card</td><td>a playable operation: I, X, Y, Z, H, U, C<sub>X</sub></td></tr>
+                        <tr><td>tessera quadrata rosa U / rossa H</td><td>pink U square / red H square</td><td>a marker placed under a tile</td></tr>
+                        <tr><td>decorare</td><td>to decorate</td><td>placing a square marker under a tile</td></tr>
+                        <tr><td>gattini di Schrödinger</td><td>Schrödinger's kittens</td><td>the rulebook's name for the bianconere</td></tr>
+                        <tr><td>stato entangled</td><td>entangled state</td><td>one state on two cells (triangle tiles)</td></tr>
+                        <tr><td>fase di preparazione / operazioni / misura</td><td>preparation / operations / measurement phase</td><td>the three phases of a game</td></tr>
+                        <tr><td>mulligan</td><td>mulligan</td><td>one optional opening redraw (rulebook's own loanword)</td></tr>
+                        <tr><td>Espansione</td><td>deck preset</td><td>Base, +U, +C<sub>X</sub>, +U+C<sub>X</sub></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 1 — THE BOARD                                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-border-all text-warning me-2"></i>
+                Part 1 — The Board: Nine Cells, Nine Qubits</h2>
+            <div class="question-box">
+                <span class="q-tag">QUESTION FIRST</span>
+                Every cell is full from move one, and yet nobody knows who's winning. What kind of board
+                game can't tell you its own score until the dice say so?
+            </div>
+            <p class="text-secondary lh-lg">
+                A game of QTris has three phases. In <strong>preparation</strong>, all nine cells are filled
+                with tiles. In the <strong>operations phase</strong>, the players alternate for ten turns
+                (five each), each turn drawing two cards and playing two — cards act on any cell; there is
+                no cell ownership. In the <strong>measurement phase</strong>, the cells are visited in order
+                1→9 and every unresolved tile is collapsed by a dice roll to plain white or black. Only then
+                is the board scored: one point per three-in-a-row of your color over the eight lines, most
+                points wins.
+            </p>
+            <p class="text-secondary lh-lg">
+                The tiles are states of a two-level system — a qubit per cell:
+            </p>
+            <div class="formula-box text-center">
+                $|W\rangle = |0\rangle \qquad |B\rangle = |1\rangle \qquad
+                 |R\rangle = |+\rangle = \tfrac{|0\rangle + |1\rangle}{\sqrt{2}} \qquad
+                 |L\rangle = |-\rangle = \tfrac{|0\rangle - |1\rangle}{\sqrt{2}}$
+            </div>
+            <p class="text-secondary lh-lg">
+                White and black are the computational basis. The <em>bianconera</em> — half white, half
+                black, with an orientation — is an equal superposition; drawn with the white half on the
+                <strong>right</strong> it is $|+\rangle$ ("right-oriented"), mirrored it is $|-\rangle$.
+                The color measurement asks a superposed tile a question it does not have a definite answer
+                to, and the Born rule replies with probabilities.
+            </p>
+            <div class="triple-box">
+                <div><span class="t-step">Intuition.</span>A half-white-half-black tile has no color yet;
+                    measuring it is a fair draw between the two.</div>
+                <div><span class="t-step">Formula.</span>$P(W \mid R) = |\langle 0 | + \rangle|^2 = \tfrac12$.</div>
+                <div><span class="t-step">Number.</span>$0.500$ — the printed dice row for the bianconera
+                    is exactly 1–50 white, 51–100 black.</div>
+                <div class="mt-1"><span class="t-step">Play it.</span>Start a game below, measure a board
+                    with bianconere on it, and watch the white tally converge to 50% — then remember this
+                    50/50 is <em>not</em> a coin: Part 2 un-flips it.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 2 — THE BIANCONERA                                             -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-circle-half-stroke text-warning me-2"></i>
+                Part 2 — The Bianconera: Why Orientation Matters</h2>
+            <div class="question-box">
+                <span class="q-tag">QUESTION FIRST</span>
+                A half-white-half-black tile turns up white exactly half the time. So does a coin. Why does
+                the game bother printing an orientation on the tile — what could the direction of a 50/50
+                tile possibly change?
+            </div>
+            <p class="text-secondary lh-lg">
+                The move cards answer it. The card $H$ connects the two families: it turns white into a
+                right-oriented bianconera and back, black into a left-oriented one and back. So play $H$ on
+                a bianconera and the superposition <em>closes</em>:
+            </p>
+            <div class="formula-box text-center">
+                $H|+\rangle = |0\rangle \qquad H|-\rangle = |1\rangle$
+            </div>
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                <strong>One card un-flips the coin.</strong> No operation on a fair coin can make its next
+                toss certain — a probability distribution has no handle to grab. But $H$ on a right-oriented
+                bianconera yields a <em>certainly white</em> tile: 100%, not 50. The bianconera was never a
+                distribution; it is a state with a definite <em>orientation</em>, and the orientation is the
+                handle. The rulebook calls these tiles Schrödinger's kittens for exactly this reason: the
+                superposition is a real, manipulable thing.
+            </div>
+            <p class="text-secondary lh-lg">
+                The same logic exposes the phase. The card $Z$ flips orientation,
+                $Z|\pm\rangle = |\mp\rangle$, yet changes <em>nothing</em> a color measurement can see —
+                both orientations measure 50/50. Invisible? Only until an $H$ converts the hidden difference
+                into opposite certainties: $H|+\rangle = |0\rangle$ (white for sure) while
+                $H|-\rangle = |1\rangle$ (black for sure).
+            </p>
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                <strong>The $Z$ card changes nothing you can see — until it changes everything.</strong>
+                Phase is not bookkeeping. The game tracks it with tile orientation, and one $H$ card cashes
+                it out as opposite certain colors. This is the same relative phase that Lab 7's
+                interferometer converted into which-detector certainty.
+            </div>
+            <div class="triple-box">
+                <div><span class="t-step">Intuition.</span>The orientation is a second property, invisible
+                    to the color question but fully real.</div>
+                <div><span class="t-step">Formula.</span>$H|+\rangle = |0\rangle$, so
+                    $P(W \mid H \text{ on } R) = 1$.</div>
+                <div><span class="t-step">Number.</span>$1.000$ — not $0.500$.</div>
+                <div class="mt-1"><span class="t-step">Play it.</span>In the game below: play $H$ on a
+                    bianconera, then measure. The rulebook itself recommends this tactic — it is how you
+                    build a guaranteed tris piece out of chance.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 3 — ENTANGLEMENT                                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-link text-warning me-2"></i>
+                Part 3 — Entanglement: One State on Two Cells</h2>
+            <div class="question-box">
+                <span class="q-tag">QUESTION FIRST</span>
+                Two triangles on opposite corners of the board always come up the same color, every game,
+                though each alone is a perfect coin toss. Where does the agreement live?
+            </div>
+            <p class="text-secondary lh-lg">
+                The two-cell card $C_X$ (a controlled-NOT: the player declares which cell is control and
+                which is target) is the game's only source of correlation. Played with a bianconera as
+                control and a monochrome tile as target, it <em>entangles</em> them into one of the four
+                Bell states, shown on the board as a pair of triangles:
+            </p>
+            <div class="formula-box text-center">
+                $(R, W) \to \Phi^+ \qquad (R, B) \to \Psi^+ \qquad (L, W) \to \Phi^- \qquad (L, B) \to \Psi^-$
+                <div class="text-muted mt-1" style="font-size:.85rem;">
+                    control orientation ↦ sign of the pair &nbsp;·&nbsp; target color ↦ same-color
+                    ($\Phi$) or opposite-color ($\Psi$) type</div>
+            </div>
+            <p class="text-secondary lh-lg">
+                <strong>Reading order</strong> (used everywhere on this page and in the notebook): pair
+                outcomes like $WB$ are written <strong>big-endian</strong> — the lower-numbered cell is
+                the <strong>leftmost</strong> letter, exactly as $|q_0 q_1\rangle$ puts qubit&nbsp;0
+                leftmost. The companion notebook shows how to convert the opposite ordering used by
+                common circuit software.
+            </p>
+            <p class="text-secondary lh-lg">
+                A $\Phi^+$ pair measures $WW$ or $BB$ — never mixed — each with probability $\tfrac12$:
+                each member alone is perfectly random, the two together perfectly agreed. The agreement does
+                not live in either cell; it lives in the pair. Adjacency is irrelevant — cells 1 and 9
+                entangle as happily as neighbors. And the same card played again on the pair
+                <em>disentangles</em> it back into the tiles it came from: every operation in the game is
+                reversible; only the dice are not.
+            </p>
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                <strong>Two cells that never touched agree forever.</strong> One $C_X$ card creates perfect
+                correlation with individually perfect randomness, at any board distance. This is the same
+                resource measured in Lab 7's entangled-photon correlations, and the resource behind quantum
+                key distribution (Lab 6): the correlation is a property of the joint state, stored in
+                neither place.
+            </div>
+            <div class="triple-box">
+                <div><span class="t-step">Intuition.</span>The pair carries one shared answer, not two
+                    private ones.</div>
+                <div><span class="t-step">Formula.</span>$P(\text{same color} \mid \Phi^+) =
+                    |\langle 00|\Phi^+\rangle|^2 + |\langle 11|\Phi^+\rangle|^2 = 1$.</div>
+                <div><span class="t-step">Number.</span>$1.000$ agreement; the mixed outcomes have
+                    probability exactly $0$ — bands that simply do not exist on the printed row.</div>
+                <div class="mt-1"><span class="t-step">Play it.</span>Below (preset +C<sub>X</sub>, the
+                    default): entangle two cells, measure many games, and watch the pair counter pin
+                    agreement at 100% while each member's own tally sits at 50/50.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 4 — THE PINK SQUARE                                            -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-square text-warning me-2"></i>
+                Part 4 — The Pink Square: One Hidden Rotation <span class="text-muted fs-6">(advanced)</span></h2>
+            <div class="question-box">
+                <span class="q-tag">QUESTION FIRST</span>
+                One pink square turns your certain white tile into a 25% underdog. What single operation
+                produces 25, 75, 93 <em>and</em> 7 — and why does the 93 come with a $\sqrt{3}$ in it?
+            </div>
+            <p class="text-secondary lh-lg">
+                The rulebook never writes the pink square's matrix — it only prints its measurement table:
+                a decorated white tile measures white 25%, decorated black 75%, decorated bianconere 93%
+                and 7%. Those four rows pin the gate completely. A canonical rotation by angle $\theta$
+                sends $|0\rangle$ to $\cos\theta\,|0\rangle + \dots$, so $\cos^2\theta = \tfrac14$ forces
+                $\theta = 60°$; matching the 93 to the <em>right</em>-oriented bianconera fixes the sense:
+            </p>
+            <div class="formula-box text-center">
+                $U = R(-60°) = \begin{pmatrix} 1/2 & \sqrt{3}/2 \\ -\sqrt{3}/2 & 1/2 \end{pmatrix}
+                 \qquad U|+\rangle = R(-15°)\,|0\rangle \;\Rightarrow\;
+                 P(W \mid U\text{ on } R) = \cos^2 15° = \tfrac{2+\sqrt{3}}{4} \approx 0.9330$
+            </div>
+            <p class="text-secondary lh-lg">
+                The game's mysterious 93 is $\cos^2$ of fifteen degrees — an irrational probability,
+                printed to two digits. One matrix reproduces every decorated row in the book, including the
+                entangled ones with their $\tfrac{2\pm\sqrt{3}}{8}$ values (printed 47 and 3). Unlike
+                $X$, $Y$, $Z$ and $H$, this rotation does not map the simple tile family onto itself —
+                which is exactly why the pink square must <em>stay on the board</em> as a marker instead of
+                being absorbed into a relabelled tile, and why the +U presets are the advanced tier: one
+                little square carries the game beyond the flip-and-mix world into genuinely new
+                probabilities.
+            </p>
+            <div class="triple-box">
+                <div><span class="t-step">Intuition.</span>A rotation partway between "keep" and "flip"
+                    leaves every outcome uncertain — but by a precise, computable amount.</div>
+                <div><span class="t-step">Formula.</span>$P(W \mid U \text{ on } R) = \cos^2 15° =
+                    \tfrac{2+\sqrt{3}}{4}$.</div>
+                <div><span class="t-step">Number.</span>$0.9330127\ldots$ — printed as the 1–93 band; the
+                    print rounds the physics by $0.0030$, within its stated half-point tolerance.</div>
+                <div class="mt-1"><span class="t-step">Play it.</span>Preset +U below: decorate a
+                    bianconera, roll against the printed 93/7 row, then flip to exact mode and see
+                    $0.933013$ served with all its digits.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  PART 5 — MEASUREMENT & THE SANDBOX                                  -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-dice-d20 text-warning me-2"></i>
+                Part 5 — Measurement: The Only Move You Can't Take Back</h2>
+            <div class="question-box">
+                <span class="q-tag">QUESTION FIRST</span>
+                You just measured the tile white. Measure its orientation, then look at the color again:
+                half your whites turned black. Who repainted the tile?
+            </div>
+            <p class="text-secondary lh-lg">
+                The endgame sweep visits cells 1→9. Monochrome tiles are skipped; every superposed or
+                decorated tile resolves by one roll against its printed row; a triangle pair resolves
+                <em>jointly</em> — one roll for both cells — when the sweep first reaches it. Every resolved
+                state is replaced by a plain, undecorated outcome tile. Sweep again and nothing changes and
+                no dice are consumed: that is collapse, operationally — outcomes, once real, are stable.
+            </p>
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                <strong>Measurement is the game's only irreversible move.</strong> Every card can be undone
+                — $X$, $Y$, $Z$, $H$ and the pink square are their own inverses, $C_X$ un-entangles what it
+                entangled. The dice cannot be un-rolled, and a white tile carries no memory of the
+                bianconera it came from. Reversible dynamics, irreversible measurement: the deepest
+                asymmetry in quantum mechanics, playable with cardboard.
+            </div>
+            <p class="text-secondary lh-lg">
+                The <strong>sandbox</strong> below lifts the rulebook's single-cell solitaire into a lab
+                instrument. A color measurement asks the $|0\rangle/|1\rangle$ question. An
+                <em>orientation</em> measurement asks the $|+\rangle/|-\rangle$ question, and the game
+                offers it in two equivalent-but-different ways, named as in Lab 5:
+                <strong>Procedure 1</strong> projects directly onto the orientation states — the
+                post-measurement state is an oriented bianconera tile. <strong>Procedure 2</strong> is the
+                rulebook's own construction: apply $H$ (the canonical rotation for this basis), measure
+                <em>color</em>, and relabel the outcomes — the post-measurement state is a monochrome tile.
+                Identical statistics, different post-states; the overlap between the two post-states is
+                $|\langle + | 0\rangle|^2 = \tfrac12$.
+            </p>
+            <p class="text-secondary lh-lg">
+                Color and orientation are <em>incompatible</em>: measuring one completely randomizes the
+                other. Starting from a white tile, the chain orientation → color → orientation gives 50/50
+                at every step. Nobody repainted the tile — the color question simply has no answer while the
+                orientation is definite, and vice versa. This is Stern-Gerlach physics: replace color/
+                orientation with spin-$z$/spin-$x$ and the sandbox is the sequential Stern-Gerlach
+                experiment that today's spin-qubit hardware reads out one electron at a time.
+            </p>
+            <div class="triple-box">
+                <div><span class="t-step">Intuition.</span>Two questions that cannot have simultaneous
+                    answers must randomize each other.</div>
+                <div><span class="t-step">Formula.</span>$|\langle 0 | + \rangle|^2 =
+                    |\langle + | 0 \rangle|^2 = \tfrac12$ — the two bases are mutually unbiased
+                    (Lab 6's key-distribution pair, in tile form).</div>
+                <div><span class="t-step">Number.</span>$0.500$ at every step of the chain, forever.</div>
+                <div class="mt-1"><span class="t-step">Play it.</span>Open the sandbox tab below and run
+                    the guided chain; run both procedures on the same decorated tile and compare
+                    post-states.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  THE GAME                                                            -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title" id="simulator"><i class="fa-solid fa-gamepad text-warning me-2"></i>
+        The Game — Play First, Formalize After</h2>
+
+    <div class="sim-shell mb-4">
+        <div class="sim-head d-flex justify-content-between align-items-center flex-wrap">
+            <span><i class="fa-solid fa-chess-board me-2"></i>QTris — hot-seat, two players at one screen</span>
+            <div>
+                <button class="btn btn-sm btn-outline-light me-1" id="tab-game-btn" onclick="showTab('game')">Play QTris</button>
+                <button class="btn btn-sm btn-outline-light" id="tab-sandbox-btn" onclick="showTab('sandbox')">Sandbox</button>
+            </div>
+        </div>
+        <div class="sim-body">
+
+            <!-- ─────────────── GAME TAB ─────────────── -->
+            <div id="tab-game">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold mb-1" style="font-size:.85rem;">Deck preset</label><br>
+                        <div class="btn-group-sm" id="preset-row">
+                            <button class="preset-btn" id="preset-Base" onclick="uiSetPreset('Base')">Base
+                                <span class="preset-sub">no entanglement</span></button>
+                            <button class="preset-btn" id="preset-+U" onclick="uiSetPreset('+U')">+U
+                                <span class="preset-sub">pink squares</span></button>
+                            <button class="preset-btn active" id="preset-+C_X" onclick="uiSetPreset('+C_X')">+C<sub>X</sub>
+                                <span class="preset-sub">entanglement · default</span></button>
+                            <button class="preset-btn" id="preset-+U+C_X" onclick="uiSetPreset('+U+C_X')">+U+C<sub>X</sub>
+                                <span class="preset-sub">everything</span></button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold mb-1" style="font-size:.85rem;">Dice</label><br>
+                        <button class="mode-btn active" id="mode-table" onclick="uiSetMode('table')">Printed tables
+                            <span class="preset-sub">d100 · as published</span></button>
+                        <button class="mode-btn" id="mode-exact" onclick="uiSetMode('exact')">Exact
+                            <span class="preset-sub">full-precision Born rule</span></button>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold mb-1" style="font-size:.85rem;">Setup &amp; seed</label>
+                        <select class="form-select form-select-sm mb-1" id="setup-select">
+                            <option value="seeded" selected>Random board (seeded)</option>
+                            <option value="rulebook-example">Rulebook example board</option>
+                        </select>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">Seed</span>
+                            <input type="number" class="form-control" id="seed-input" value="42">
+                            <button class="btn btn-primary" onclick="uiNewGame()">New game</button>
+                        </div>
+                        <div class="form-text" style="font-size:.72rem;">
+                            Seeds are specific to this app's own random-number generator: the same seed
+                            always reproduces the same game <em>here</em>, but seed numbers are not
+                            comparable across other tools or editions.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-banner mb-3" id="status-banner">Press <strong>New game</strong> to begin.</div>
+
+                <div class="row g-3">
+                    <div class="col-lg-5">
+                        <div class="qt-board" id="board-grid"></div>
+                        <div class="text-center mt-2" style="font-size:.75rem;color:#64748b;">
+                            Markers under a tile read outward from the tile: red H (inner), pink U (outer).
+                            Pair colors mark which triangles belong together (at most three pairs).
+                        </div>
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            <span class="badge text-bg-light border">White <span id="score-white">–</span></span>
+                            <span class="badge text-bg-dark">Black <span id="score-black">–</span></span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div id="hand-panel">
+                            <div class="fw-bold mb-1" style="font-size:.9rem;" id="hand-title">Hand</div>
+                            <div class="d-flex flex-wrap gap-2" id="hand-cards"></div>
+                            <div class="mt-2" id="mulligan-controls" style="display:none;">
+                                <button class="btn btn-sm btn-outline-danger" onclick="uiMulliganConfirm()">
+                                    Mulligan selected cards</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="uiMulliganKeep()">
+                                    Keep hand</button>
+                            </div>
+                            <div class="mt-2" id="measure-controls" style="display:none;">
+                                <button class="btn btn-sm btn-warning" onclick="uiResolveNext()">
+                                    <i class="fa-solid fa-dice me-1"></i>Roll next cell</button>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" id="preview-toggle"
+                                   onchange="uiPreviewToggled()">
+                            <label class="form-check-label" style="font-size:.85rem;" for="preview-toggle">
+                                Probability preview <span class="text-muted">(opt-in: predictions before
+                                rolls — try rolling first)</span></label>
+                        </div>
+                        <div class="info-box-interactive" id="game-info">
+                            Rules in brief: 10 turns, draw 2 / play 2, cards act on any cell. Then the
+                            measurement sweep resolves the board and the eight lines are scored.
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="roll-panel" id="roll-panel">
+                            <div class="fw-bold mb-1"><i class="fa-solid fa-dice me-1"></i>Dice panel</div>
+                            <div id="roll-detail" style="font-size:.85rem;">No roll yet. In
+                                <em>printed-tables</em> mode every roll shows the two d10, the printed row
+                                it consults, and the band the roll lands in.</div>
+                        </div>
+                        <div class="stat-card mt-3">
+                            <div class="stat-label">Session tallies (this browser tab)</div>
+                            <div style="font-size:.8rem;font-family:monospace;" id="tally-panel">
+                                bianconera whites: –<br>pair agreements: –</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─────────────── SANDBOX TAB ─────────────── -->
+            <div id="tab-sandbox" style="display:none;">
+                <div class="row g-3">
+                    <div class="col-lg-4 text-center">
+                        <div class="fw-bold mb-2">One cell, every question</div>
+                        <div class="sandbox-cell" id="sandbox-cell"></div>
+                        <div class="mt-2" style="font-size:.8rem;color:#64748b;">
+                            state: <span id="sandbox-state-label" style="font-family:monospace;">W</span></div>
+                        <div class="mt-2">
+                            <span class="me-1" style="font-size:.8rem;">Reset to:</span>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="sbReset('W')">W</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="sbReset('B')">B</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="sbReset('R')">R</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="sbReset('L')">L</button>
+                        </div>
+                        <div class="mt-2">
+                            <span class="me-1" style="font-size:.8rem;">Cards:</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="sbCard('X')">X</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="sbCard('Y')">Y</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="sbCard('Z')">Z</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="sbCard('H')">H</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="sbCard('U')">U</button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="fw-bold mb-2" style="font-size:.9rem;">Measure</div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-dark" onclick="sbMeasureColor()">
+                                Measure color</button>
+                            <button class="btn btn-sm btn-outline-dark" onclick="sbMeasureOrient(1)">
+                                Measure orientation — Procedure 1 <span class="text-muted">(direct
+                                projection; post-state: an oriented bianconera)</span></button>
+                            <button class="btn btn-sm btn-outline-dark" onclick="sbMeasureOrient(2)">
+                                Measure orientation — Procedure 2 <span class="text-muted">(apply H,
+                                measure color, relabel; post-state: a monochrome tile)</span></button>
+                            <button class="btn btn-sm btn-warning" onclick="sbRunChain()">
+                                <i class="fa-solid fa-forward me-1"></i>Guided chain:
+                                W → orientation → color → orientation</button>
+                        </div>
+                        <div class="info-box-interactive" id="sandbox-info">
+                            The two orientation procedures give identical statistics but different
+                            post-measurement states — run both on the same decorated tile and compare.
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="fw-bold mb-2" style="font-size:.9rem;">Counters</div>
+                        <div class="stat-card">
+                            <div style="font-size:.8rem;font-family:monospace;text-align:left;"
+                                 id="sandbox-counters">no measurements yet</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="sbResetCounters()">
+                            Reset counters</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  ERRATUM PANEL                                                       -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5 mt-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-magnifying-glass-chart text-warning me-2"></i>
+                The Erratum Panel: When Formalism Referees the Referee</h2>
+            <p class="text-secondary lh-lg">
+                This adaptation verified every printed measurement row against the underlying quantum
+                mechanics. The result honors the game: <strong>38 of the 40 printed rows are exact within
+                their own stated rounding</strong> — the largest gap is half a percentage point, and the
+                authors even rounded 12.5/37.5 in opposite directions (12 and 38) so the row totals and
+                marginals stay perfect. Three small slips remain, declared here openly, because the game's
+                own philosophy — the rules <em>are</em> the physics — deserves to be taken seriously.
+            </p>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                <strong>The printed game itself slipped — and the formalism catches it.</strong> The
+                double-pink-square table claims two pink squares never matter on an entangled pair. That is
+                exactly true for two of the four pair types — and provably impossible for the other two.
+                Rotational invariance is a property of <em>specific states</em>, not of entanglement in
+                general. An engine that checks every number caught a table that playtesting could not.
+            </div>
+
+            <div class="erratum-box">
+                <span class="erratum-tag">ERRATUM E2 — the double-U rows</span>
+                <p class="mb-2 mt-1" style="font-size:.95rem;">
+                    The printed table for pairs with a pink square on <em>each</em> member shows all four
+                    pair types unchanged — perfect correlation or anticorrelation, as if the squares
+                    cancelled. For $\Phi^+$ and $\Psi^-$ this is exact physics: those two states are
+                    invariant when both members rotate together. But if the $\Phi^+$ row <em>and</em> the
+                    $\Phi^-$ row were both right as printed, the pink square would have to leave definite
+                    colors definite — flatly contradicting its own 25/75 row. No assignment of any rotation
+                    (indeed any unitary) to the square can make the printed table true; the obstruction is
+                    numeric and large: the relevant interference term is
+                    $\left|\,(U Z U^{T})_{01}\right|^2 = \sin^2 120° = \tfrac34$
+                    (the engine below computes it live: <span id="obstruction-value"
+                    style="font-family:monospace;">…</span>), where it would need to be $0$.
+                </p>
+                <div class="row" style="font-size:.85rem;">
+                    <div class="col-md-6">
+                        <div class="fw-bold mb-1">$\Psi^+$ with two U squares</div>
+                        <div id="e2-bars-psiplus"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="fw-bold mb-1">$\Phi^-$ with two U squares</div>
+                        <div id="e2-bars-phiminus"></div>
+                    </div>
+                </div>
+                <p class="mb-1 mt-2" style="font-size:.9rem;">
+                    Exact distributions over $(WW, WB, BW, BB)$:
+                    $\Psi^+ \to (\tfrac38, \tfrac18, \tfrac18, \tfrac38)$ and
+                    $\Phi^- \to (\tfrac18, \tfrac38, \tfrac38, \tfrac18)$ — a deviation of exactly
+                    $\tfrac38$ in every outcome from the printed rows. In this adaptation the two rows
+                    resolve by the exact eighth-partitions on an eight-sided die (the same exact-die
+                    procedure the rulebook itself provides for its other eighth-valued rows); the printed
+                    bands for these two rows are shown only here, as documentation.
+                </p>
+                <p class="mb-0 text-muted" style="font-size:.85rem;">
+                    Framing matters: this is a transcription slip in an otherwise remarkably accurate
+                    physical game — two rows out of forty, in the hardest table of the book. The design is
+                    sound; the formalism simply referees everyone, authors included. That is the point of
+                    formalism.
+                </p>
+            </div>
+
+            <div class="erratum-box">
+                <span class="erratum-tag">ERRATUM E1 — one number in a margin note</span>
+                <p class="mb-0 mt-1" style="font-size:.9rem;">
+                    A collapse-stability note late in the rulebook quotes probability $\tfrac14$ for a
+                    decorated right-oriented bianconera turning up white. The book's own printed table (the
+                    1–93 row) and the physics give $\tfrac{2+\sqrt{3}}{4} \approx 0.933$; the quoted
+                    $\tfrac14$ belongs to the decorated <em>white</em> tile two rows up. An authorial slip
+                    with no effect on any rule — the note's actual argument (collapsed outcomes are stable)
+                    is untouched. Recorded so nobody re-quotes the number.
+                </p>
+            </div>
+
+            <div class="erratum-box">
+                <span class="erratum-tag">ERRATUM E3 — two swapped words in one caption</span>
+                <p class="mb-0 mt-1" style="font-size:.9rem;">
+                    One early figure caption names its right-oriented cell "left-oriented" and vice versa —
+                    the words are swapped relative to the drawing. Every other orientation-bearing figure
+                    and passage in the book (five drawings, four independent prose passages) agrees with the
+                    drawing, so the drawing is authoritative and this page's tiles follow it: right-oriented
+                    means <em>white half on the right</em>. Worth recording because readers comparing this
+                    page against that one caption would otherwise think the adaptation had it backwards.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  DECLARED DEVIATIONS                                                 -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-code-compare text-warning me-2"></i>
+                Declared Deviations from the Printed Game</h2>
+            <p class="text-secondary">Everything this adaptation does differently from the physical
+                edition, in one list:</p>
+            <ol class="dev-list text-secondary lh-lg">
+                <li><strong>Ambiguity resolutions.</strong> Where the printed rules are silent — the exact
+                    mulligan procedure, tie handling, who is control and who is target when $C_X$ is
+                    played, how stacked markers compose, how the d100 is read, the three-pair limit — this
+                    adaptation fixes each gap physics-first, guided by the rulebook's own examples, and
+                    enforces the result consistently. Notably: the player <em>declares</em> control and
+                    target on every $C_X$; marker stacks compose with the pink square outermost (the unique
+                    order matching the printed 47/3 rows); ties re-roll; equal scores are a draw.</li>
+                <li><strong>Exact mode.</strong> The physical game rolls d100 against printed integer
+                    bands. This adaptation adds an optional exact mode that samples the true probabilities
+                    in full precision — and documents that on 38 of 40 rows the printed bands sit within
+                    0.005 of the truth. The printed-tables mode remains the default and reproduces the
+                    published bands verbatim.</li>
+                <li><strong>English translation.</strong> The original is Italian; this page is English
+                    with the glossary above. Rule semantics are unchanged in translation.</li>
+                <li><strong>A seam for a computer opponent.</strong> The engine is a pure state machine
+                    with no assumptions about who chooses moves, so a vs-computer mode can attach later.
+                    It is deliberately <em>not</em> implemented here: hot-seat play between two humans is
+                    the mode the original game is designed around.</li>
+                <li><strong>The two erratum rows are not playable as printed.</strong> The double-U rows
+                    for $\Psi^+$ and $\Phi^-$ resolve by the exact eighth-partitions in <em>both</em> dice
+                    modes; the impossible printed bands appear only in the erratum panel above. Serving the
+                    physics — openly — was judged more faithful to the game's philosophy than serving the
+                    typo.</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  EXERCISES                                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <h2 class="section-title"><i class="fa-solid fa-flask text-warning me-2"></i>Exercises</h2>
+
+            <div class="task-box">
+                <div class="task-header">Q1 — The un-flippable coin</div>
+                <div class="task-body">
+                    <p>A right-oriented bianconera is on cell 5. Which single card makes the upcoming color
+                    measurement <em>certain</em>, and with which outcome?</p>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q1','a')">$X$ — certain black</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q1','b')">$H$ — certain white</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q1','c')">$Z$ — certain white</button>
+                    <div class="feedback" id="fb-q1"></div>
+                </div>
+            </div>
+
+            <div class="task-box">
+                <div class="task-header">Q2 — Reading the pair table</div>
+                <div class="task-body">
+                    <p>A $\Psi^+$ pair (no markers) is measured. What is the probability that the two cells
+                    come up the <em>same</em> color?</p>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q2','a')">$1/2$</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q2','b')">$1$</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q2','c')">$0$</button>
+                    <div class="feedback" id="fb-q2"></div>
+                </div>
+            </div>
+
+            <div class="task-box">
+                <div class="task-header">Q3 — Where the √3 lives</div>
+                <div class="task-body">
+                    <p>$P(W)$ for a pink-decorated right-oriented bianconera is $\cos^2 15°$. Which printed
+                    band encodes it, and how far is the print from the physics?</p>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q3','a')">1–75; off by $0.005$</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q3','b')">1–93; off by $0.003$</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q3','c')">1–93; exact</button>
+                    <div class="feedback" id="fb-q3"></div>
+                </div>
+            </div>
+
+            <div class="task-box">
+                <div class="task-header">Q4 — The erratum argument</div>
+                <div class="task-body">
+                    <p>Why can <em>no</em> choice of gate for the pink square make the printed double-U
+                    table right?</p>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q4','a')">Because
+                        the printed $\Phi^+$ and $\Phi^-$ rows together would force decorated colors to
+                        stay definite, contradicting the 25/75 row</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="answer('q4','b')">Because
+                        two rotations can never cancel</button>
+                    <div class="feedback" id="fb-q4"></div>
+                </div>
+            </div>
+
+            <div class="task-box">
+                <div class="task-header">Play-tasks (open-ended, at the board)</div>
+                <div class="task-body">
+                    <ul class="mb-0 lh-lg" style="font-size:.95rem;">
+                        <li><strong>P1.</strong> Starting from a white and a black tile, prepare the
+                            $\Psi^-$ pair using only cards. (One solution uses two cards; check yourself
+                            with the probability preview.)</li>
+                        <li><strong>P2.</strong> Make the erratum visible: in preset +U+C<sub>X</sub>,
+                            build a $\Phi^-$ pair, decorate both members with pink squares, and measure
+                            many times. Compare your tallies with the printed row shown in the erratum
+                            panel and with the exact eighths.</li>
+                        <li><strong>P3.</strong> In the sandbox, find a state for which Procedures 1 and 2
+                            give different <em>statistics</em>. (Spoiler: you can't — that is the theorem.
+                            Then find what <em>does</em> differ.)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  QISKIT NOTEBOOK                                                     -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <h2 class="section-title"><i class="fa-solid fa-code text-warning me-2"></i>
+        Qiskit Notebook — the Same Game as Quantum Circuits</h2>
+
+    <div class="task-box mb-5">
+        <div class="task-header d-flex justify-content-between align-items-center">
+            <span>Tiles as circuits, the hidden rotation, the printed tables audited in Qiskit</span>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab8/lab8_qtris.ipynb"
+               class="btn btn-sm colab-btn">
+                <i class="fa-solid fa-terminal me-1"></i>Open Colab Notebook
+            </a>
+        </div>
+        <div class="task-body">
+            <p>The companion notebook rebuilds this page's game states as quantum circuits: the eight
+            single-cell tiles (the pink square as an explicit $R(-60°)$, also written as a standard
+            $R_y$ gate), the four Bell pairs prepared exactly the way the $C_X$ card prepares them, and
+            the full printed measurement table reproduced from state-vector probabilities — including a
+            computed, not asserted, verdict on the two erratum rows. Sampled (seeded) runs sit beside the
+            exact numbers throughout. Since entangled pairs are two-qubit registers, every displayed
+            bitstring is converted to this lab's leftmost-first reading order — the notebook shows exactly
+            how.</p>
+            <p class="text-muted mb-0" style="font-size:.88rem;">
+                <i class="fa-solid fa-circle-info me-1"></i>All notebook experiments are seeded and
+                reproducible; expected values are stated with full-precision literals and tolerances.</p>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  FOOTER                                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<footer class="text-center py-4 mt-2 bg-light border-top">
+    <p class="mb-1" style="font-size:.9rem;">
+        <span class="text-muted">Series:</span>
+        Lab 5 — Quantum Measurements
+        <i class="fa-solid fa-arrow-right mx-1 text-muted"></i>
+        Lab 6 — Quantum Key Distribution (BB84)
+        <i class="fa-solid fa-arrow-right mx-1 text-muted"></i>
+        Lab 7 — Quantum Optics
+        <i class="fa-solid fa-arrow-right mx-1 text-muted"></i>
+        <strong>Lab 8 — QTris</strong>
+    </p>
+    <p class="mb-1 text-muted" style="font-size:.85rem;">
+        QTris original game © 2024 AH Quantum Lab / NQSTI — A. Hamma; I. De Simone, M. Nazzaro,
+        M. Viscardi. This page is an independent educational adaptation with declared deviations.
+    </p>
+    <p class="mb-0 text-muted">Quantum Computing Foundation — Lab Module 8</p>
+</footer>
+
+<!-- MathJax -->
+<script>
+    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ─── LAB8 CORE EXTRACT START (do not move: the cross-check harness slices here) ───
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  LAB8 QTRIS CORE — pure rules + Born logic, no DOM.
+ *  A direct port of the lab's verified reference engine: tile states, the
+ *  card calculus, the C_X classes, the Born distributions, the LITERAL
+ *  printed-table data (with per-row provenance), both dice modes, setup,
+ *  sweep, scoring and the hot-seat game state machine. Every displayed
+ *  probability on this page flows through these functions — no percentage
+ *  is ever hardcoded in the UI layer.
+ *
+ *  Amplitudes: every state in this lab is REAL (the tiles, the Bell pairs,
+ *  the canonical rotation R(−60°) are all real matrices/vectors), so the
+ *  port uses plain number arrays; Born probability = amplitude².
+ *
+ *  Printed-table data: the PRINTED_* rows below are transliterated verbatim
+ *  from the reference engine's hand-transcribed tables (same integers, same
+ *  provenance notes). They are data, not derived values: the audit functions
+ *  compare them against the Born pipeline, which is how the 0.005 rounding
+ *  bound and the two erratum rows are exhibited rather than asserted.
+ *
+ *  RNG AND DRAW ORDER (binding for reproducibility): one mulberry32 stream
+ *  per game, seeded from the UI seed field. Draw order: (1) board setup —
+ *  with a C_X preset first nPairs = randInt(3), then per pair a 2-subset of
+ *  the free cells (two randInt draws) and a core randInt(4), then each
+ *  remaining cell ascending one randInt over the preset alphabet; (2) one
+ *  Fisher-Yates deck shuffle; (3) d8 turn-order pairs until untied;
+ *  (4) sweep rolls per resolving cell in visit order — table mode two
+ *  d10 draws (tens, units; 00+0 reads 100), erratum rows one d8 draw,
+ *  exact mode one uniform draw. Seeds are specific to THIS app's generator:
+ *  the draw ORDER matches the reference engine, but the generator does not,
+ *  so seed numbers are not comparable across tools — the cross-check gate
+ *  therefore pins the full band-lookup outcome matrix (every row × every
+ *  roll) and a recorded seed-42 board of this app instead.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+'use strict';
+
+/* ── seeded RNG ──────────────────────────────────────────────────────────── */
+function mulberry32(seed) {
+    let s = seed >>> 0;
+    return function () {
+        s |= 0; s = (s + 0x6D2B79F5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+function randInt(rng, n) { return Math.floor(rng() * n); }
+
+/* ── states and gates (all real) ─────────────────────────────────────────── */
+const SINGLE_CELL_NAMES = ['W', 'B', 'R', 'L', 'UW', 'UB', 'UR', 'UL'];
+const CORE_NAMES = ['PhiPlus', 'PsiPlus', 'PhiMinus', 'PsiMinus'];
+const STACK_NAMES = ['I', 'H', 'U', 'UH'];
+const SQRT_HALF = 1 / Math.sqrt(2);
+
+const BASE_KETS = {
+    W: [1, 0], B: [0, 1],
+    R: [SQRT_HALF, SQRT_HALF], L: [SQRT_HALF, -SQRT_HALF],
+};
+const BELL_KETS = {
+    PhiPlus:  [SQRT_HALF, 0, 0, SQRT_HALF],
+    PsiPlus:  [0, SQRT_HALF, SQRT_HALF, 0],
+    PhiMinus: [SQRT_HALF, 0, 0, -SQRT_HALF],
+    PsiMinus: [0, SQRT_HALF, -SQRT_HALF, 0],
+};
+
+/* The pink-square gate: the canonical rotation R(−60°), sense fixed by the
+   printed 93-row landing on the right-oriented bianconera. */
+function buildUGate() {
+    const s = Math.sqrt(3) / 2;
+    return [[0.5, s], [-s, 0.5]];
+}
+function buildHGate() {
+    return [[SQRT_HALF, SQRT_HALF], [SQRT_HALF, -SQRT_HALF]];
+}
+
+function matVec(M, v) {
+    const out = new Array(M.length);
+    for (let i = 0; i < M.length; i++) {
+        let acc = 0;
+        for (let j = 0; j < v.length; j++) acc += M[i][j] * v[j];
+        out[i] = acc;
+    }
+    return out;
+}
+function matMul2(A, B) {
+    return [
+        [A[0][0] * B[0][0] + A[0][1] * B[1][0], A[0][0] * B[0][1] + A[0][1] * B[1][1]],
+        [A[1][0] * B[0][0] + A[1][1] * B[1][0], A[1][0] * B[0][1] + A[1][1] * B[1][1]],
+    ];
+}
+function transpose2(A) { return [[A[0][0], A[1][0]], [A[0][1], A[1][1]]]; }
+/* Kronecker product, FIRST argument leftmost: index of the pair outcome is
+   2·(member 1 bit) + (member 2 bit) — member 1 = the lower-numbered cell. */
+function kron2(A, B) {
+    const out = [];
+    for (let i = 0; i < 4; i++) {
+        const row = [];
+        for (let j = 0; j < 4; j++) row.push(A[i >> 1][j >> 1] * B[i & 1][j & 1]);
+        out.push(row);
+    }
+    return out;
+}
+
+/* Marker stack matrix, U outermost: UH ↦ U·H (the unique order matching the
+   printed 47/3 rows). */
+function stackMatrix(s) {
+    if (s === 'I') return [[1, 0], [0, 1]];
+    if (s === 'H') return buildHGate();
+    if (s === 'U') return buildUGate();
+    if (s === 'UH') return matMul2(buildUGate(), buildHGate());
+    throw new Error('unknown stack ' + s);
+}
+
+function singleCellState(name) {
+    const base = name.length === 2 ? name[1] : name;
+    const ket = BASE_KETS[base].slice();
+    return name.length === 2 ? matVec(buildUGate(), ket) : ket;
+}
+function bellState(name) { return BELL_KETS[name].slice(); }
+function pairState(core, s1, s2) {
+    return matVec(kron2(stackMatrix(s1), stackMatrix(s2)), bellState(core));
+}
+function born(psi) { return psi.map(a => a * a); }
+function measureColorProbs(name) { return born(singleCellState(name)); }
+function pairMeasureProbs(core, s1, s2) { return born(pairState(core, s1, s2)); }
+
+/* Sandbox: the two orientation-measurement procedures. Identical statistics
+   (that is the theorem); different post-states (the UI shows it). */
+function orientationProbsProc1(psi) {
+    const ip = BASE_KETS.R[0] * psi[0] + BASE_KETS.R[1] * psi[1];
+    const im = BASE_KETS.L[0] * psi[0] + BASE_KETS.L[1] * psi[1];
+    return [ip * ip, im * im];
+}
+function orientationProbsProc2(psi) { return born(matVec(buildHGate(), psi)); }
+
+/* The erratum obstruction: |(U Z Uᵀ)₀₁|² = 3/4 where the printed double-U
+   Φ⁻ row would require 0 — computed, not asserted. */
+function uzutOffdiagonalSq() {
+    const u = buildUGate();
+    const m = matMul2(matMul2(u, [[1, 0], [0, -1]]), transpose2(u));
+    return m[0][1] * m[0][1];
+}
+
+/* ── the card calculus (label state machine) ─────────────────────────────── */
+const BASE_MAP = {
+    X: { W: 'B', B: 'W', R: 'R', L: 'L' },
+    Y: { W: 'B', B: 'W', R: 'L', L: 'R' },
+    Z: { W: 'W', B: 'B', R: 'L', L: 'R' },
+    H: { W: 'R', R: 'W', B: 'L', L: 'B' },
+};
+const CORE_MAP = {
+    X: { PhiPlus: 'PsiPlus', PsiPlus: 'PhiPlus', PhiMinus: 'PsiMinus', PsiMinus: 'PhiMinus' },
+    Z: { PhiPlus: 'PhiMinus', PhiMinus: 'PhiPlus', PsiPlus: 'PsiMinus', PsiMinus: 'PsiPlus' },
+    Y: { PhiPlus: 'PsiMinus', PsiMinus: 'PhiPlus', PsiPlus: 'PhiMinus', PhiMinus: 'PsiPlus' },
+};
+const HH_RELABEL = { PhiPlus: 'PhiPlus', PhiMinus: 'PsiPlus', PsiPlus: 'PhiMinus', PsiMinus: 'PsiMinus' };
+const H_COMMUTE = { X: 'Z', Z: 'X', Y: 'Y' };
+const BELL_INVERSE = { PhiPlus: ['R', 'W'], PsiPlus: ['R', 'B'], PhiMinus: ['L', 'W'], PsiMinus: ['L', 'B'] };
+const BELL_BIJECTION = { 'R|W': 'PhiPlus', 'R|B': 'PsiPlus', 'L|W': 'PhiMinus', 'L|B': 'PsiMinus' };
+
+function parseSingle(name) { return { u: name.length === 2, base: name.length === 2 ? name[1] : name }; }
+function makeSingle(u, base) { return u ? 'U' + base : base; }
+function parseStack(s) { return { u: s.indexOf('U') >= 0, h: s.indexOf('H') >= 0 }; }
+function makeStack(u, h) { return (u ? 'U' : '') + (h ? 'H' : '') || 'I'; }
+
+function applyCardSingle(name, card) {
+    const p = parseSingle(name);
+    if (card === 'I') return name;
+    if (card === 'U') return makeSingle(!p.u, p.base);
+    return makeSingle(p.u, BASE_MAP[card][p.base]);
+}
+
+/* Card on pair member (1 or 2): U toggles the outer layer; H toggles the
+   core-adjacent layer with the H·H normalization and Bell relabel; Paulis
+   commute through an H layer, then relabel the core. */
+function applyCardPair(core, s1, s2, card, member) {
+    const stacks = [s1, s2];
+    const i = member - 1;
+    const p = parseStack(stacks[i]);
+    if (card === 'I') { /* no effect */ }
+    else if (card === 'U') stacks[i] = makeStack(!p.u, p.h);
+    else if (card === 'H') {
+        stacks[i] = makeStack(p.u, !p.h);
+        if (parseStack(stacks[0]).h && parseStack(stacks[1]).h) {
+            stacks[0] = makeStack(parseStack(stacks[0]).u, false);
+            stacks[1] = makeStack(parseStack(stacks[1]).u, false);
+            core = HH_RELABEL[core];
+        }
+    } else {
+        const effective = p.h ? H_COMMUTE[card] : card;
+        core = CORE_MAP[effective][core];
+    }
+    return [core, stacks[0], stacks[1]];
+}
+
+/* C_X on two single tiles (control declared). Returns
+   {kind:'singles', out:[control', target']} or
+   {kind:'pair', core, stackControl, stackTarget}. U markers never move. */
+function applyCxSingles(control, target) {
+    const c = parseSingle(control), t = parseSingle(target);
+    const mono = b => b === 'W' || b === 'B';
+    if (mono(c.base)) {
+        if (mono(t.base) && c.base === 'B') {
+            return { kind: 'singles', out: [control, makeSingle(t.u, BASE_MAP.X[t.base])] };
+        }
+        return { kind: 'singles', out: [control, target] };   /* white control, or mono→bianconera: invisible */
+    }
+    if (mono(t.base)) {
+        return { kind: 'pair', core: BELL_BIJECTION[c.base + '|' + t.base],
+                 stackControl: makeStack(c.u, false), stackTarget: makeStack(t.u, false) };
+    }
+    if (t.base === 'L') {  /* phase kickback: the CONTROL flips; right target = invisible */
+        return { kind: 'singles', out: [makeSingle(c.u, c.base === 'R' ? 'L' : 'R'), target] };
+    }
+    return { kind: 'singles', out: [control, target] };
+}
+
+/* C_X on one pair (disentangle): the control member's cell receives the
+   bianconera of the inverse recipe, the other the monochrome tile; each
+   keeps its own U layer. H-marked pairs are illegal inputs. */
+function applyCxPair(core, s1, s2, controlMember) {
+    if (parseStack(s1).h || parseStack(s2).h) return null;
+    const inv = BELL_INVERSE[core];
+    const tiles = controlMember === 1 ? [inv[0], inv[1]] : [inv[1], inv[0]];
+    return [makeSingle(parseStack(s1).u, tiles[0]), makeSingle(parseStack(s2).u, tiles[1])];
+}
+
+/* ── printed-table data (literal transcription; provenance per row) ──────── */
+const PRINTED_SINGLE_ROWS = [
+    { state: 'W', bands: [100, 0],
+      prov: 'Printed table (Fig 2.12 left, row 1): plain white — 1-100 → white' },
+    { state: 'B', bands: [0, 100],
+      prov: 'Printed table (Fig 2.12 left, row 2): plain black — no white band, 1-100 → black' },
+    { state: 'R', bands: [50, 50],
+      prov: 'Printed table (Fig 2.12 left, row 3): bianconera-right — 1-50 → white' },
+    { state: 'L', bands: [50, 50],
+      prov: 'Printed table (Fig 2.12 left, row 4): bianconera-left — 1-50 → white' },
+    { state: 'UW', bands: [25, 75],
+      prov: 'Printed table (Fig 2.12 right, row 1): U on white — 1-25 → white' },
+    { state: 'UB', bands: [75, 25],
+      prov: 'Printed table (Fig 2.12 right, row 2): U on black — 1-75 → white' },
+    { state: 'UR', bands: [93, 7],
+      prov: 'Printed table (Fig 2.12 right, row 3): U on bianconera-right — 1-93 → white (cos²15° printed to two digits)' },
+    { state: 'UL', bands: [7, 93],
+      prov: 'Printed table (Fig 2.12 right, row 4): U on bianconera-left — 1-7 → white' },
+];
+
+const PRINTED_PAIR_ROWS = [
+    { core: 'PhiPlus', stacks: ['I', 'I'], bands: [50, 0, 0, 50], d8: null, e2: false,
+      prov: 'Fig 2.13-top row 1 (plain pair): 1-50 → WW, 51-100 → BB' },
+    { core: 'PsiPlus', stacks: ['I', 'I'], bands: [0, 50, 50, 0], d8: null, e2: false,
+      prov: 'Fig 2.13-top row 2: 1-50 → WB, 51-100 → BW' },
+    { core: 'PhiMinus', stacks: ['I', 'I'], bands: [50, 0, 0, 50], d8: null, e2: false,
+      prov: 'Fig 2.13-top row 3: the minus is invisible to the color measurement' },
+    { core: 'PsiMinus', stacks: ['I', 'I'], bands: [0, 50, 50, 0], d8: null, e2: false,
+      prov: 'Fig 2.13-top row 4: the minus is invisible to the color measurement' },
+    { core: 'PhiPlus', stacks: ['H', 'I'], bands: [25, 25, 25, 25], d8: null, e2: false,
+      prov: 'Fig 2.13-bottom row 1: H-marked member — uniform quarters' },
+    { core: 'PsiPlus', stacks: ['H', 'I'], bands: [25, 25, 25, 25], d8: null, e2: false,
+      prov: 'Fig 2.13-bottom row 2: uniform quarters' },
+    { core: 'PhiMinus', stacks: ['H', 'I'], bands: [25, 25, 25, 25], d8: null, e2: false,
+      prov: 'Fig 2.13-bottom row 3: uniform quarters' },
+    { core: 'PsiMinus', stacks: ['H', 'I'], bands: [25, 25, 25, 25], d8: null, e2: false,
+      prov: 'Fig 2.13-bottom row 4: uniform quarters' },
+    { core: 'PhiPlus', stacks: ['U', 'I'], bands: [12, 38, 38, 12], d8: [1, 3, 3, 1], e2: false,
+      prov: 'Fig 2.14-top row 1: 12.5/37.5 printed 12/38; exact d8 in the rulebook footnote: 1, 2-4, 5-7, 8' },
+    { core: 'PsiPlus', stacks: ['U', 'I'], bands: [38, 12, 12, 38], d8: [3, 1, 1, 3], e2: false,
+      prov: 'Fig 2.14-top row 2: mirrored eighths; footnote d8: 1-3, 4, 5, 6-8' },
+    { core: 'PhiMinus', stacks: ['U', 'I'], bands: [12, 38, 38, 12], d8: [1, 3, 3, 1], e2: false,
+      prov: 'Fig 2.14-top row 3: as row 1' },
+    { core: 'PsiMinus', stacks: ['U', 'I'], bands: [38, 12, 12, 38], d8: [3, 1, 1, 3], e2: false,
+      prov: 'Fig 2.14-top row 4: as row 2' },
+    { core: 'PhiPlus', stacks: ['UH', 'I'], bands: [47, 3, 3, 47], d8: null, e2: false,
+      prov: 'Fig 2.14-bottom row 1: (2±√3)/8 printed 47/3 — the row that fixes the marker stacking order' },
+    { core: 'PsiPlus', stacks: ['UH', 'I'], bands: [3, 47, 47, 3], d8: null, e2: false,
+      prov: 'Fig 2.14-bottom row 2: mirrored 3/47' },
+    { core: 'PhiMinus', stacks: ['UH', 'I'], bands: [47, 3, 3, 47], d8: null, e2: false,
+      prov: 'Fig 2.14-bottom row 3: as row 1' },
+    { core: 'PsiMinus', stacks: ['UH', 'I'], bands: [3, 47, 47, 3], d8: null, e2: false,
+      prov: 'Fig 2.14-bottom row 4: as row 2' },
+    { core: 'PhiPlus', stacks: ['I', 'U'], bands: [12, 38, 38, 12], d8: [1, 3, 3, 1], e2: false,
+      prov: 'Fig 2.15-top row 1: U on the other member — same eighths; footnote d8: 1, 2-4, 5-7, 8' },
+    { core: 'PsiPlus', stacks: ['I', 'U'], bands: [38, 12, 12, 38], d8: [3, 1, 1, 3], e2: false,
+      prov: 'Fig 2.15-top row 2: footnote d8: 1-3, 4, 5, 6-8' },
+    { core: 'PhiMinus', stacks: ['I', 'U'], bands: [12, 38, 38, 12], d8: [1, 3, 3, 1], e2: false,
+      prov: 'Fig 2.15-top row 3: as row 1' },
+    { core: 'PsiMinus', stacks: ['I', 'U'], bands: [38, 12, 12, 38], d8: [3, 1, 1, 3], e2: false,
+      prov: 'Fig 2.15-top row 4: as row 2' },
+    { core: 'PhiPlus', stacks: ['H', 'U'], bands: [47, 3, 3, 47], d8: null, e2: false,
+      prov: 'Fig 2.15-bottom row 1: plus-sign group — 47/3' },
+    { core: 'PsiPlus', stacks: ['H', 'U'], bands: [47, 3, 3, 47], d8: null, e2: false,
+      prov: 'Fig 2.15-bottom row 2: plus-sign group — 47/3 (grouped by sign, not by color type)' },
+    { core: 'PhiMinus', stacks: ['H', 'U'], bands: [3, 47, 47, 3], d8: null, e2: false,
+      prov: 'Fig 2.15-bottom row 3: minus-sign group — 3/47' },
+    { core: 'PsiMinus', stacks: ['H', 'U'], bands: [3, 47, 47, 3], d8: null, e2: false,
+      prov: 'Fig 2.15-bottom row 4: minus-sign group — 3/47' },
+    { core: 'PhiPlus', stacks: ['U', 'U'], bands: [50, 0, 0, 50], d8: null, e2: false,
+      prov: 'Fig 2.16-top row 1: exact — Φ⁺ is invariant when both members rotate together' },
+    { core: 'PsiPlus', stacks: ['U', 'U'], bands: [0, 50, 50, 0], d8: [3, 1, 1, 3], e2: true,
+      prov: 'Fig 2.16-top row 2: ERRATUM — printed as anticorrelated; exact eighths (3/8,1/8,1/8,3/8); resolves by d8 1-3, 4, 5, 6-8' },
+    { core: 'PhiMinus', stacks: ['U', 'U'], bands: [50, 0, 0, 50], d8: [1, 3, 3, 1], e2: true,
+      prov: 'Fig 2.16-top row 3: ERRATUM — printed as correlated; exact eighths (1/8,3/8,3/8,1/8); resolves by d8 1, 2-4, 5-7, 8' },
+    { core: 'PsiMinus', stacks: ['U', 'U'], bands: [0, 50, 50, 0], d8: null, e2: false,
+      prov: 'Fig 2.16-top row 4: exact — the singlet is invariant under any common rotation' },
+    { core: 'PhiPlus', stacks: ['UH', 'U'], bands: [3, 47, 47, 3], d8: null, e2: false,
+      prov: 'Fig 2.16-bottom row 1: 3/47' },
+    { core: 'PsiPlus', stacks: ['UH', 'U'], bands: [25, 25, 25, 25], d8: null, e2: false,
+      prov: 'Fig 2.16-bottom row 2: uniform' },
+    { core: 'PhiMinus', stacks: ['UH', 'U'], bands: [25, 25, 25, 25], d8: null, e2: false,
+      prov: 'Fig 2.16-bottom row 3: uniform' },
+    { core: 'PsiMinus', stacks: ['UH', 'U'], bands: [47, 3, 3, 47], d8: null, e2: false,
+      prov: 'Fig 2.16-bottom row 4: 47/3' },
+];
+
+function allPrintedRows() { return PRINTED_SINGLE_ROWS.concat(PRINTED_PAIR_ROWS); }
+
+/* ── dice reads and band lookups (both modes) ────────────────────────────── */
+const MIRROR_OUTCOME = [0, 2, 1, 3];   /* WB ↔ BW when a row is used mirrored */
+
+function d100Read(tens, units) {
+    return (tens === 0 && units === 0) ? 100 : 10 * tens + units;
+}
+function outcomeFromBands(bands, roll) {
+    let upper = 0;
+    for (let i = 0; i < bands.length; i++) {
+        upper += bands[i];
+        if (roll <= upper) return i;
+    }
+    throw new Error('roll ' + roll + ' beyond bands');
+}
+function singleRowFor(state) {
+    for (const row of PRINTED_SINGLE_ROWS) if (row.state === state) return row;
+    throw new Error('no printed row for ' + state);
+}
+/* The four unprinted stack configurations are mirror images of printed ones:
+   use the swapped-stack row with the WB/BW columns exchanged. */
+function pairRowFor(core, s1, s2) {
+    for (const row of PRINTED_PAIR_ROWS) {
+        if (row.core === core && row.stacks[0] === s1 && row.stacks[1] === s2) {
+            return { row, mirrored: false };
+        }
+    }
+    for (const row of PRINTED_PAIR_ROWS) {
+        if (row.core === core && row.stacks[0] === s2 && row.stacks[1] === s1) {
+            return { row, mirrored: true };
+        }
+    }
+    throw new Error('no printed row for ' + core + ' ' + s1 + ',' + s2);
+}
+/* What table mode actually plays: printed d100 bands on conforming rows
+   (roundings included), the exact d8 partition on the two erratum rows —
+   their printed bands are display-only, never rolled against. */
+function playableTableDistribution(row, mirrored) {
+    let dist;
+    if (row.e2) dist = row.d8.map(x => x / 8);
+    else dist = row.bands.map(x => x / 100);
+    if (mirrored) dist = MIRROR_OUTCOME.map(i => dist[i]);
+    return dist;
+}
+function tableModeOutcome(row, roll, mirrored) {
+    const outcome = row.e2 ? outcomeFromBands(row.d8, roll) : outcomeFromBands(row.bands, roll);
+    return mirrored ? MIRROR_OUTCOME[outcome] : outcome;
+}
+function d8Outcome(row, roll, mirrored) {
+    const outcome = outcomeFromBands(row.d8, roll);
+    return mirrored ? MIRROR_OUTCOME[outcome] : outcome;
+}
+
+/* ── the printed-table audit (computed live; shown in the erratum panel) ─── */
+function exactRowProbs(row) {
+    return row.state ? measureColorProbs(row.state)
+                     : pairMeasureProbs(row.core, row.stacks[0], row.stacks[1]);
+}
+function printedVsExactMaxError() {
+    let worst = 0;
+    for (const row of allPrintedRows()) {
+        if (row.e2) continue;
+        const exact = exactRowProbs(row);
+        row.bands.forEach((b, i) => { worst = Math.max(worst, Math.abs(b / 100 - exact[i])); });
+    }
+    return worst;
+}
+function erratumMaxDeviation() {
+    let worst = 0;
+    for (const row of PRINTED_PAIR_ROWS) {
+        if (!row.e2) continue;
+        const exact = exactRowProbs(row);
+        row.bands.forEach((b, i) => { worst = Math.max(worst, Math.abs(b / 100 - exact[i])); });
+    }
+    return worst;
+}
+function tableVsExactDivergence() {
+    let conforming = 0, erratum = 0;
+    for (const row of allPrintedRows()) {
+        const playable = playableTableDistribution(row, false);
+        const exact = exactRowProbs(row);
+        let gap = 0;
+        playable.forEach((p, i) => { gap = Math.max(gap, Math.abs(p - exact[i])); });
+        if (row.e2) erratum = Math.max(erratum, gap); else conforming = Math.max(conforming, gap);
+    }
+    return [conforming, erratum];
+}
+
+/* ── decks, setup, scenarios, board helpers ──────────────────────────────── */
+const PRESET_NAMES = ['Base', '+U', '+C_X', '+U+C_X'];
+const DECK_PRESETS = {
+    'Base':   { I: 6, X: 12, Y: 6, Z: 14, H: 18, U: 0,  C_X: 0 },
+    '+U':     { I: 5, X: 10, Y: 5, Z: 11, H: 11, U: 10, C_X: 0 },
+    '+C_X':   { I: 5, X: 10, Y: 5, Z: 11, H: 11, U: 0,  C_X: 10 },
+    '+U+C_X': { I: 4, X: 8,  Y: 4, Z: 9,  H: 9,  U: 9,  C_X: 9 },
+};
+const SETUP_ALPHABET = {
+    'Base': ['W', 'B', 'R', 'L'], '+C_X': ['W', 'B', 'R', 'L'],
+    '+U': SINGLE_CELL_NAMES, '+U+C_X': SINGLE_CELL_NAMES,
+};
+const MAX_PAIRS = 3;
+const LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]];
+
+function buildDeck(preset) {
+    const counts = DECK_PRESETS[preset];
+    const deck = [];
+    for (const sym of ['I', 'X', 'Y', 'Z', 'H', 'U', 'C_X']) {
+        for (let k = 0; k < counts[sym]; k++) deck.push(sym);
+    }
+    return deck;
+}
+function shuffleInPlace(arr, rng) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = randInt(rng, i + 1);
+        const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+}
+
+/* Seeded random setup; the documented draw order (see the header). */
+function setupBoardWithRng(preset, rng) {
+    const singles = {}, pairs = [];
+    const free = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    if (DECK_PRESETS[preset].C_X > 0) {
+        const nPairs = randInt(rng, 3);
+        for (let k = 0; k < nPairs; k++) {
+            const i1 = randInt(rng, free.length);
+            const a = free.splice(i1, 1)[0];
+            const i2 = randInt(rng, free.length);
+            const b = free.splice(i2, 1)[0];
+            const cells = a < b ? [a, b] : [b, a];
+            const core = CORE_NAMES[randInt(rng, 4)];
+            pairs.push({ cells, core, stacks: ['I', 'I'] });
+        }
+    }
+    const alphabet = SETUP_ALPHABET[preset];
+    for (const cell of free) singles[cell] = alphabet[randInt(rng, alphabet.length)];
+    return { singles, pairs };
+}
+
+function loadScenario(name) {
+    if (name === 'rulebook-example') {
+        /* The rulebook's own example board, read from the drawing (see the
+           erratum panel for the one caption whose words disagree with it). */
+        return {
+            singles: { 2: 'W', 9: 'W', 3: 'UB', 4: 'B', 7: 'B', 5: 'UR', 8: 'L' },
+            pairs: [{ cells: [1, 6], core: 'PhiPlus', stacks: ['H', 'I'] }],
+        };
+    }
+    if (name === 'all-white') {
+        const singles = {}; for (let c = 1; c <= 9; c++) singles[c] = 'W';
+        return { singles, pairs: [] };
+    }
+    throw new Error('unknown scenario ' + name);
+}
+
+function cloneBoard(board) {
+    const singles = {};
+    for (const k in board.singles) singles[k] = board.singles[k];
+    return { singles, pairs: board.pairs.map(p => ({ cells: p.cells.slice(), core: p.core, stacks: p.stacks.slice() })) };
+}
+function cellContent(board, cell) {
+    if (board.singles[cell] !== undefined) return ['single', board.singles[cell]];
+    for (let i = 0; i < board.pairs.length; i++) {
+        const p = board.pairs[i];
+        if (p.cells[0] === cell) return ['pair', i, 1];
+        if (p.cells[1] === cell) return ['pair', i, 2];
+    }
+    throw new Error('cell ' + cell + ' not covered');
+}
+function cxInputLegal(board, a, b) {
+    if (a === b) return false;
+    const ca = cellContent(board, a), cb = cellContent(board, b);
+    if (ca[0] === 'single' && cb[0] === 'single') return true;
+    if (ca[0] === 'pair' && cb[0] === 'pair' && ca[1] === cb[1]) {
+        const st = board.pairs[ca[1]].stacks;
+        return !(parseStack(st[0]).h || parseStack(st[1]).h);
+    }
+    return false;
+}
+function scoreBoard(board) {
+    let white = 0, black = 0;
+    for (const line of LINES) {
+        const labels = line.map(c => board.singles[c]);
+        if (labels.every(l => l === 'W')) white++;
+        else if (labels.every(l => l === 'B')) black++;
+    }
+    return [white, black];
+}
+
+/* ── the measurement sweep (cells 1→9; pairs resolve at their lower cell) ── */
+const OUTCOME_TILES = [['W', 'W'], ['W', 'B'], ['B', 'W'], ['B', 'B']];
+const PAIR_OUTCOME_NAMES = ['WW', 'WB', 'BW', 'BB'];
+
+function nextResolutionCell(board) {
+    for (let cell = 1; cell <= 9; cell++) {
+        if (board.singles[cell] !== undefined) {
+            if (board.singles[cell] !== 'W' && board.singles[cell] !== 'B') return cell;
+        } else {
+            for (const p of board.pairs) if (p.cells[0] === cell) return cell;
+        }
+    }
+    return null;
+}
+
+/* Resolve one cell; returns {board, detail} with everything the dice panel
+   shows: dice values, the consulted row, its provenance, the band hit. */
+function resolveCellDetail(board, cell, rng, mode) {
+    const next = cloneBoard(board);
+    const content = cellContent(board, cell);
+    const detail = { cell, mode };
+    if (content[0] === 'single') {
+        const state = content[1];
+        const row = singleRowFor(state);
+        detail.kind = 'single'; detail.state = state; detail.prov = row.prov;
+        detail.bands = row.bands; detail.outcomeNames = ['W', 'B'];
+        if (mode === 'exact') {
+            const probs = measureColorProbs(state);
+            const u = rng();
+            detail.probs = probs; detail.u = u;
+            detail.outcome = u < probs[0] ? 0 : 1;
+        } else {
+            detail.tens = randInt(rng, 10); detail.units = randInt(rng, 10);
+            detail.roll = d100Read(detail.tens, detail.units); detail.die = 100;
+            detail.outcome = tableModeOutcome(row, detail.roll, false);
+        }
+        next.singles[cell] = detail.outcome === 0 ? 'W' : 'B';
+        detail.tiles = [next.singles[cell]];
+    } else {
+        const pair = board.pairs[content[1]];
+        const found = pairRowFor(pair.core, pair.stacks[0], pair.stacks[1]);
+        detail.kind = 'pair'; detail.cells = pair.cells.slice();
+        detail.core = pair.core; detail.stacks = pair.stacks.slice();
+        detail.mirrored = found.mirrored; detail.e2 = found.row.e2;
+        detail.prov = found.row.prov + (found.mirrored ? ' (used mirrored: markers on the other member)' : '');
+        detail.outcomeNames = PAIR_OUTCOME_NAMES;
+        if (mode === 'exact') {
+            const probs = pairMeasureProbs(pair.core, pair.stacks[0], pair.stacks[1]);
+            const u = rng();
+            let cum = 0, outcome = 3;
+            for (let i = 0; i < 4; i++) { cum += probs[i]; if (u < cum) { outcome = i; break; } }
+            detail.probs = probs; detail.u = u; detail.outcome = outcome;
+        } else if (found.row.e2) {
+            detail.roll = 1 + randInt(rng, 8); detail.die = 8;
+            detail.partition = found.row.d8;
+            detail.outcome = tableModeOutcome(found.row, detail.roll, found.mirrored);
+        } else {
+            detail.tens = randInt(rng, 10); detail.units = randInt(rng, 10);
+            detail.roll = d100Read(detail.tens, detail.units); detail.die = 100;
+            detail.bands = found.row.bands;
+            detail.outcome = tableModeOutcome(found.row, detail.roll, found.mirrored);
+        }
+        const tiles = OUTCOME_TILES[detail.outcome];
+        next.singles[pair.cells[0]] = tiles[0];
+        next.singles[pair.cells[1]] = tiles[1];
+        next.pairs.splice(content[1], 1);
+        detail.tiles = tiles;
+    }
+    return { board: next, detail };
+}
+
+/* ── hot-seat game state machine (no DOM; the UI only renders it) ────────── */
+function createGame(preset, setupKind, seed, mode) {
+    const rng = mulberry32(seed >>> 0);
+    const board = setupKind === 'rulebook-example'
+        ? loadScenario('rulebook-example') : setupBoardWithRng(preset, rng);
+    const deck = buildDeck(preset);
+    shuffleInPlace(deck, rng);
+    return {
+        preset, mode, seed, rng, board, deck, top: 12,
+        hands: [deck.slice(0, 6), deck.slice(6, 12)], discard: [],
+        phase: 'turn-roll', whiteSeat: null, turnRolls: null,
+        mulliganQueue: null, turn: 0, playsLeft: 0,
+        rollsUsed: 0, lastDetail: null, score: null,
+    };
+}
+function gameSeat(game) {  /* seat holding the current turn's hand */
+    const whiteTurn = game.turn % 2 === 0;
+    return whiteTurn ? game.whiteSeat : 1 - game.whiteSeat;
+}
+function gameColor(game) { return game.turn % 2 === 0 ? 'White' : 'Black'; }
+function gameRollTurnOrder(game) {
+    const rolls = [];
+    let a, b;
+    do { a = 1 + randInt(game.rng, 8); b = 1 + randInt(game.rng, 8); rolls.push([a, b]); }
+    while (a === b);
+    game.turnRolls = rolls;
+    game.whiteSeat = a > b ? 0 : 1;      /* higher roll plays White and first */
+    game.phase = 'mulligan';
+    game.mulliganQueue = [game.whiteSeat, 1 - game.whiteSeat];
+    return rolls;
+}
+function gameMulligan(game, discardIndices) {
+    const seat = game.mulliganQueue[0];
+    const hand = game.hands[seat];
+    const sorted = discardIndices.slice().sort((x, y) => y - x);
+    for (const i of sorted) { game.discard.push(hand[i]); hand.splice(i, 1); }
+    while (hand.length < 6) hand.push(game.deck[game.top++]);
+    game.mulliganQueue.shift();
+    if (game.mulliganQueue.length === 0) gameStartTurn(game);
+}
+function gameStartTurn(game) {
+    game.phase = 'turns';
+    const seat = gameSeat(game);
+    game.hands[seat].push(game.deck[game.top++], game.deck[game.top++]);
+    game.playsLeft = 2;
+}
+/* target: {cell} for one-cell cards; {control, target} cells for C_X. */
+function gamePlayCard(game, handIndex, target) {
+    const seat = gameSeat(game);
+    const card = game.hands[seat][handIndex];
+    const board = game.board;
+    let note = null;
+    if (card !== 'C_X') {
+        const content = cellContent(board, target.cell);
+        if (content[0] === 'single') {
+            const after = applyCardSingle(content[1], card);
+            if (after === content[1]) note = 'invisible move (a pure-phase play — legal)';
+            board.singles[target.cell] = after;
+        } else {
+            const p = board.pairs[content[1]];
+            const before = [p.core, p.stacks[0], p.stacks[1]].join('|');
+            const after = applyCardPair(p.core, p.stacks[0], p.stacks[1], card, content[2]);
+            if (after.join('|') === before) note = 'invisible move (a pure-phase play — legal)';
+            p.core = after[0]; p.stacks = [after[1], after[2]];
+        }
+    } else {
+        if (!cxInputLegal(board, target.control, target.target)) return { ok: false, note: 'illegal C_X input' };
+        const cc = cellContent(board, target.control);
+        if (cc[0] === 'single') {
+            const ct = cellContent(board, target.target);
+            const result = applyCxSingles(cc[1], ct[1]);
+            if (result.kind === 'singles') {
+                if (result.out[0] === cc[1] && result.out[1] === ct[1]) {
+                    note = 'invisible move (a pure-phase play — legal)';
+                }
+                board.singles[target.control] = result.out[0];
+                board.singles[target.target] = result.out[1];
+            } else {
+                if (board.pairs.length >= MAX_PAIRS) return { ok: false, note: 'three pairs already on the board (the physical cap)' };
+                delete board.singles[target.control];
+                delete board.singles[target.target];
+                const lowFirst = target.control < target.target;
+                board.pairs.push({
+                    cells: lowFirst ? [target.control, target.target] : [target.target, target.control],
+                    core: result.core,
+                    stacks: lowFirst ? [result.stackControl, result.stackTarget]
+                                     : [result.stackTarget, result.stackControl],
+                });
+            }
+        } else {
+            const p = board.pairs[cc[1]];
+            const out = applyCxPair(p.core, p.stacks[0], p.stacks[1], cc[2]);
+            if (out === null) return { ok: false, note: 'H-marked pair — remove the H first' };
+            board.singles[p.cells[0]] = out[0];
+            board.singles[p.cells[1]] = out[1];
+            board.pairs.splice(cc[1], 1);
+        }
+    }
+    game.discard.push(card);
+    game.hands[seat].splice(handIndex, 1);
+    game.playsLeft--;
+    if (game.playsLeft === 0) {
+        game.turn++;
+        if (game.turn >= 10) game.phase = 'measure';
+        else gameStartTurn(game);
+    }
+    return { ok: true, note };
+}
+function gameResolveNext(game) {
+    const cell = nextResolutionCell(game.board);
+    if (cell === null) {
+        game.phase = 'done';
+        game.score = scoreBoard(game.board);
+        return null;
+    }
+    const r = resolveCellDetail(game.board, cell, game.rng, game.mode);
+    game.board = r.board;
+    game.rollsUsed++;
+    game.lastDetail = r.detail;
+    if (nextResolutionCell(game.board) === null) {
+        game.phase = 'done';
+        game.score = scoreBoard(game.board);
+    }
+    return r.detail;
+}
+/* ═══ END LAB8 QTRIS CORE ═════════════════════════════════════════════════ */
+// ─── LAB8 CORE EXTRACT END ───
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  UI LAYER — rendering + interaction only.
+ *  Every probability shown here is fetched from the CORE functions above;
+ *  no number is hardcoded in this layer.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+function $id(x) { return document.getElementById(x); }
+
+const PAIR_COLORS = ['var(--pair-0)', 'var(--pair-1)', 'var(--pair-2)'];
+const OUTCOME_COLORS = ['#f8fafc', '#fbbf24', '#60a5fa', '#334155'];
+const CORE_PRETTY = { PhiPlus: 'Φ⁺', PsiPlus: 'Ψ⁺', PhiMinus: 'Φ⁻', PsiMinus: 'Ψ⁻' };
+
+let ui = {
+    preset: '+C_X', mode: 'table', game: null,
+    selectedCard: null, cxControl: null, previewOn: false,
+    lastSeat: null, needHandoff: false,
+    tally: { biancoWhite: 0, biancoTotal: 0, phiAgree: 0, phiTotal: 0 },
+};
+
+/* ── tile art (original abstract art; right-oriented = white half RIGHT) ── */
+function svgSingleTile(label, size) {
+    const s = size || 64, r = s / 2 - 4, cx = s / 2, cy = s / 2;
+    const p = parseSingle(label);
+    let art = '';
+    if (p.base === 'W') {
+        art = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fafafa" stroke="#334155" stroke-width="2.5"/>';
+    } else if (p.base === 'B') {
+        art = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#1f2937" stroke="#334155" stroke-width="2.5"/>';
+    } else {
+        const whiteRight = p.base === 'R';
+        const half = 'M ' + cx + ' ' + (cy - r) + ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) + ' Z';
+        const otherHalf = 'M ' + cx + ' ' + (cy - r) + ' A ' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy + r) + ' Z';
+        art = '<path d="' + half + '" fill="' + (whiteRight ? '#fafafa' : '#1f2937') + '"/>' +
+              '<path d="' + otherHalf + '" fill="' + (whiteRight ? '#1f2937' : '#fafafa') + '"/>' +
+              '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#334155" stroke-width="2.5"/>';
+    }
+    return art;
+}
+function svgTriangle(member, core, size, pairColor) {
+    const s = size || 64, m = 8;
+    const up = member === 1 || core === 'PhiPlus' || core === 'PhiMinus';
+    const pts = up
+        ? (s / 2) + ',' + m + ' ' + m + ',' + (s - m) + ' ' + (s - m) + ',' + (s - m)
+        : m + ',' + m + ' ' + (s - m) + ',' + m + ' ' + (s / 2) + ',' + (s - m);
+    const minus = core === 'PhiMinus' || core === 'PsiMinus';
+    return '<polygon points="' + pts + '" fill="#fde68a" stroke="' + pairColor +
+           '" stroke-width="4"/>' +
+           (minus ? '<text x="' + (s / 2) + '" y="' + (s / 2 + 6) + '" text-anchor="middle" ' +
+                    'font-size="20" font-weight="800" fill="#7c2d12">−</text>' : '');
+}
+function markerRow(stack) {
+    let html = '<div style="position:absolute;bottom:3px;right:6px;display:flex;gap:3px;">';
+    /* read outward from the tile: H (inner, red) then U (outer, pink) */
+    if (stack.indexOf('H') >= 0) html += '<span title="H marker (inner)" style="width:13px;height:13px;background:#dc2626;border-radius:3px;display:inline-block;"></span>';
+    if (stack.indexOf('U') >= 0) html += '<span title="U marker (outer)" style="width:13px;height:13px;background:#ec4899;border-radius:3px;display:inline-block;"></span>';
+    return html + '</div>';
+}
+function cellHtml(board, cell) {
+    const content = cellContent(board, cell);
+    let inner = '';
+    if (content[0] === 'single') {
+        const label = content[1];
+        inner = '<svg width="64" height="64">' + svgSingleTile(label, 64) + '</svg>' +
+                (label.length === 2 ? markerRow('U') : '');
+    } else {
+        const pair = board.pairs[content[1]];
+        const member = content[2];
+        inner = '<svg width="64" height="64">' +
+                svgTriangle(member, pair.core, 64, PAIR_COLORS[content[1] % 3]) + '</svg>' +
+                markerRow(pair.stacks[member - 1]);
+    }
+    return '<span class="cell-num">' + cell + '</span>' + inner;
+}
+
+/* ── board / hand / status rendering ─────────────────────────────────────── */
+function renderBoard() {
+    const grid = $id('board-grid');
+    const g = ui.game;
+    grid.innerHTML = '';
+    for (let cell = 1; cell <= 9; cell++) {
+        const div = document.createElement('div');
+        div.className = 'qt-cell';
+        div.id = 'cell-' + cell;
+        if (g) {
+            div.innerHTML = cellHtml(g.board, cell);
+            if (ui.cxControl === cell) div.classList.add('sel-control');
+            if (g.phase === 'measure' && nextResolutionCell(g.board) === cell) div.classList.add('resolving');
+        }
+        (function (c) { div.onclick = function () { onCellClick(c); }; })(cell);
+        grid.appendChild(div);
+    }
+    if (g && g.phase === 'done') {
+        for (const line of LINES) {
+            const labels = line.map(c => g.board.singles[c]);
+            if (labels.every(l => l === 'W') || labels.every(l => l === 'B')) {
+                for (const c of line) $id('cell-' + c).classList.add('line-win');
+            }
+        }
+        $id('score-white').textContent = g.score[0];
+        $id('score-black').textContent = g.score[1];
+    } else {
+        $id('score-white').textContent = '–';
+        $id('score-black').textContent = '–';
+    }
+}
+function seatName(seat) {
+    const g = ui.game;
+    if (g.whiteSeat === null) return 'Seat ' + (seat + 1);
+    return (seat === g.whiteSeat ? 'White' : 'Black') + ' (seat ' + (seat + 1) + ')';
+}
+function renderHand() {
+    const g = ui.game;
+    const cardsDiv = $id('hand-cards');
+    cardsDiv.innerHTML = '';
+    $id('mulligan-controls').style.display = g.phase === 'mulligan' ? '' : 'none';
+    $id('measure-controls').style.display = (g.phase === 'measure') ? '' : 'none';
+    let seat = null;
+    if (g.phase === 'mulligan') seat = g.mulliganQueue[0];
+    else if (g.phase === 'turns') seat = gameSeat(g);
+    if (seat === null) { $id('hand-title').textContent = g.phase === 'measure' ? 'Measurement phase' : 'Game over'; return; }
+    $id('hand-title').textContent = 'Hand — ' + seatName(seat);
+    g.hands[seat].forEach(function (card, i) {
+        const b = document.createElement('button');
+        b.className = 'hand-card';
+        b.innerHTML = card === 'C_X' ? 'C<sub>X</sub>' : card;
+        if (g.phase === 'mulligan' && ui.mullSel && ui.mullSel.has(i)) b.classList.add('discard-sel');
+        if (g.phase === 'turns' && ui.selectedCard === i) b.classList.add('selected');
+        b.onclick = function () { onCardClick(i); };
+        cardsDiv.appendChild(b);
+    });
+}
+function setStatus(html) { $id('status-banner').innerHTML = html; }
+function renderStatus(extra) {
+    const g = ui.game;
+    let s;
+    if (!g) s = 'Press <strong>New game</strong> to begin.';
+    else if (g.phase === 'mulligan') {
+        s = seatName(g.mulliganQueue[0]) + ' — optional mulligan: select cards to replace, or keep your hand. ' +
+            'Turn-order rolls: ' + g.turnRolls.map(r => r.join('–')).join(', ') + '.';
+    } else if (g.phase === 'turns') {
+        s = gameColor(g) + ' — turn ' + (g.turn + 1) + ' of 10 — play ' + g.playsLeft +
+            (g.playsLeft === 1 ? ' card' : ' cards') +
+            (ui.selectedCard !== null ? ' — now click a cell' +
+                (ui.game.hands[gameSeat(g)][ui.selectedCard] === 'C_X'
+                    ? (ui.cxControl === null ? ' (CONTROL first)' : ' (now the TARGET)') : '') : '');
+    } else if (g.phase === 'measure') {
+        s = 'Measurement phase — cells resolve in order 1→9. Roll for the highlighted cell.';
+    } else {
+        s = 'Game over — White ' + g.score[0] + ' : ' + g.score[1] + ' Black' +
+            (g.score[0] === g.score[1] ? ' — a drawn game (equal scores are a draw).' : '.');
+    }
+    if (extra) s += ' <span class="text-muted">' + extra + '</span>';
+    setStatus(s);
+}
+function renderTallies() {
+    const t = ui.tally;
+    $id('tally-panel').innerHTML =
+        'bianconera → white: ' + t.biancoWhite + '/' + t.biancoTotal +
+        (t.biancoTotal ? ' (' + (t.biancoWhite / t.biancoTotal).toFixed(3) + ' → 1/2)' : '') +
+        '<br>plain Φ pairs same color: ' + t.phiAgree + '/' + t.phiTotal +
+        (t.phiTotal ? ' (' + (t.phiAgree / t.phiTotal).toFixed(3) + ' → 1)' : '');
+}
+function renderAll(extra) { renderBoard(); renderHand(); renderStatus(extra); renderTallies(); }
+
+/* ── handoff overlay (hot-seat privacy) ──────────────────────────────────── */
+function maybeHandoff(seat, then) {
+    if (ui.lastSeat === seat || seat === null) { then(); return; }
+    ui.lastSeat = seat;
+    const ov = document.createElement('div');
+    ov.className = 'handoff-overlay';
+    ov.innerHTML = '<div><div class="display-6 mb-3">Pass the screen to ' + seatName(seat) +
+                   '</div><div class="text-white-50">click anywhere to reveal the hand</div></div>';
+    ov.onclick = function () { document.body.removeChild(ov); then(); };
+    document.body.appendChild(ov);
+}
+
+/* ── game controls ───────────────────────────────────────────────────────── */
+function uiSetPreset(p) {
+    ui.preset = p;
+    for (const q of PRESET_NAMES) $id('preset-' + q).classList.toggle('active', q === p);
+}
+function uiSetMode(m) {
+    ui.mode = m;
+    $id('mode-table').classList.toggle('active', m === 'table');
+    $id('mode-exact').classList.toggle('active', m === 'exact');
+    if (ui.game) ui.game.mode = m;
+}
+function uiNewGame() {
+    const seed = parseInt($id('seed-input').value, 10) || 0;
+    const setup = $id('setup-select').value;
+    ui.game = createGame(ui.preset, setup, seed, ui.mode);
+    ui.selectedCard = null; ui.cxControl = null; ui.mullSel = new Set(); ui.lastSeat = null;
+    gameRollTurnOrder(ui.game);
+    const g = ui.game;
+    $id('game-info').innerHTML = 'New game (' + ui.preset + ', ' +
+        (ui.mode === 'table' ? 'printed tables' : 'exact mode') + ', seed ' + seed + '). ' +
+        'Turn order: higher roll plays White and moves first. ' + seatName(g.whiteSeat) + ' won the roll.';
+    $id('roll-detail').innerHTML = 'No roll yet.';
+    maybeHandoff(g.mulliganQueue[0], function () { renderAll(); });
+}
+function onCardClick(i) {
+    const g = ui.game;
+    if (!g) return;
+    if (g.phase === 'mulligan') {
+        if (ui.mullSel.has(i)) ui.mullSel.delete(i); else ui.mullSel.add(i);
+        renderHand();
+        return;
+    }
+    if (g.phase !== 'turns') return;
+    ui.selectedCard = ui.selectedCard === i ? null : i;
+    ui.cxControl = null;
+    renderAll();
+}
+function uiMulliganConfirm() {
+    const g = ui.game;
+    const n = ui.mullSel.size;
+    gameMulligan(g, Array.from(ui.mullSel));
+    ui.mullSel = new Set();
+    const nextSeat = g.phase === 'mulligan' ? g.mulliganQueue[0] : gameSeat(g);
+    maybeHandoff(nextSeat, function () { renderAll(n + ' card(s) replaced.'); });
+}
+function uiMulliganKeep() {
+    ui.mullSel = new Set();
+    uiMulliganConfirm();
+}
+function onCellClick(cell) {
+    const g = ui.game;
+    if (!g) return;
+    if (g.phase !== 'turns' || ui.selectedCard === null) {
+        if (ui.previewOn && g.phase !== 'done') showPreview(cell);
+        return;
+    }
+    const seat = gameSeat(g);
+    const card = g.hands[seat][ui.selectedCard];
+    if (card === 'C_X') {
+        if (ui.cxControl === null) { ui.cxControl = cell; renderAll(); return; }
+        const result = gamePlayCard(g, ui.selectedCard, { control: ui.cxControl, target: cell });
+        ui.cxControl = null;
+        afterPlay(result, seat);
+        return;
+    }
+    const result = gamePlayCard(g, ui.selectedCard, { cell });
+    afterPlay(result, seat);
+}
+function afterPlay(result, prevSeat) {
+    const g = ui.game;
+    if (!result.ok) { renderAll('Rejected: ' + result.note); ui.selectedCard = null; return; }
+    ui.selectedCard = null;
+    let extra = result.note ? '<i class="fa-solid fa-ghost me-1"></i>' + result.note + '.' : null;
+    if (g.phase === 'measure') {
+        renderAll('Operations over — measurement begins.');
+        return;
+    }
+    const seatNow = g.phase === 'turns' ? gameSeat(g) : null;
+    if (seatNow !== null && seatNow !== prevSeat) {
+        maybeHandoff(seatNow, function () { renderAll(extra); });
+    } else renderAll(extra);
+}
+
+/* ── dice panel ──────────────────────────────────────────────────────────── */
+function bandStripHtml(widths, names, hitIndex, total) {
+    let html = '<div class="band-strip">';
+    widths.forEach(function (w, i) {
+        if (w === 0) return;
+        html += '<div class="band-seg' + (i === hitIndex ? ' hit' : '') + '" style="flex:' + w +
+                ' 0 0;background:' + OUTCOME_COLORS[i % 4] + ';color:' +
+                (i === 3 ? '#f8fafc' : '#0f172a') + ';">' + names[i] + ' ' + w + '/' + total + '</div>';
+    });
+    return html + '</div>';
+}
+function renderRollDetail(d) {
+    if (!d) return;
+    let html = '<div class="fw-bold mb-1">Cell ' + d.cell +
+               (d.kind === 'pair' ? ' (pair on ' + d.cells.join('+') + ', ' + CORE_PRETTY[d.core] +
+                 ', markers ' + d.stacks.join('/') + ')' : ' (' + d.state + ')') + '</div>';
+    if (d.mode === 'exact') {
+        html += '<div>Exact mode — full-precision Born probabilities:</div><div style="font-family:monospace;font-size:.8rem;">[' +
+                d.probs.map(p => p.toFixed(6)).join(', ') + ']</div>' +
+                '<div>draw u = ' + d.u.toFixed(6) + ' → <strong>' + d.outcomeNames[d.outcome] + '</strong></div>';
+    } else if (d.die === 8) {
+        html += '<div><span class="die-face">' + d.roll + '</span> d8 roll (exact eighth-partition — ' +
+                'this row’s printed bands are an erratum; see the erratum panel)</div>' +
+                bandStripHtml(d.partition, d.outcomeNames, d.outcome, 8) +
+                '<div>→ <strong>' + d.outcomeNames[d.outcome] + '</strong></div>';
+    } else {
+        html += '<div><span class="die-face">' + (d.tens === 0 ? '00' : d.tens * 10) + '</span>' +
+                '<span class="die-face">' + d.units + '</span> read as <strong>' + d.roll +
+                '</strong> (00 + 0 reads 100)</div>' +
+                bandStripHtml(d.bands, d.outcomeNames, d.outcome, 100) +
+                '<div>→ <strong>' + d.outcomeNames[d.outcome] + '</strong></div>';
+    }
+    html += '<div class="prov mt-1">' + d.prov + '</div>';
+    $id('roll-detail').innerHTML = html;
+}
+function uiResolveNext() {
+    const g = ui.game;
+    if (!g || g.phase !== 'measure' && g.phase !== 'done') return;
+    const d = gameResolveNext(g);
+    if (d) {
+        renderRollDetail(d);
+        if (d.kind === 'single' && (d.state === 'R' || d.state === 'L')) {
+            ui.tally.biancoTotal++; if (d.outcome === 0) ui.tally.biancoWhite++;
+        }
+        if (d.kind === 'pair' && d.stacks.join('') === 'II' &&
+            (d.core === 'PhiPlus' || d.core === 'PhiMinus')) {
+            ui.tally.phiTotal++; if (d.outcome === 0 || d.outcome === 3) ui.tally.phiAgree++;
+        }
+    }
+    renderAll();
+}
+
+/* ── probability preview (opt-in) ────────────────────────────────────────── */
+function uiPreviewToggled() { ui.previewOn = $id('preview-toggle').checked; }
+function previewBars(exact, printed, names) {
+    let html = '';
+    exact.forEach(function (p, i) {
+        html += '<div class="prob-bar-row"><span style="width:30px;">' + names[i] + '</span>' +
+            '<div class="prob-bar-shell"><div class="prob-bar-fill" style="width:' + (p * 100) + '%;"></div></div>' +
+            '<span style="width:70px;">' + p.toFixed(4) + '</span></div>';
+        if (printed) {
+            html += '<div class="prob-bar-row"><span style="width:30px;color:#94a3b8;">print</span>' +
+                '<div class="prob-bar-shell"><div class="prob-bar-fill printed" style="width:' + (printed[i] * 100) + '%;"></div></div>' +
+                '<span style="width:70px;color:#94a3b8;">' + printed[i].toFixed(2) + '</span></div>';
+        }
+    });
+    return html;
+}
+function showPreview(cell) {
+    const g = ui.game;
+    const content = cellContent(g.board, cell);
+    let html;
+    if (content[0] === 'single') {
+        const state = content[1];
+        const row = singleRowFor(state);
+        html = '<strong>Preview — cell ' + cell + ' (' + state + '):</strong>' +
+               previewBars(measureColorProbs(state), row.bands.map(b => b / 100), ['W', 'B']) +
+               '<div class="text-muted" style="font-size:.78rem;">' + row.prov + '</div>';
+    } else {
+        const pair = g.board.pairs[content[1]];
+        const found = pairRowFor(pair.core, pair.stacks[0], pair.stacks[1]);
+        const exact = pairMeasureProbs(pair.core, pair.stacks[0], pair.stacks[1]);
+        const playable = playableTableDistribution(found.row, found.mirrored);
+        html = '<strong>Preview — pair ' + pair.cells.join('+') + ' (' + CORE_PRETTY[pair.core] +
+               ', markers ' + pair.stacks.join('/') + '):</strong>' +
+               previewBars(exact, playable, PAIR_OUTCOME_NAMES) +
+               (found.row.e2 ? '<div style="color:#be185d;font-size:.8rem;">This configuration is the ' +
+                 'printed erratum: the published bands claim ' +
+                 found.row.bands.map(b => b + '%').join('/') + ' — impossible for any gate. The exact ' +
+                 'eighths above are what both dice modes serve.</div>' : '') +
+               '<div class="text-muted" style="font-size:.78rem;">' + found.row.prov + '</div>';
+    }
+    $id('game-info').innerHTML = html;
+}
+
+/* ── sandbox ─────────────────────────────────────────────────────────────── */
+let sb = { state: 'W', rng: mulberry32(42), counters: null };
+function sbRender() {
+    $id('sandbox-cell').innerHTML = '<svg width="96" height="96">' + svgSingleTile(sb.state, 96) + '</svg>' +
+        (sb.state.length === 2 ? '<div style="position:relative;">' + markerRow('U') + '</div>' : '');
+    $id('sandbox-state-label').textContent = sb.state;
+}
+function sbInfo(html) { $id('sandbox-info').innerHTML = html; }
+function sbReset(label) {
+    sb.state = label;
+    sb.rng = mulberry32(parseInt($id('seed-input').value, 10) || 0);
+    sbRender();
+    sbInfo('Tile reset to ' + label + '. The sandbox uses the same seed field as the game.');
+}
+function sbCard(card) {
+    sb.state = applyCardSingle(sb.state, card);
+    sbRender();
+    const probs = measureColorProbs(sb.state);
+    sbInfo('Played ' + card + ' → state ' + sb.state + '. Color odds now: P(W) = ' +
+           probs[0].toFixed(6) + '.');
+}
+function sbCounters() {
+    if (!sb.counters) sb.counters = { colorW: 0, colorB: 0, o1p: 0, o1m: 0, o2p: 0, o2m: 0, chains: 0 };
+    return sb.counters;
+}
+function sbRenderCounters() {
+    const c = sbCounters();
+    $id('sandbox-counters').innerHTML =
+        'color: W ' + c.colorW + ' / B ' + c.colorB +
+        '<br>orientation P1: + ' + c.o1p + ' / − ' + c.o1m +
+        '<br>orientation P2: + ' + c.o2p + ' / − ' + c.o2m +
+        '<br>guided chains run: ' + c.chains;
+}
+function sbResetCounters() { sb.counters = null; sbRenderCounters(); }
+function sbMeasureColor() {
+    const probs = measureColorProbs(sb.state);
+    const u = sb.rng();
+    const outcome = u < probs[0] ? 0 : 1;
+    const c = sbCounters(); if (outcome === 0) c.colorW++; else c.colorB++;
+    sb.state = outcome === 0 ? 'W' : 'B';
+    sbRender(); sbRenderCounters();
+    sbInfo('Color measurement: P(W) = ' + probs[0].toFixed(6) + ' → <strong>' +
+           (outcome === 0 ? 'white' : 'black') + '</strong>. The tile is replaced by the plain outcome ' +
+           'tile — decorations gone, no memory of what it was.');
+}
+function sbMeasureOrient(procedure) {
+    const psi = singleCellState(sb.state);
+    const probs = procedure === 1 ? orientationProbsProc1(psi) : orientationProbsProc2(psi);
+    const u = sb.rng();
+    const outcome = u < probs[0] ? 0 : 1;
+    const c = sbCounters();
+    if (procedure === 1) { if (outcome === 0) c.o1p++; else c.o1m++; }
+    else { if (outcome === 0) c.o2p++; else c.o2m++; }
+    const post = procedure === 1 ? (outcome === 0 ? 'R' : 'L') : (outcome === 0 ? 'W' : 'B');
+    sb.state = post;
+    sbRender(); sbRenderCounters();
+    sbInfo('Orientation, Procedure ' + procedure + ': P(+) = ' + probs[0].toFixed(6) +
+           ' → <strong>' + (outcome === 0 ? '+' : '−') + '</strong>. Post-state: ' +
+           (procedure === 1 ? 'the oriented bianconera tile ' + post
+                            : 'a monochrome tile (' + post + '), relabelled on the apparatus') +
+           '. Same statistics either way — different tile left behind. Overlap of the two ' +
+           'post-states: |⟨+|0⟩|² = ' + (Math.pow(BASE_KETS.R[0] * BASE_KETS.W[0] + BASE_KETS.R[1] * BASE_KETS.W[1], 2)).toFixed(4) + '.');
+}
+function sbRunChain() {
+    sb.state = 'W';
+    const steps = [];
+    /* orientation → color → orientation, Procedure 1 post-states */
+    let psi = singleCellState('W');
+    let probs = orientationProbsProc1(psi);
+    let u = sb.rng(); let o1 = u < probs[0] ? 0 : 1;
+    steps.push(['orientation', probs, o1 === 0 ? '+' : '−']);
+    sb.state = o1 === 0 ? 'R' : 'L';
+    probs = measureColorProbs(sb.state);
+    u = sb.rng(); const o2 = u < probs[0] ? 0 : 1;
+    steps.push(['color', probs, o2 === 0 ? 'W' : 'B']);
+    sb.state = o2 === 0 ? 'W' : 'B';
+    probs = orientationProbsProc1(singleCellState(sb.state));
+    u = sb.rng(); const o3 = u < probs[0] ? 0 : 1;
+    steps.push(['orientation again', probs, o3 === 0 ? '+' : '−']);
+    sb.state = o3 === 0 ? 'R' : 'L';
+    const c = sbCounters(); c.chains++;
+    sbRender(); sbRenderCounters();
+    sbInfo('Chain from W: ' + steps.map(s =>
+        s[0] + ' [' + s[1].map(p => p.toFixed(2)).join(', ') + '] → ' + s[2]).join(' · ') +
+        '. Every step 50/50: measuring one property fully randomizes the other — nobody repainted ' +
+        'the tile; the question simply had no answer yet.');
+}
+
+/* ── erratum panel bars + obstruction value ──────────────────────────────── */
+function renderErratumPanel() {
+    $id('obstruction-value').textContent = uzutOffdiagonalSq().toFixed(4) + ' (= 3/4)';
+    [['PsiPlus', 'e2-bars-psiplus'], ['PhiMinus', 'e2-bars-phiminus']].forEach(function (pair) {
+        const core = pair[0];
+        const found = pairRowFor(core, 'U', 'U');
+        const exact = pairMeasureProbs(core, 'U', 'U');
+        const printed = found.row.bands.map(b => b / 100);
+        $id(pair[1]).innerHTML = previewBars(exact, printed, PAIR_OUTCOME_NAMES) +
+            '<div class="text-muted" style="font-size:.72rem;">teal = exact physics (served in both ' +
+            'dice modes) · gray = printed bands (display only)</div>';
+    });
+}
+
+/* ── tabs + exercises ────────────────────────────────────────────────────── */
+function showTab(which) {
+    $id('tab-game').style.display = which === 'game' ? '' : 'none';
+    $id('tab-sandbox').style.display = which === 'sandbox' ? '' : 'none';
+    $id('tab-game-btn').classList.toggle('active', which === 'game');
+    $id('tab-sandbox-btn').classList.toggle('active', which === 'sandbox');
+}
+const ANSWERS = {
+    q1: ['b', 'Right: $H|+\\rangle = |0\\rangle$ — certain white. $X$ leaves a bianconera fixed (an invisible move), and $Z$ only flips the orientation, which the color measurement cannot see.'],
+    q2: ['c', 'Right: $\\Psi^+$ is the opposite-color pair — its printed row has no $WW$ or $BB$ band at all. Probability of same color: exactly $0$.'],
+    q3: ['b', 'Right: the printed band is 1–93, and $\\cos^2 15° = (2+\\sqrt{3})/4 = 0.93301\\ldots$ — the print rounds by about $0.003$, within its half-point tolerance.'],
+    q4: ['a', 'Right: perfect correlation for BOTH $\\Phi^+$ and $\\Phi^-$ as printed would force the decorated tile to keep definite colors definite — but the square’s own printed row says a decorated white tile is white only 25% of the time. The contradiction is quantitative: the relevant term equals $3/4$ where $0$ is required.'],
+};
+function answer(q, choice) {
+    const fb = $id('fb-' + q);
+    const right = ANSWERS[q][0] === choice;
+    fb.className = 'feedback ' + (right ? 'correct' : 'wrong');
+    fb.style.display = 'block';
+    fb.innerHTML = right ? ANSWERS[q][1] : 'Not quite — think it through at the board (or with the probability preview on), then try again.';
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([fb]);
+}
+
+/* ── boot ────────────────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', function () {
+    showTab('game');
+    uiSetPreset('+C_X');
+    uiSetMode('table');
+    renderErratumPanel();
+    sbRender(); sbRenderCounters();
+    uiNewGame();
+});
+</script>
+</body>
+</html>
