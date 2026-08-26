@@ -401,10 +401,10 @@ The cost function:
 \end{equation}
 
 \begin{studentbox}
-\textbf{Verify:} Set $\theta_0 = \pi$, $\theta_1 = 0$. Show that
-$\ket{\psi(\pi,0)} = \ket{10}$ and that $C(\pi, 0) = -1.5 = E_0$.
-\emph{Hint:} $R_y(\pi)\ket{0} = \ket{1}$, $R_y(0)\ket{0} = \ket{0}$,
-and CX leaves $\ket{10}$ unchanged.
+\textbf{Verify:} Set $\theta_0 = \pi$, $\theta_1 = \pi$. Show that
+$\ket{\psi(\pi,\pi)} = \ket{10}$ and that $C(\pi, \pi) = -1.5 = E_0$.
+\emph{Hint:} $R_y(\pi)\ket{0} = \ket{1}$ on both qubits gives $\ket{11}$,
+and CX (control $q_0 = 1$) flips the target: $\ket{11} \to \ket{10}$.
 \end{studentbox}
 
 \subsection{Gradient Computation via Parameter-Shift}
@@ -416,7 +416,7 @@ For $\theta_0$:
        - C(\theta_0-\tfrac\pi2,\theta_1)\bigr].
 \end{align}
 The optimizer (COBYLA or L-BFGS-B) uses these gradient estimates to descend
-toward the minimum $(\pi, 0)$.
+toward the minimum $(\pi, \pi)$.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Part D: QAOA — Quantum Approximate Optimization}
@@ -615,7 +615,7 @@ $R_z$ would only add phase — it cannot change measurement probabilities
 from a $\ket{0}$ start state.
 
 \medskip
-\textbf{OpenQASM 2.0 — sweep $\theta_0$, keep $\theta_1 = 0$:}
+\textbf{OpenQASM 2.0 — sweep $\theta_0$, keep $\theta_1 = \pi$:}
 \begin{lstlisting}[language={}]
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -623,14 +623,14 @@ include "qelib1.inc";
 // Change t0 in {0, pi/4, pi/2, 3*pi/4, pi} and run each time
 qreg q[2]; creg c[2];
 ry(0) q[0];     // theta_0: change this value each run
-ry(0) q[1];     // theta_1: keep at 0
+ry(pi) q[1];    // theta_1: keep at pi
 cx q[0],q[1];
 measure q[0] -> c[0];
 measure q[1] -> c[1];
-// Record probabilities. C(t0,0) = 0.5*cos(t0) + cos(0) = 0.5*cos(t0) + 1
-// At t0=0:    C = 1.5  (highest energy -- |00> state)
-// At t0=pi/2: C = 1.0
-// At t0=pi:   C = -1.5 (ground state -- |10> state)
+// Record probabilities. C(t0,pi) = 0.5*cos(t0) + cos(pi) = 0.5*cos(t0) - 1
+// At t0=0:    C = -0.5 (|01> state)
+// At t0=pi/2: C = -1.0
+// At t0=pi:   C = -1.5 (ground state -- |10> state, the global minimum)
 \end{lstlisting}
 \end{studentbox}
 

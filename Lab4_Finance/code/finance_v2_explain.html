@@ -369,7 +369,7 @@ TICKERS = ['AAPL', 'MSFT', 'JPM', 'XOM']
 def build_qubo(lam=1.0, lam_pen=3.0, K=2):
     n = len(MU)
     Q = lam * SIGMA - np.diag(MU)        # risk-return objective
-    P = np.full((n,n), 2*lam_pen)        # penalty off-diagonal
+    P = np.full((n,n), lam_pen)          # penalty off-diagonal
     np.fill_diagonal(P, lam_pen*(1-2*K)) # penalty diagonal
     return Q + P
 
@@ -452,7 +452,7 @@ function buildQ(lam) {
         if(i===j) {
             Q[i][j] = lam*SIGMA[i][j] - MU[i] + LAM_PEN*(1-2*K);
         } else {
-            Q[i][j] = lam*SIGMA[i][j] + 2*LAM_PEN;
+            Q[i][j] = lam*SIGMA[i][j] + LAM_PEN;
         }
     }
     return Q;
