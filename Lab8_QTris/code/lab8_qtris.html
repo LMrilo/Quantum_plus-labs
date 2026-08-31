@@ -544,6 +544,7 @@
             <span><i class="fa-solid fa-chess-board me-2"></i>QTris — hot-seat, two players at one screen</span>
             <div>
                 <button class="btn btn-sm btn-outline-light me-1" id="tab-game-btn" onclick="showTab('game')">Play QTris</button>
+                <button class="btn btn-sm btn-outline-light me-1" id="tab-watch-btn" onclick="showTab('watch')">Watch a sample game</button>
                 <button class="btn btn-sm btn-outline-light" id="tab-sandbox-btn" onclick="showTab('sandbox')">Sandbox</button>
             </div>
         </div>
@@ -643,6 +644,50 @@
                             <div class="stat-label">Session tallies (this browser tab)</div>
                             <div style="font-size:.8rem;font-family:monospace;" id="tally-panel">
                                 bianconera whites: –<br>pair agreements: –</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─────────────── WATCH TAB (scripted sample game) ─────────────── -->
+            <div id="tab-watch" style="display:none;">
+                <p class="mb-2" style="font-size:.85rem;color:#64748b;">
+                    Watch first if you like — then play; nothing here is a substitute for rolling
+                    yourself. One curated, fully legal game, executed live by the same engine you
+                    play against: setup, mulligan, twenty card plays, the dice, the score — with a
+                    note on every step.</p>
+                <div class="row g-3">
+                    <div class="col-lg-5">
+                        <div class="qt-board" id="replay-board"></div>
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                            <span class="badge text-bg-light border">White <span id="replay-score-white">–</span></span>
+                            <span class="badge text-bg-dark">Black <span id="replay-score-black">–</span></span>
+                        </div>
+                        <div class="d-flex justify-content-center align-items-center gap-1 mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="replayStep(-1)" title="Step back"><i class="fa-solid fa-backward-step"></i></button>
+                            <button class="btn btn-sm btn-primary" id="replay-play-btn" onclick="replayPlayPause()" title="Play / pause"><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="replayStep(1)" title="Step forward"><i class="fa-solid fa-forward-step"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="replayRestart()" title="Restart"><i class="fa-solid fa-rotate-left"></i></button>
+                            <select class="form-select form-select-sm ms-1" id="replay-speed" style="width:auto;" onchange="replaySetSpeed()" title="Speed">
+                                <option value="0.5">0.5×</option>
+                                <option value="1" selected>1×</option>
+                                <option value="2">2×</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="info-box-interactive" id="replay-caption">
+                            Press play, or step through with the arrows — the board, the hands and the
+                            dice panel follow the script step by step.
+                        </div>
+                        <div class="mt-2" id="replay-step-list" style="max-height:340px;overflow-y:auto;font-size:.78rem;"></div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="roll-panel">
+                            <div class="fw-bold mb-1"><i class="fa-solid fa-dice me-1"></i>Dice panel</div>
+                            <div id="replay-roll-detail" style="font-size:.85rem;">The dice panel comes
+                                alive at the measurement sweep — the same panel, the same printed rows
+                                as in your own games.</div>
                         </div>
                     </div>
                 </div>
@@ -1007,6 +1052,13 @@
  *  so seed numbers are not comparable across tools — the cross-check gate
  *  therefore pins the full band-lookup outcome matrix (every row × every
  *  roll) and a recorded seed-42 board of this app instead.
+ *
+ *  SCRIPTED REPLAY ("Watch a sample game"): see the REPLAY section at the
+ *  end of this core — the executor runReplay(), which drives the same
+ *  functions the live game uses off pure script data with NO RNG, and the
+ *  frozen sample-game script with its provenance. The cross-check gate
+ *  executes that script in this core and in the reference engine and
+ *  compares the two state sequences line by line.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 'use strict';
@@ -1495,8 +1547,13 @@ function nextResolutionCell(board) {
 }
 
 /* Resolve one cell; returns {board, detail} with everything the dice panel
-   shows: dice values, the consulted row, its provenance, the band hit. */
-function resolveCellDetail(board, cell, rng, mode) {
+   shows: dice values, the consulted row, its provenance, the band hit.
+   Optional forcedRoll ({tens, units} or {d8}, plus a step tag): dice taken
+   from the script instead of the RNG — the replay path. Omitted (all live
+   callers), behaviour is unchanged; a forced value of the wrong die type
+   for the row is rejected. */
+function resolveCellDetail(board, cell, rng, mode, forcedRoll) {
+    if (forcedRoll && mode !== 'table') replayFail(forcedRoll.step, 'forced dice require printed-tables mode');
     const next = cloneBoard(board);
     const content = cellContent(board, cell);
     const detail = { cell, mode };
@@ -1511,7 +1568,12 @@ function resolveCellDetail(board, cell, rng, mode) {
             detail.probs = probs; detail.u = u;
             detail.outcome = u < probs[0] ? 0 : 1;
         } else {
-            detail.tens = randInt(rng, 10); detail.units = randInt(rng, 10);
+            if (forcedRoll) {
+                if (forcedRoll.tens === undefined) replayFail(forcedRoll.step, 'cell ' + cell + ' needs two d10');
+                if (forcedRoll.tens < 0 || forcedRoll.tens > 9 || forcedRoll.units < 0 || forcedRoll.units > 9) replayFail(forcedRoll.step, 'd10 digit out of range');
+            }
+            detail.tens = forcedRoll ? forcedRoll.tens : randInt(rng, 10);
+            detail.units = forcedRoll ? forcedRoll.units : randInt(rng, 10);
             detail.roll = d100Read(detail.tens, detail.units); detail.die = 100;
             detail.outcome = tableModeOutcome(row, detail.roll, false);
         }
@@ -1532,11 +1594,20 @@ function resolveCellDetail(board, cell, rng, mode) {
             for (let i = 0; i < 4; i++) { cum += probs[i]; if (u < cum) { outcome = i; break; } }
             detail.probs = probs; detail.u = u; detail.outcome = outcome;
         } else if (found.row.e2) {
-            detail.roll = 1 + randInt(rng, 8); detail.die = 8;
+            if (forcedRoll) {
+                if (forcedRoll.d8 === undefined) replayFail(forcedRoll.step, 'erratum row resolves by d8 only');
+                if (forcedRoll.d8 < 1 || forcedRoll.d8 > 8) replayFail(forcedRoll.step, 'd8 out of range');
+            }
+            detail.roll = forcedRoll ? forcedRoll.d8 : 1 + randInt(rng, 8); detail.die = 8;
             detail.partition = found.row.d8;
             detail.outcome = tableModeOutcome(found.row, detail.roll, found.mirrored);
         } else {
-            detail.tens = randInt(rng, 10); detail.units = randInt(rng, 10);
+            if (forcedRoll) {
+                if (forcedRoll.tens === undefined) replayFail(forcedRoll.step, 'conforming pair row needs two d10');
+                if (forcedRoll.tens < 0 || forcedRoll.tens > 9 || forcedRoll.units < 0 || forcedRoll.units > 9) replayFail(forcedRoll.step, 'd10 digit out of range');
+            }
+            detail.tens = forcedRoll ? forcedRoll.tens : randInt(rng, 10);
+            detail.units = forcedRoll ? forcedRoll.units : randInt(rng, 10);
             detail.roll = d100Read(detail.tens, detail.units); detail.die = 100;
             detail.bands = found.row.bands;
             detail.outcome = tableModeOutcome(found.row, detail.roll, found.mirrored);
@@ -1674,6 +1745,282 @@ function gameResolveNext(game) {
         game.score = scoreBoard(game.board);
     }
     return r.detail;
+}
+/* ── REPLAY: scripted sample game — executor + frozen script ─────────────────
+ *  MECHANISM (mirrored function for function by the reference engine's
+ *  replay module; the cross-check gate runs the same script through both
+ *  and compares the canonical state sequences line by line): a replay
+ *  script is PURE DATA — a literal setup board, an explicit deck order
+ *  (validated as an exact multiset match of the preset deck), the
+ *  turn-order d8 rolls, the mulligan discards, twenty ordered plays, and
+ *  one explicit dice value per resolving entity of the sweep, in visit
+ *  order. runReplay() feeds that data through the same functions the live
+ *  game uses — legality included: exact board cover, the three-pair cap,
+ *  card-in-hand at play time, the C_X domain, hand size six at every turn
+ *  boundary, tied-then-untied turn-order rolls, and dice matching the
+ *  resolving row in count, order and die type (the two erratum rows accept
+ *  the d8 only). An illegal script throws at the offending step; nothing
+ *  in a replay consumes the RNG — the sequence is engine-defined end to
+ *  end, never authored.
+ *  SCOPE (schema v1, deliberate): printed-tables mode only. An exact-mode
+ *  replay would need forced floats instead of dice and is rejected by
+ *  validation.
+ *
+ *  REALIZATION PIN (frozen — investigate, never regenerate):
+ *  REPLAY_SCRIPT below is the curated game of the "Watch a sample game"
+ *  tab. Provenance — setup board: this app's own seeded generator,
+ *  preset +U+C_X, seed 1508 (the gate asserts the literal equals that
+ *  seed's setup). Seed search: seeds 1-3000 scanned for a board with no
+ *  starting pairs; a line holding one right-oriented bianconera and two
+ *  whites; a spare left-oriented bianconera off that line; two off-line
+ *  monochrome cells sharing no row, column or diagonal and not touching;
+ *  and at most three decorated tiles. 4 matches (1508, 1534, 2272, 2610);
+ *  the first was chosen — center-cell rescue, one spare plain bianconera
+ *  left over for the sweep, a single decorated tile. Deck order and play
+ *  sequence: hand-authored, 1 candidate, legal and complete on first
+ *  validation. Dice values: chosen so the sweep shows both bianconera
+ *  outcomes on one printed row, the joint pair resolution at its lower
+ *  cell, and the 1-93 row landing white, while the finished line stays
+ *  the only scoring line.                                                 */
+
+function replayFail(step, message) { throw new Error('replay rejected at ' + step + ': ' + message); }
+
+const REPLAY_SCRIPT = {
+    preset: '+U+C_X', mode: 'table',
+    setup: {
+        singles: { 1: 'B', 2: 'R', 3: 'UL', 4: 'W', 5: 'R', 6: 'W', 7: 'B', 8: 'B', 9: 'L' },
+        pairs: [],
+    },
+    deckOrder: [
+        'Z', 'Z', 'U', 'H', 'C_X', 'C_X',       /* seat 0 deal */
+        'X', 'I', 'H', 'C_X', 'U', 'I',         /* seat 1 deal */
+        'I',                                    /* mulligan draw */
+        'H', 'X', 'X', 'X', 'Y', 'Z',           /* turn draws 1-3 */
+        'Z', 'U', 'H', 'H', 'Y', 'Y',           /* turn draws 4-6 */
+        'Z', 'X', 'Z', 'Z', 'U', 'U',           /* turn draws 7-9 */
+        'I', 'H',                               /* turn draw 10 */
+        'X', 'X', 'X', 'Y', 'Z', 'Z', 'H', 'H', 'H', 'U', 'U', 'U', 'U',
+        'C_X', 'C_X', 'C_X', 'C_X', 'C_X', 'C_X',   /* undrawn remainder */
+    ],
+    turnRolls: [[5, 3]],
+    mulligans: [{ discards: ['U'] }, { discards: [] }],
+    plays: [
+        { id: 'p01', card: 'Z', cell: 7 },
+        { id: 'p02', card: 'Z', cell: 9 },
+        { id: 'p03', card: 'X', cell: 8 },
+        { id: 'p04', card: 'I', cell: 3 },
+        { id: 'p05', card: 'H', cell: 5 },
+        { id: 'p06', card: 'H', cell: 7 },
+        { id: 'p07', card: 'H', cell: 1 },
+        { id: 'p08', card: 'C_X', control: 1, target: 8 },
+        { id: 'p09', card: 'C_X', control: 1, target: 8 },
+        { id: 'p10', card: 'C_X', control: 1, target: 8 },
+        { id: 'p11', card: 'U', cell: 9 },
+        { id: 'p12', card: 'I', cell: 8 },
+        { id: 'p13', card: 'H', cell: 2 },
+        { id: 'p14', card: 'H', cell: 2 },
+        { id: 'p15', card: 'X', cell: 7 },
+        { id: 'p16', card: 'X', cell: 3 },
+        { id: 'p17', card: 'Y', cell: 2 },
+        { id: 'p18', card: 'I', cell: 5 },
+        { id: 'p19', card: 'Z', cell: 4 },
+        { id: 'p20', card: 'I', cell: 1 },
+    ],
+    sweepRolls: [
+        { tens: 6, units: 8 },
+        { tens: 2, units: 7 },
+        { tens: 5, units: 5 },
+        { tens: 8, units: 4 },
+        { tens: 4, units: 1 },
+    ],
+};
+
+/* Canonical per-cell content string — shared verbatim with the reference
+   engine's replay module; the cross-check gate compares these. */
+function replayCellSig(board) {
+    const parts = [];
+    for (let cell = 1; cell <= 9; cell++) {
+        if (board.singles[cell] !== undefined) { parts.push(cell + ':' + board.singles[cell]); continue; }
+        for (const p of board.pairs) {
+            if (p.cells[0] === cell) parts.push(cell + ':P(' + p.core + ',' + p.stacks[0] + '/' + p.stacks[1] + ',m1,w' + p.cells[1] + ')');
+            else if (p.cells[1] === cell) parts.push(cell + ':P(' + p.core + ',' + p.stacks[0] + '/' + p.stacks[1] + ',m2,w' + p.cells[0] + ')');
+        }
+    }
+    return parts.join(' ');
+}
+
+function replayBoardValid(board) {
+    const covered = [];
+    for (const k in board.singles) {
+        covered.push(Number(k));
+        if (SINGLE_CELL_NAMES.indexOf(board.singles[k]) < 0) return false;
+    }
+    for (const p of board.pairs) {
+        covered.push(p.cells[0], p.cells[1]);
+        if (!(p.cells[0] < p.cells[1])) return false;
+        if (CORE_NAMES.indexOf(p.core) < 0) return false;
+        if (STACK_NAMES.indexOf(p.stacks[0]) < 0 || STACK_NAMES.indexOf(p.stacks[1]) < 0) return false;
+    }
+    if (board.pairs.length > MAX_PAIRS) return false;
+    return covered.sort(function (a, b) { return a - b; }).join(',') === '1,2,3,4,5,6,7,8,9';
+}
+
+function replayValidate(script) {
+    if (script.mode !== 'table') replayFail('schema', 'schema v1 replays are printed-tables mode only');
+    const need = DECK_PRESETS[script.preset];
+    if (!need) replayFail('schema', 'unknown preset ' + script.preset);
+    let total = 0;
+    for (const sym of ['I', 'X', 'Y', 'Z', 'H', 'U', 'C_X']) {
+        const have = script.deckOrder.filter(function (c) { return c === sym; }).length;
+        if (have !== need[sym]) replayFail('deck', sym + ': ' + have + ' vs preset ' + need[sym]);
+        total += need[sym];
+    }
+    if (script.deckOrder.length !== total) replayFail('deck', 'length ' + script.deckOrder.length);
+    if (!replayBoardValid(script.setup)) replayFail('setup', 'board fails the engine’s structural validity checks');
+    const rolls = script.turnRolls;
+    for (let i = 0; i < rolls.length; i++) {
+        if (rolls[i][0] < 1 || rolls[i][0] > 8 || rolls[i][1] < 1 || rolls[i][1] > 8) replayFail('turn-roll', 'd8 out of range');
+        if (i < rolls.length - 1 && rolls[i][0] !== rolls[i][1]) replayFail('turn-roll', 'non-final roll not tied');
+    }
+    if (rolls[rolls.length - 1][0] === rolls[rolls.length - 1][1]) replayFail('turn-roll', 'final roll tied');
+    if (script.mulligans.length !== 2) replayFail('mulligan', 'need one mulligan entry per player');
+    if (script.plays.length !== 20) replayFail('plays', 'need 20 plays, got ' + script.plays.length);
+}
+
+function replayRemoveCard(hand, card, step) {
+    const i = hand.indexOf(card);
+    if (i < 0) replayFail(step, 'card ' + card + ' not in hand [' + hand.join(',') + ']');
+    hand.splice(i, 1);
+}
+
+/* Apply one scripted play to the board in place; returns {invisible, touched}. */
+function replayApplyPlay(board, play, step) {
+    const card = play.card;
+    if (card !== 'C_X') {
+        const content = cellContent(board, play.cell);
+        if (content[0] === 'single') {
+            const after = applyCardSingle(content[1], card);
+            board.singles[play.cell] = after;
+            return { invisible: after === content[1], touched: [play.cell] };
+        }
+        const pair = board.pairs[content[1]];
+        const before = [pair.core, pair.stacks[0], pair.stacks[1]].join('|');
+        const after = applyCardPair(pair.core, pair.stacks[0], pair.stacks[1], card, content[2]);
+        pair.core = after[0]; pair.stacks = [after[1], after[2]];
+        return { invisible: after.join('|') === before, touched: [play.cell] };
+    }
+    if (!cxInputLegal(board, play.control, play.target)) replayFail(step, 'illegal C_X input ' + play.control + '->' + play.target);
+    const touched = [play.control, play.target];
+    const cc = cellContent(board, play.control);
+    if (cc[0] === 'single') {
+        const ct = cellContent(board, play.target);
+        const result = applyCxSingles(cc[1], ct[1]);
+        if (result.kind === 'singles') {
+            const invisible = result.out[0] === cc[1] && result.out[1] === ct[1];
+            board.singles[play.control] = result.out[0];
+            board.singles[play.target] = result.out[1];
+            return { invisible, touched };
+        }
+        if (board.pairs.length >= MAX_PAIRS) replayFail(step, 'three pairs already on the board (the physical cap)');
+        delete board.singles[play.control];
+        delete board.singles[play.target];
+        const lowFirst = play.control < play.target;
+        board.pairs.push({
+            cells: lowFirst ? [play.control, play.target] : [play.target, play.control],
+            core: result.core,
+            stacks: lowFirst ? [result.stackControl, result.stackTarget]
+                             : [result.stackTarget, result.stackControl],
+        });
+        return { invisible: false, touched };
+    }
+    const pair = board.pairs[cc[1]];
+    const out = applyCxPair(pair.core, pair.stacks[0], pair.stacks[1], cc[2]);
+    if (out === null) replayFail(step, 'C_X on an H-marked pair');
+    board.singles[pair.cells[0]] = out[0];
+    board.singles[pair.cells[1]] = out[1];
+    board.pairs.splice(cc[1], 1);
+    return { invisible: false, touched };
+}
+
+/* Execute a replay script; returns the frame sequence (the UI renders it,
+   the gate serializes it). Throws at the first illegal step. */
+function runReplay(script) {
+    replayValidate(script);
+    const frames = [];
+    let board = { singles: {}, pairs: script.setup.pairs.map(function (p) { return { cells: p.cells.slice(), core: p.core, stacks: p.stacks.slice() }; }) };
+    for (const k in script.setup.singles) board.singles[Number(k)] = script.setup.singles[k];
+    const deck = script.deckOrder.slice();
+    const hands = [deck.slice(0, 6), deck.slice(6, 12)];
+    let top = 12;
+    function push(id, extra) {
+        const frame = {
+            id, sig: replayCellSig(board), board: cloneBoard(board),
+            hands: [hands[0].slice().sort().join(','), hands[1].slice().sort().join(',')],
+        };
+        if (extra) for (const key in extra) frame[key] = extra[key];
+        frames.push(frame);
+    }
+    push('s00');
+    const last = script.turnRolls[script.turnRolls.length - 1];
+    const whiteSeat = last[0] > last[1] ? 0 : 1;
+    push('s01', { rolls: script.turnRolls, whiteSeat });
+    const order = [whiteSeat, 1 - whiteSeat];
+    for (let m = 0; m < 2; m++) {
+        const seat = order[m];
+        const discards = script.mulligans[m].discards.slice();
+        for (const sym of discards) replayRemoveCard(hands[seat], sym, 'mulligan');
+        while (hands[seat].length < 6) hands[seat].push(deck[top++]);
+        push(m === 0 ? 's02' : 's03', { seat, discards });
+    }
+    for (let turn = 0; turn < 10; turn++) {
+        const seat = turn % 2 === 0 ? whiteSeat : 1 - whiteSeat;
+        if (hands[seat].length !== 6) replayFail('turn ' + (turn + 1), 'hand size ' + hands[seat].length + ' at boundary');
+        hands[seat].push(deck[top++], deck[top++]);
+        for (let k = 0; k < 2; k++) {
+            const play = script.plays[turn * 2 + k];
+            replayRemoveCard(hands[seat], play.card, play.id);
+            const applied = replayApplyPlay(board, play, play.id);
+            push(play.id, { seat, card: play.card, invisible: applied.invisible, touched: applied.touched });
+        }
+        if (hands[seat].length !== 6) replayFail('turn ' + (turn + 1), 'hand size after plays');
+    }
+    let sweepIndex = 0, cell;
+    while ((cell = nextResolutionCell(board)) !== null) {
+        const step = 'm' + String(sweepIndex + 1).padStart(2, '0');
+        if (sweepIndex >= script.sweepRolls.length) replayFail('sweep', 'not enough sweep rolls');
+        const forced = Object.assign({ step }, script.sweepRolls[sweepIndex]);
+        const r = resolveCellDetail(board, cell, null, 'table', forced);
+        board = r.board;
+        push(step, { detail: r.detail });
+        sweepIndex++;
+    }
+    if (sweepIndex !== script.sweepRolls.length) replayFail('sweep', 'unused sweep rolls');
+    push('s99', { score: scoreBoard(board) });
+    return frames;
+}
+
+/* The cross-check sequence: one pipe-delimited line per frame — format
+   shared verbatim with the reference engine's replay module. */
+function replayCanonLines(frames) {
+    const lines = [];
+    for (const f of frames) {
+        let line = f.id + '|' + f.sig + '|' + f.hands[0] + '|' + f.hands[1];
+        if (f.rolls !== undefined) {
+            line += '|rolls=' + f.rolls.map(function (r) { return r[0] + ':' + r[1]; }).join(',') + '|white=' + f.whiteSeat;
+        }
+        if (f.discards !== undefined) line += '|seat=' + f.seat + '|disc=' + f.discards.join(',');
+        if (f.card !== undefined) line += '|seat=' + f.seat + '|card=' + f.card + '|inv=' + (f.invisible ? 1 : 0);
+        if (f.detail !== undefined) {
+            const d = f.detail;
+            const dist = d.die === 8 ? d.partition : d.bands;
+            line += '|cell=' + d.cell + '|kind=' + d.kind + '|die=' + d.die + '|roll=' + d.roll +
+                    '|out=' + d.outcome + '|tiles=' + d.tiles.join('') +
+                    '|dist=' + dist.join(',') + '|mir=' + (d.mirrored ? 1 : 0);
+        }
+        if (f.score !== undefined) line += '|score=' + f.score[0] + ':' + f.score[1];
+        lines.push(line);
+    }
+    return lines;
 }
 /* ═══ END LAB8 QTRIS CORE ═════════════════════════════════════════════════ */
 // ─── LAB8 CORE EXTRACT END ───
@@ -1949,7 +2296,7 @@ function bandStripHtml(widths, names, hitIndex, total) {
     });
     return html + '</div>';
 }
-function renderRollDetail(d) {
+function renderRollDetailInto(el, d) {
     if (!d) return;
     let html = '<div class="fw-bold mb-1">Cell ' + d.cell +
                (d.kind === 'pair' ? ' (pair on ' + d.cells.join('+') + ', ' + CORE_PRETTY[d.core] +
@@ -1971,8 +2318,9 @@ function renderRollDetail(d) {
                 '<div>→ <strong>' + d.outcomeNames[d.outcome] + '</strong></div>';
     }
     html += '<div class="prov mt-1">' + d.prov + '</div>';
-    $id('roll-detail').innerHTML = html;
+    el.innerHTML = html;
 }
+function renderRollDetail(d) { renderRollDetailInto($id('roll-detail'), d); }
 function uiResolveNext() {
     const g = ui.game;
     if (!g || g.phase !== 'measure' && g.phase !== 'done') return;
@@ -2138,9 +2486,13 @@ function renderErratumPanel() {
 /* ── tabs + exercises ────────────────────────────────────────────────────── */
 function showTab(which) {
     $id('tab-game').style.display = which === 'game' ? '' : 'none';
+    $id('tab-watch').style.display = which === 'watch' ? '' : 'none';
     $id('tab-sandbox').style.display = which === 'sandbox' ? '' : 'none';
     $id('tab-game-btn').classList.toggle('active', which === 'game');
+    $id('tab-watch-btn').classList.toggle('active', which === 'watch');
     $id('tab-sandbox-btn').classList.toggle('active', which === 'sandbox');
+    if (which === 'watch') replayOnTabOpen();
+    else replayPause();
 }
 const ANSWERS = {
     q1: ['b', 'Right: $H|+\\rangle = |0\\rangle$ — certain white. $X$ leaves a bianconera fixed (an invisible move), and $Z$ only flips the orientation, which the color measurement cannot see.'],
@@ -2155,6 +2507,219 @@ function answer(q, choice) {
     fb.style.display = 'block';
     fb.innerHTML = right ? ANSWERS[q][1] : 'Not quite — think it through at the board (or with the probability preview on), then try again.';
     if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([fb]);
+}
+
+/* ── "Watch a sample game": replay player ────────────────────────────────────
+ *  Renders the frames of runReplay(REPLAY_SCRIPT) — nothing is computed
+ *  here. Captions are keyed by STEP ID; every probability in a caption is
+ *  fetched from the core at render time through {{tokens}}, and every
+ *  roll, band and outcome token is filled from the engine-emitted frame
+ *  detail — no number or outcome is hardcoded in this layer.             */
+
+function fmtP(p) { return p.toFixed(6); }   /* the one formatter for core-fetched probabilities */
+
+const REPLAY_CAPTIONS = {
+    s00: 'A seeded deal. Three plain bianconere (2, 5, 9) and one decorated tile (3) — and look at the middle row: cell 5’s bianconera sits between two certain white tiles. 4-5-6 is one lucky flip from a white tris. The monochrome tiles are already decided; the dice own only the uncertain cells.',
+    s01: 'Both players roll the d8: {{rollA}} against {{rollB}}. Higher roll plays White and moves first.',
+    s02: 'White may replace cards once before the game: one pink square goes — discards leave the game for good — and a fresh card comes off the deck.',
+    s03: 'Black is happy: no mulligan. Ten turns now — draw two, play two, every turn.',
+    p01: 'White opens with Z on the black tile at 7. Nothing you can see changed — the phase Z touches is tracked in a tile’s orientation, and a monochrome tile has none to show (Part 2).',
+    p02: 'Z again, now on the bianconera at 9: the orientation flips, left to right. To a color measurement it is still exactly 50/50 — P(white) = {{P_R}} — the flip is invisible to color, but the game tracks it. Remember cell 9.',
+    p03: 'Black flips 8 white with an X — the color-swap card. An odd gift to White? Watch what it sets up.',
+    p04: 'The I card, played on the decorated tile at 3: it does exactly nothing, anywhere, by design. Legal — and occasionally even wise.',
+    p05: 'The rulebook’s own tactic: H on the bianconera at 5 <strong>un-flips the coin</strong> — the 50/50 tile becomes certainly white, P(white) = {{P_HR}}, and the middle row 4-5-6 is a finished white tris before a single die is cast.',
+    p06: 'The same card, the other direction: H on the black tile at 7 makes a bianconera — certainty undone as easily as made. Every card works both ways.',
+    p07: 'Black builds: H on the black corner at 1 leaves a left-oriented bianconera — a control tile for what comes next.',
+    p08: 'C<sub>X</sub>: control on the bianconera at 1, target on the white tile at 8 — two cells sharing no row, column or diagonal. The (orientation, color) recipe: (left, white) → Φ⁻. From now on 1 and 8 come up the <strong>same</strong> color, though each alone is a perfect coin toss. The agreement lives in the pair, not in either cell.',
+    p09: 'The same C<sub>X</sub> played again on the pair — and the board is exactly as it stood before Black’s C<sub>X</sub>: bianconera back at 1, white back at 8. Entangling is a card like any other, and every card is reversible.',
+    p10: '…and a third time: Φ⁻ again. This time it stays — the dice will meet it.',
+    p11: 'The pink square on the bianconera at 9 — the hidden rotation. Color now says white with probability {{P_UR}} = cos²15°; the printed table rounds it to the 1-93 row. Remember this tile at the sweep.',
+    p12: 'I on an entangled triangle: still nothing. No-ops don’t care what they’re played on.',
+    p13: 'White toys with its own trick: H on the bianconera at 2 makes it certainly white…',
+    p14: '…and the second H puts the bianconera right back. Two flips of the coin-maker cancel. Hold that thought — the dice, later, will not.',
+    p15: 'X on the bianconera at 7: invisible. X swaps white and black — and a half-white-half-black tile is its own swap. An X that changes nothing: keep count.',
+    p16: 'X under the pink square at 3: invisible again — by the page’s rule the card acts on the tile beneath and the pink square is reapplied on top (see the deviations note below); L is X-proof, so nothing moves.',
+    p17: 'Y on the bianconera at 2 flips its orientation — Y acts like X and Z in one card, and on a bianconera only the Z half shows.',
+    p18: 'I on the rescued white tile at 5. The certainty survives — plain monochrome tiles don’t even roll at the sweep; nothing left to chance there.',
+    p19: 'Z on the white tile at 4 — one last invisible protest from Black.',
+    p20: 'Black’s final card: I on the entangled triangle at 1. Operations are over — twenty cards played, and cells 1, 2, 3, 7, 8, 9 still have no color. The dice decide now.',
+    m01: 'The sweep visits cells 1→9. Cell 1 holds the pair, so it resolves <strong>jointly — one roll, two cells</strong>. Two d10: {{tens}} and {{units}}, read {{roll}}. The printed Φ⁻ row: {{bandDesc}} (the minus is invisible to the color measurement). {{roll}} lands in the {{hitBand}} band: {{jointWords}} — exactly as promised at p08.',
+    m02: 'Cell 2, a left bianconera: d10s {{tens}} and {{units}}, read {{roll}}; printed row {{bandDesc}}: {{outcomeWord}}. A true coin toss — the same row rolls again at cell 7.',
+    m03: 'Cell 3, the decorated tile from the deal: its printed row gives white only on {{bandW}} (P = {{P_UL}}). Read {{roll}}: {{outcomeWord}} — the likely outcome, this time.',
+    m04: 'Cell 7, the other left bianconera — the same printed row as cell 2, read {{roll}}: {{outcomeWord}} this time. Two rolls of the same printed row, two independent answers — that is what 50/50 means.',
+    m05: 'Cell 9 — the tile we flipped at p02 and decorated at p11. The printed row: {{bandW}} → white, the two-digit rounding of cos²15° = {{P_UR}}. Read {{roll}}: {{outcomeWord}}. The pink square’s fingerprint, live.',
+    s99: 'Scoring, eight lines: only {{winLines}} is one color — White {{scoreW}} : Black {{scoreB}}. That line is the H rescue at p05: the game was won by the one card that turned chance into certainty. (Black had X’s — one changed nothing at cell 7; spent on cell 5 instead, it would have broken the line. In your games, count the X’s.) Now go play: nothing here is a substitute for rolling yourself.',
+};
+
+let replayUi = { frames: null, i: 0, timer: null, speed: 1, whiteSeat: 0 };
+
+function replayWinLines(board) {
+    const out = [];
+    for (const line of LINES) {
+        const labels = line.map(function (c) { return board.singles[c]; });
+        if (labels.every(function (l) { return l === 'W'; }) ||
+            labels.every(function (l) { return l === 'B'; })) out.push(line);
+    }
+    return out;
+}
+
+function replayTokens(frame) {
+    const t = {
+        P_R: fmtP(measureColorProbs('R')[0]),
+        P_UR: fmtP(measureColorProbs('UR')[0]),
+        P_UL: fmtP(measureColorProbs('UL')[0]),
+        P_HR: fmtP(measureColorProbs(applyCardSingle('R', 'H'))[0]),
+    };
+    if (frame.rolls) {
+        const lastRoll = frame.rolls[frame.rolls.length - 1];
+        t.rollA = lastRoll[0]; t.rollB = lastRoll[1];
+    }
+    const d = frame.detail;
+    if (d) {
+        t.roll = d.roll; t.tens = d.tens; t.units = d.units;
+        t.outcomeWord = d.kind === 'single'
+            ? (d.outcome === 0 ? 'white' : 'black') : d.outcomeNames[d.outcome];
+        const dist = d.die === 8 ? d.partition : d.bands;
+        if (dist) {
+            const names = d.mirrored
+                ? MIRROR_OUTCOME.map(function (j) { return d.outcomeNames[j]; })
+                : d.outcomeNames;
+            const segs = [];
+            let lo = 1;
+            for (let i = 0; i < dist.length; i++) {
+                if (dist[i] > 0) {
+                    const hi = lo + dist[i] - 1;
+                    segs.push((lo === hi ? String(lo) : lo + '-' + hi) + ' → ' + names[i]);
+                    const upper = hi;
+                    if (d.roll <= upper && d.roll >= lo) t.hitBand = (lo === hi ? String(lo) : lo + '-' + hi);
+                }
+                lo += dist[i];
+            }
+            t.bandDesc = segs.join(', ');
+            if (d.kind === 'single') t.bandW = dist[0] === 0 ? '—' : (dist[0] === 1 ? '1' : '1-' + dist[0]);
+        }
+        if (d.kind === 'pair') {
+            t.jointWords = d.tiles[0] === d.tiles[1]
+                ? 'both cells go ' + (d.tiles[0] === 'W' ? 'white' : 'black') + ', together'
+                : 'the cells split — ' + (d.tiles[0] === 'W' ? 'white' : 'black') + ' at ' + d.cells[0] +
+                  ', ' + (d.tiles[1] === 'W' ? 'white' : 'black') + ' at ' + d.cells[1];
+        }
+    }
+    if (frame.score) {
+        t.scoreW = frame.score[0]; t.scoreB = frame.score[1];
+        const wins = replayWinLines(frame.board);
+        t.winLines = wins.length ? wins.map(function (l) { return l.join('-'); }).join(', ') : 'no line';
+    }
+    return t;
+}
+
+function replayCaptionHtml(frame) {
+    const tokens = replayTokens(frame);
+    return (REPLAY_CAPTIONS[frame.id] || '').replace(/\{\{(\w+)\}\}/g, function (_, key) {
+        return tokens[key] !== undefined ? String(tokens[key]) : '?';
+    });
+}
+
+function replaySeatColor(seat) { return seat === replayUi.whiteSeat ? 'White' : 'Black'; }
+function replayCardPretty(card) { return card === 'C_X' ? 'C<sub>X</sub>' : card; }
+
+function replayStepTitle(frame) {
+    if (frame.id === 's00') return 'Setup';
+    if (frame.id === 's01') return 'Turn-order roll';
+    if (frame.id === 's02' || frame.id === 's03') return 'Mulligan — ' + replaySeatColor(frame.seat);
+    if (frame.id === 's99') return 'Scoring';
+    if (frame.detail) {
+        const d = frame.detail;
+        return frame.id + ' · Roll — ' + (d.kind === 'pair' ? 'pair ' + d.cells.join('+') : 'cell ' + d.cell);
+    }
+    const where = frame.touched.length === 2 ? frame.touched.join('→') : String(frame.touched[0]);
+    return frame.id + ' · ' + replaySeatColor(frame.seat) + ': ' + replayCardPretty(frame.card) + ' on ' + where;
+}
+
+function replayRender() {
+    const frames = replayUi.frames;
+    if (!frames) return;
+    const frame = frames[replayUi.i];
+    const grid = $id('replay-board');
+    grid.innerHTML = '';
+    const wins = frame.id === 's99' ? replayWinLines(frame.board) : [];
+    for (let cell = 1; cell <= 9; cell++) {
+        const div = document.createElement('div');
+        div.className = 'qt-cell';
+        div.innerHTML = cellHtml(frame.board, cell);
+        if (frame.touched && frame.touched.indexOf(cell) >= 0) div.classList.add('sel-control');
+        if (frame.detail && (frame.detail.cell === cell ||
+            (frame.detail.cells && frame.detail.cells.indexOf(cell) >= 0))) div.classList.add('resolving');
+        for (const line of wins) if (line.indexOf(cell) >= 0) div.classList.add('line-win');
+        grid.appendChild(div);
+    }
+    $id('replay-score-white').textContent = frame.score ? frame.score[0] : '–';
+    $id('replay-score-black').textContent = frame.score ? frame.score[1] : '–';
+    $id('replay-caption').innerHTML = '<div class="fw-bold mb-1">' + replayStepTitle(frame) +
+        ' <span class="text-muted">(step ' + (replayUi.i + 1) + ' of ' + frames.length + ')</span></div>' +
+        replayCaptionHtml(frame);
+    if (frame.detail) renderRollDetailInto($id('replay-roll-detail'), frame.detail);
+    else $id('replay-roll-detail').innerHTML = 'The dice panel comes alive at the measurement sweep — the same panel, the same printed rows as in your own games.';
+    const list = $id('replay-step-list');
+    for (let i = 0; i < list.children.length; i++) {
+        list.children[i].style.fontWeight = i === replayUi.i ? '700' : '400';
+        list.children[i].style.color = i === replayUi.i ? 'var(--bs-body-color, #0f172a)' : '#64748b';
+    }
+    const active = list.children[replayUi.i];
+    if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest' });
+}
+
+function replayBuildStepList() {
+    const list = $id('replay-step-list');
+    list.innerHTML = '';
+    replayUi.frames.forEach(function (frame, i) {
+        const row = document.createElement('div');
+        row.style.cursor = 'pointer';
+        row.style.padding = '1px 4px';
+        row.innerHTML = replayStepTitle(frame) + (frame.invisible ? ' <i class="fa-solid fa-ghost" style="opacity:.45;"></i>' : '');
+        row.onclick = function () { replayGoto(i); };
+        list.appendChild(row);
+    });
+}
+
+function replayOnTabOpen() {
+    if (!replayUi.frames) {
+        replayUi.frames = runReplay(REPLAY_SCRIPT);
+        replayUi.whiteSeat = replayUi.frames[1].whiteSeat;
+        replayBuildStepList();
+        replayRender();
+    }
+}
+function replayGoto(i) {
+    replayPause();
+    replayUi.i = Math.max(0, Math.min(replayUi.frames.length - 1, i));
+    replayRender();
+}
+function replayStep(delta) { if (replayUi.frames) replayGoto(replayUi.i + delta); }
+function replayRestart() { if (replayUi.frames) replayGoto(0); }
+function replaySetPlayIcon(playing) {
+    const b = $id('replay-play-btn');
+    if (b) b.innerHTML = playing ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+}
+function replayPlay() {
+    if (!replayUi.frames) return;
+    if (replayUi.i >= replayUi.frames.length - 1) replayUi.i = 0;
+    replayUi.timer = setInterval(function () {
+        if (replayUi.i >= replayUi.frames.length - 1) { replayPause(); return; }
+        replayUi.i++;
+        replayRender();
+    }, 2600 / replayUi.speed);
+    replaySetPlayIcon(true);
+    replayRender();
+}
+function replayPause() {
+    if (replayUi.timer) { clearInterval(replayUi.timer); replayUi.timer = null; }
+    replaySetPlayIcon(false);
+}
+function replayPlayPause() { if (replayUi.timer) replayPause(); else replayPlay(); }
+function replaySetSpeed() {
+    replayUi.speed = parseFloat($id('replay-speed').value) || 1;
+    if (replayUi.timer) { replayPause(); replayPlay(); }
 }
 
 /* ── boot ────────────────────────────────────────────────────────────────── */
