@@ -214,8 +214,8 @@
             <div class="def-box">
                 <strong>Encoding map</strong> (photon-polarization picture in parentheses):
                 <div class="text-center mt-2">
-                    $|\psi(0,Z)\rangle = |0\rangle$ (vertical ↑) &emsp;
-                    $|\psi(1,Z)\rangle = |1\rangle$ (horizontal →) &emsp;
+                    $|\psi(0,Z)\rangle = |0\rangle$ (horizontal →) &emsp;
+                    $|\psi(1,Z)\rangle = |1\rangle$ (vertical ↑) &emsp;
                     $|\psi(0,X)\rangle = |{+}\rangle$ (diagonal ⤢) &emsp;
                     $|\psi(1,X)\rangle = |{-}\rangle$ (diagonal ⤡)
                 </div>
@@ -1021,9 +1021,9 @@ function stepRound() {
 
 function stepMany(n) { for (let i = 0; i < n; i++) stepRound(); }
 
-/* Polarization angles for the photon glyph: |0⟩ vertical, |1⟩ horizontal,
-   |+⟩ 45°, |−⟩ 135° (theory Part 1 picture). */
-const POL_ANGLE = [0, 90, 45, 135];
+/* Photon glyph: rotate() of a vertical bar, clockwise on screen.
+   |0⟩ = H horizontal (90), |1⟩ = V vertical (0), |+⟩ "/" at +45° (45), |−⟩ "\" at −45° (135). */
+const POL_ANGLE = [90, 0, 45, 135];
 
 function renderStep(r) {
     const $ = id => document.getElementById(id);
