@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 9 — BB84 on the Bench · pre-lab companion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --clr-hero1: #0f172a; --clr-hero2: #1e3a8a;
+            --clr-accent: #f59e0b; --clr-accent2: #0d9488;
+            --clr-beam: #dc2626; --clr-obs: #0d9488; --clr-exp: #1e293b;
+        }
+        body { background: #f6f7fb; color: #1f2430; }
+        .hero-section { background: linear-gradient(135deg, var(--clr-hero1), var(--clr-hero2));
+            color: #fff; padding: 48px 0 40px; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.35); border-radius: 20px;
+            padding: 5px 14px; font-size: .82rem; margin: 3px; }
+        .hero-tag { display: inline-block; background: var(--clr-accent); color: #1f2430;
+            border-radius: 20px; padding: 5px 14px; font-size: .82rem; font-weight: 700; margin: 3px; }
+        .hero-bring { max-width: 720px; margin: 18px auto 0; font-size: .95rem; opacity: .9; }
+        .guide-btn { background: #fff; color: #1e3a8a; font-weight: 700; }
+        .page-nav a { display: inline-block; margin: 3px; padding: 5px 12px; border-radius: 16px;
+            background: #fff; border: 1px solid #e2e8f0; font-size: .85rem; color: #334155;
+            text-decoration: none; }
+        .page-nav a:hover { border-color: #94a3b8; }
+        .kicker { display: block; font-size: .75rem; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #0f766e; margin-bottom: 4px; }
+        .section-title { border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+            margin-bottom: 18px; font-weight: 700; }
+        .question-box { background: #eef2ff; border-left: 5px solid #6366f1;
+            border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 14px 0 20px;
+            font-size: 1.04rem; font-style: italic; color: #312e81; }
+        .question-box .q-tag { display: block; font-style: normal; font-weight: 800;
+            font-size: .72rem; letter-spacing: 1.5px; color: #6366f1; margin-bottom: 4px; }
+        .term-list dt { font-weight: 700; color: #1e293b; }
+        .term-list dd { margin-bottom: 8px; color: #475569; }
+        .kit-figure { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 14px; margin: 18px 0 8px; }
+        .kit-figure svg { display: block; width: 100%; height: auto; }
+        .kit-figure figcaption { font-size: .85rem; color: #64748b; margin-top: 8px; }
+        .kit-narrow { max-width: 380px; margin: 0 auto; }
+        .mode-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 12px 14px; height: 100%; font-size: .93rem; }
+        .mode-led { display: inline-block; width: 13px; height: 13px; border-radius: 50%;
+            margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.25); }
+        .mode-led.yellow { background: #facc15; } .mode-led.green { background: #22c55e; }
+        .dev-box { background: #fffbeb; border: 2px solid #d97706; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 24px 0; position: relative; }
+        .dev-tag { position: absolute; top: -12px; left: 16px; background: #d97706;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .safety-list li { margin-bottom: 10px; }
+        .predict-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 14px 18px; margin: 14px 0; }
+        .predict-card .p-num { font-weight: 800; color: #6366f1; margin-right: 6px; }
+        .predict-card details { margin-top: 10px; }
+        .predict-card summary { cursor: pointer; font-weight: 700; color: #0f766e; }
+        .predict-card details[open] summary { margin-bottom: 8px; }
+        .answer { background: #f0fdfa; border-radius: 8px; padding: 10px 14px; font-size: .95rem; }
+        .triple-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px;
+            padding: 14px 18px; margin: 18px 0; font-size: .96rem; }
+        .triple-box > div { margin-bottom: 6px; }
+        .triple-box .t-step { font-weight: 800; color: #0f766e; margin-right: 6px; }
+        .shock-box { background: #fff7ed; border: 2px solid #ea580c; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 24px 0; position: relative; }
+        .shock-tag { position: absolute; top: -12px; left: 16px; background: #ea580c;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .anchor-box { background: #fefce8; border-left: 5px solid var(--clr-accent);
+            border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; font-size: .95rem; }
+        .anchor-box .a-tag { display: block; font-weight: 800; font-size: .72rem;
+            letter-spacing: 1.5px; color: #b45309; margin-bottom: 4px; }
+        .sim-shell { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+            box-shadow: 0 8px 26px rgba(15,23,42,.08); overflow: hidden; }
+        .sim-head { background: #0f172a; color: #fff; padding: 12px 20px; }
+        .sim-body { padding: 18px; }
+        #bits-input { font-family: 'Courier New', monospace; font-size: 1rem; letter-spacing: .5px; }
+        .bit-btn { min-width: 64px; min-height: 48px; font-size: 1.35rem; font-weight: 800;
+            font-family: 'Courier New', monospace; }
+        .tool-btn { min-height: 48px; }
+        .fair-note { font-size: .82rem; color: #64748b; }
+        .input-error { color: #991b1b; background: #fee2e2; border: 1px solid #fca5a5;
+            border-radius: 6px; padding: 6px 10px; font-size: .9rem; margin-top: 8px; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 10px 12px; text-align: center; height: 100%; }
+        .stat-value { font-size: 1.3rem; font-weight: 800; font-family: monospace; color: #062f43; }
+        .stat-label { font-size: .76rem; color: #475569; font-weight: 600; margin-bottom: 2px; }
+        .stat-sub { font-size: .78rem; color: #64748b; }
+        .chart-wrap { max-width: 600px; margin: 16px auto 0; }
+        .chart-wrap svg { display: block; width: 100%; height: auto; }
+        .chart-empty { text-align: center; color: #64748b; padding: 36px 8px; margin: 0;
+            border: 1px dashed #cbd5e1; border-radius: 8px; }
+        .chart-legend { font-size: .85rem; color: #475569; text-align: center; margin-top: 6px; }
+        .chart-legend span { display: inline-block; margin: 2px 10px; }
+        .swatch-bar { display: inline-block; width: 14px; height: 12px; background: var(--clr-obs);
+            margin-right: 5px; vertical-align: -1px; }
+        .swatch-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--clr-exp); margin-right: 5px; vertical-align: 0; }
+        .chart-note { font-size: .82rem; color: #b45309; text-align: center; }
+        .numbers-table { font-size: .85rem; }
+        .task-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            overflow: hidden; margin: 16px 0; }
+        .task-header { background: #f1f5f9; padding: 12px 18px; font-weight: 700; }
+        .task-body { padding: 16px 18px; }
+        .colab-btn { background: #f59e0b; color: #1f2430; font-weight: 700; }
+        section { scroll-margin-top: 12px; }
+        mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+        @media (max-width: 575.98px) {
+            .hero-section { padding: 36px 0 30px; }
+            .hero-section h1 { font-size: 1.9rem; }
+            .sim-body { padding: 14px 12px; }
+            .predict-card, .triple-box { padding: 12px 14px; }
+            .dev-box, .shock-box { padding: 18px 14px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  0 · HEADER                                                             -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<header class="hero-section text-center">
+    <div class="container">
+        <p class="mb-2" style="font-size:.8rem;letter-spacing:2px;text-transform:uppercase;opacity:.7;">
+            Quantum Computing Foundation
+        </p>
+        <h1 class="display-5 fw-bold mb-2">
+            <i class="fa-solid fa-key"></i> Lab 9 — BB84 on the Bench · pre-lab companion
+        </h1>
+        <p class="lead mb-3 opacity-75">
+            Quantum key distribution on a tabletop kit: what to know before you walk in.
+        </p>
+        <div>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites:
+                Fundamental Concepts of Quantum Technologies + Quantum Communication</span>
+            <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS · in person at i-LAMP</span>
+            <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 15 min before the lab</span>
+        </div>
+        <p class="hero-bring">
+            <i class="fa-solid fa-pen me-1"></i><strong>Bring:</strong> a pen and the bench guide; its
+            last two pages are the worksheet you fill in at the bench. The kit and the dice are on the table.
+        </p>
+        <a href="../latex/lab9_bb84_bench.pdf" class="btn btn-sm guide-btn mt-2">
+            <i class="fa-solid fa-file-pdf me-1"></i>Bench guide (PDF)
+        </a>
+    </div>
+</header>
+
+<div class="container mt-4 pb-4">
+    <nav class="page-nav text-center mb-4" aria-label="On this page">
+        <a href="#kit">1 · The kit</a>
+        <a href="#safety">2 · Safety</a>
+        <a href="#predict">3 · Predictions</a>
+        <a href="#playbox">4 · Playbox</a>
+        <a href="#after">5 · After the lab</a>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  1 · KIT ANATOMY                                                     -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="kit" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">1 · Kit anatomy</span>
+            <h2 class="section-title"><i class="fa-solid fa-table-cells-large text-warning me-2"></i>What will be on the table?</h2>
+            <p class="lh-lg">
+                <strong>BB84</strong> (Bennett and Brassard, 1984) is a protocol for <strong>quantum key
+                distribution (QKD)</strong>: two parties, Alice and Bob, build a shared <em>secret key</em>, a
+                string of random bits that only they know, and can tell whether an eavesdropper, Eve, listened
+                in. It is not only a classroom protocol: the <strong>Micius</strong> satellite distributed BB84
+                keys from space to the ground in 2017, and <strong>EuroQCI</strong> is the European
+                Commission's initiative for a quantum communication infrastructure across the EU. At i-LAMP
+                you run BB84 on the Thorlabs EDU-QCRY1 kit. These are the words you will need at the bench:
+            </p>
+            <dl class="term-list">
+                <dt>Pulse</dt>
+                <dd>A short flash of red laser light. Alice sends one pulse per bit.</dd>
+                <dt>Polarization</dt>
+                <dd>The direction in which the light's electric field oscillates, given as an angle.
+                    Horizontal (0°) is written $|H\rangle$ and vertical (90°) $|V\rangle$; as bits,
+                    $|H\rangle = |0\rangle$ and $|V\rangle = |1\rangle$.</dd>
+                <dt>Half-wave plate ($\lambda/2$ plate)</dt>
+                <dd>A thin crystal plate that turns the polarization. Each kit plate sits in a mount with a
+                    dial; the dial reads the setting in degrees.</dd>
+                <dt>Polarizing beam splitter (PBS)</dt>
+                <dd>A glass cube that lets horizontally polarized light straight through (<em>transmitted</em>)
+                    and sends vertically polarized light off to the side (<em>reflected</em>). Light at any
+                    other angle is shared between the two exits.</dd>
+                <dt>Sensor</dt>
+                <dd>A detector with a blue LED that lights when a pulse arrives. Bob has two: one on each
+                    exit of his PBS.</dd>
+                <dt>Basis</dt>
+                <dd>A pair of perpendicular polarizations. The $+$ basis is {0°, 90°}: 0° is bit 0, 90° is
+                    bit 1. The $\times$ basis is {−45°, 45°}: on the kit, the "−45" setting is bit 0 and the
+                    "45" setting is bit 1. Which diagonal is called 0 is a naming convention with no physical
+                    effect.</dd>
+            </dl>
+
+            <figure class="kit-figure">
+                <!-- Wide layout (tablet and up) -->
+                <div class="d-none d-md-block">
+                <svg viewBox="0 0 760 250" role="img" aria-labelledby="kit-wide-title kit-wide-desc">
+                    <title id="kit-wide-title">Schematic of the kit, left to right: Alice, Eve, Bob</title>
+                    <desc id="kit-wide-desc">Alice's laser sends a pulse through her half-wave plate on a dial
+                        with settings minus 45, 0, 45 and 90. Eve's module, dashed because it is only inserted
+                        for the second run, holds a receiver and a laser. Bob's half-wave plate on a dial with
+                        settings 0 and 45 sends the pulse to a polarizing beam splitter; the transmitted exit
+                        goes to sensor 0, the reflected exit to sensor 1.</desc>
+                    <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1e293b">
+                        <!-- module frames -->
+                        <rect x="8" y="30" width="214" height="170" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+                        <rect x="252" y="30" width="206" height="170" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="7 5"/>
+                        <rect x="488" y="12" width="264" height="228" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+                        <text x="22" y="54" font-size="16" font-weight="700" fill="#1e3a8a">Alice</text>
+                        <text x="266" y="54" font-size="16" font-weight="700" fill="#9a3412">Eve</text>
+                        <text x="302" y="54" font-size="12" fill="#9a3412">(run 2 only)</text>
+                        <text x="502" y="36" font-size="16" font-weight="700" fill="#1e3a8a">Bob</text>
+                        <!-- beam: Alice to PBS, transmitted and reflected exits -->
+                        <line x1="82" y1="121" x2="690" y2="121" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="626" y1="121" x2="626" y2="182" stroke="#dc2626" stroke-width="3"/>
+                        <!-- Alice: laser and plate on dial -->
+                        <rect x="24" y="108" width="58" height="26" rx="4" fill="#1f2937"/>
+                        <text x="53" y="156" text-anchor="middle">laser</text>
+                        <circle cx="160" cy="121" r="28" fill="#fff" stroke="#1e3a8a" stroke-width="2"/>
+                        <rect x="155" y="97" width="10" height="48" rx="2" fill="#bfdbfe" stroke="#1e3a8a"/>
+                        <text x="160" y="170" text-anchor="middle">λ/2 plate on dial</text>
+                        <text x="160" y="187" text-anchor="middle" font-size="12" fill="#475569">−45, 0, 45, 90</text>
+                        <!-- Eve: receiver and laser -->
+                        <rect x="268" y="102" width="82" height="38" rx="5" fill="#fff" stroke="#9a3412" stroke-width="1.5"/>
+                        <text x="309" y="126" text-anchor="middle" font-size="12">receiver</text>
+                        <rect x="378" y="108" width="58" height="26" rx="4" fill="#1f2937"/>
+                        <text x="407" y="156" text-anchor="middle">laser</text>
+                        <text x="355" y="182" text-anchor="middle" font-size="12" fill="#9a3412">measures, then resends</text>
+                        <!-- Bob: plate on dial, PBS, two sensors -->
+                        <circle cx="540" cy="121" r="26" fill="#fff" stroke="#1e3a8a" stroke-width="2"/>
+                        <rect x="535" y="99" width="10" height="44" rx="2" fill="#bfdbfe" stroke="#1e3a8a"/>
+                        <text x="540" y="168" text-anchor="middle">λ/2 plate</text>
+                        <text x="540" y="185" text-anchor="middle" font-size="12" fill="#475569">on dial: 0, 45</text>
+                        <rect x="606" y="101" width="40" height="40" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+                        <line x1="606" y1="101" x2="646" y2="141" stroke="#0369a1" stroke-width="2"/>
+                        <text x="626" y="92" text-anchor="middle" font-weight="700">PBS</text>
+                        <rect x="690" y="104" width="46" height="34" rx="4" fill="#334155"/>
+                        <circle cx="713" cy="121" r="7" fill="#3b82f6" stroke="#bfdbfe" stroke-width="2"/>
+                        <text x="713" y="92" text-anchor="middle" font-weight="700">sensor 0</text>
+                        <text x="713" y="156" text-anchor="middle" font-size="12" fill="#475569">transmitted</text>
+                        <rect x="603" y="182" width="46" height="34" rx="4" fill="#334155"/>
+                        <circle cx="626" cy="199" r="7" fill="#3b82f6" stroke="#bfdbfe" stroke-width="2"/>
+                        <text x="660" y="197" font-weight="700">sensor 1</text>
+                        <text x="660" y="213" font-size="12" fill="#475569">reflected</text>
+                        <!-- beam label -->
+                        <text x="237" y="113" text-anchor="middle" font-size="12" fill="#dc2626">pulse</text>
+                    </g>
+                </svg>
+                </div>
+                <!-- Narrow layout (phones) -->
+                <div class="d-md-none kit-narrow">
+                <svg viewBox="0 0 340 560" role="img" aria-labelledby="kit-narrow-title kit-narrow-desc">
+                    <title id="kit-narrow-title">Schematic of the kit, top to bottom: Alice, Eve, Bob</title>
+                    <desc id="kit-narrow-desc">Alice's laser sends a pulse through her half-wave plate on a dial
+                        with settings minus 45, 0, 45 and 90. Eve's module, dashed because it is only inserted
+                        for the second run, holds a receiver and a laser. Bob's half-wave plate on a dial with
+                        settings 0 and 45 sends the pulse to a polarizing beam splitter; the transmitted exit
+                        goes to sensor 0, the reflected exit to sensor 1.</desc>
+                    <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14" fill="#1e293b">
+                        <rect x="8" y="8" width="324" height="144" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+                        <rect x="8" y="172" width="324" height="122" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="7 5"/>
+                        <rect x="8" y="314" width="324" height="238" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+                        <text x="22" y="34" font-size="17" font-weight="700" fill="#1e3a8a">Alice</text>
+                        <text x="22" y="198" font-size="17" font-weight="700" fill="#9a3412">Eve</text>
+                        <text x="22" y="216" font-size="13" fill="#9a3412">(run 2 only)</text>
+                        <text x="22" y="340" font-size="17" font-weight="700" fill="#1e3a8a">Bob</text>
+                        <!-- beam -->
+                        <line x1="140" y1="68" x2="140" y2="500" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="140" y1="440" x2="232" y2="440" stroke="#dc2626" stroke-width="3"/>
+                        <!-- Alice -->
+                        <rect x="126" y="22" width="28" height="46" rx="4" fill="#1f2937"/>
+                        <text x="170" y="50">laser</text>
+                        <circle cx="140" cy="110" r="25" fill="#fff" stroke="#1e3a8a" stroke-width="2"/>
+                        <rect x="118" y="105" width="44" height="10" rx="2" fill="#bfdbfe" stroke="#1e3a8a"/>
+                        <text x="176" y="106">λ/2 plate on dial</text>
+                        <text x="176" y="124" font-size="13" fill="#475569">−45, 0, 45, 90</text>
+                        <!-- Eve -->
+                        <rect x="104" y="226" width="72" height="30" rx="5" fill="#fff" stroke="#9a3412" stroke-width="1.5"/>
+                        <text x="140" y="246" text-anchor="middle" font-size="12">receiver</text>
+                        <rect x="126" y="262" width="28" height="24" rx="4" fill="#1f2937"/>
+                        <text x="188" y="246" font-size="13" fill="#9a3412">measures</text>
+                        <text x="188" y="279" font-size="13" fill="#9a3412">laser: resends</text>
+                        <!-- Bob -->
+                        <circle cx="140" cy="370" r="23" fill="#fff" stroke="#1e3a8a" stroke-width="2"/>
+                        <rect x="120" y="365" width="40" height="10" rx="2" fill="#bfdbfe" stroke="#1e3a8a"/>
+                        <text x="176" y="366">λ/2 plate on dial</text>
+                        <text x="176" y="384" font-size="13" fill="#475569">0, 45</text>
+                        <rect x="120" y="420" width="40" height="40" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+                        <line x1="120" y1="420" x2="160" y2="460" stroke="#0369a1" stroke-width="2"/>
+                        <text x="110" y="445" text-anchor="end" font-weight="700">PBS</text>
+                        <rect x="232" y="417" width="46" height="46" rx="4" fill="#334155"/>
+                        <circle cx="255" cy="440" r="7" fill="#3b82f6" stroke="#bfdbfe" stroke-width="2"/>
+                        <text x="255" y="408" text-anchor="middle" font-weight="700">sensor 1</text>
+                        <text x="255" y="482" text-anchor="middle" font-size="13" fill="#475569">reflected</text>
+                        <rect x="117" y="500" width="46" height="34" rx="4" fill="#334155"/>
+                        <circle cx="140" cy="517" r="7" fill="#3b82f6" stroke="#bfdbfe" stroke-width="2"/>
+                        <text x="176" y="514" font-weight="700">sensor 0</text>
+                        <text x="176" y="531" font-size="13" fill="#475569">transmitted</text>
+                    </g>
+                </svg>
+                </div>
+                <figcaption>Our own schematic, not to scale. Eve's module (dashed) is inserted by the staff only
+                    for the second run, when you hunt for her. Transmitted light counts as bit 0, reflected as
+                    bit 1.</figcaption>
+            </figure>
+
+            <p class="lh-lg mb-2">
+                A small electronics box reads Bob's two sensors. Its green button switches between two modes, and
+                a side LED tells you which one is on (manual §7.2.3). They differ only when a pulse is shared
+                equally between the two sensors, as when Alice's and Bob's bases differ:
+            </p>
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <div class="mode-card"><span class="mode-led yellow" aria-hidden="true"></span>
+                        <strong>Adjustment mode</strong> (side LED yellow): an equal split lights
+                        <em>both</em> blue LEDs. Used to check the alignment.</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mode-card"><span class="mode-led green" aria-hidden="true"></span>
+                        <strong>Measuring mode</strong> (side LED green): an equal split lights <em>one</em>
+                        blue LED, picked at random by the electronics. Used for the key runs.</div>
+                </div>
+            </div>
+
+            <div class="dev-box">
+                <span class="dev-tag"><i class="fa-solid fa-triangle-exclamation me-1"></i>DECLARED DEVIATION · DEV-9.1</span>
+                <strong>Bright pulses and an electronic coin.</strong> BB84 is meant to run on single photons.
+                The kit sends bright pulses of ordinary laser light instead. When a pulse reaches the PBS
+                polarized halfway between horizontal and vertical, it really does split, half its light to each
+                sensor: that is what adjustment mode shows.
+                In measuring mode the electronics then picks one LED at random, like a coin toss. A single
+                photon would not split; it would turn up at one sensor or the other, and nothing on the bench
+                would decide in advance which. The odds are the same, but the coin is electronic and every
+                result can be explained with classical light (manual Ch. 3). <strong>The kit is an analogy of
+                BB84, not a quantum channel.</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  2 · SAFETY                                                          -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="safety" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">2 · Safety</span>
+            <h2 class="section-title"><i class="fa-solid fa-shield text-warning me-2"></i>Is it safe?</h2>
+            <p class="lh-lg">Yes, if everyone at the table follows these rules.</p>
+            <ul class="safety-list lh-lg">
+                <li><strong>The lasers are class 2:</strong> red light at 635 nm, in pulses of at most 1 mW
+                    (manual Ch. 13). Class 2 means no safety goggles are needed, <em>as long as nobody stares
+                    into the beam</em>.</li>
+                <li><strong>Never look into the beam or its reflections.</strong> If the beam catches your eye,
+                    close your eyes and turn your head away on purpose; do not count on blinking
+                    (manual Ch. 2, Ch. 13).</li>
+                <li><strong>Do not lean on or bump the table.</strong> It shifts the lasers and sensors out of
+                    alignment (manual §7.4), and a misaligned bench produces errors that look like an
+                    eavesdropper.</li>
+                <li><strong>The staff align the kit.</strong> Do not move the mounts, and do not touch the glass
+                    plates: they are handled only with gloves (manual Ch. 2). If a check fails, call the
+                    staff.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  3 · PREDICTIONS                                                     -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="predict" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">3 · Predictions</span>
+            <h2 class="section-title"><i class="fa-solid fa-lightbulb text-warning me-2"></i>What do you expect?</h2>
+            <p class="lh-lg">
+                Commit to an answer before you open each one; at the bench you will check it. All answers
+                assume <strong>an ideal bench</strong>: perfect plates and sensors, no light lost, no noise.
+                A real bench is slightly misaligned and can show a few errors even without Eve; spotting that
+                is part of the lab.
+            </p>
+
+            <div class="predict-card">
+                <div><span class="p-num">P1.</span>Call $s_A$ and $s_B$ the settings on Alice's and Bob's
+                    dials. The bench guide (Part A) gives the rule: a pulse is transmitted with probability
+                    $\cos^2(s_A + s_B)$ and reflected with probability $\sin^2(s_A + s_B)$.
+                    <strong>Alice sets 45°, Bob sets 45°. Which sensor lights up?</strong></div>
+                <details>
+                    <summary>Show the answer</summary>
+                    <div class="answer">
+                        $\cos^2(45^\circ + 45^\circ) = \cos^2 90^\circ = 0$: the pulse is never transmitted,
+                        always reflected. Sensor 1 lights: bit 1. <br>
+                        When Alice's and Bob's bases differ, the formula gives $\tfrac12$ instead: the pulse
+                        splits equally between the two sensors. In adjustment mode both LEDs light; in
+                        measuring mode one lights at random.
+                    </div>
+                </details>
+            </div>
+
+            <div class="predict-card">
+                <div><span class="p-num">P2.</span>Before each pulse, Alice rolls a die to pick her basis
+                    ($+$ or $\times$) and her bit; Bob rolls another die to pick his basis.
+                    <strong>On what fraction of the pulses do their bases match?</strong></div>
+                <details>
+                    <summary>Show the answer</summary>
+                    <div class="answer">
+                        One half: both pick $+$ with probability $\tfrac12\cdot\tfrac12$, both pick $\times$
+                        with probability $\tfrac12\cdot\tfrac12$, and $\tfrac14 + \tfrac14 = \tfrac12$. Only
+                        these pulses are kept. This step is called <strong>sifting</strong>: Alice and Bob
+                        announce their bases in public (never their bits) and drop the pulses where the
+                        bases differed. From the kit's 52 pulses, expect about 26 sifted bits.
+                    </div>
+                </details>
+            </div>
+
+            <div class="predict-card">
+                <div><span class="p-num">P3.</span>The <strong>QBER</strong> (quantum bit error rate) is the
+                    fraction of sifted bits where Bob's bit differs from Alice's. In an
+                    <strong>intercept-resend</strong> attack, Eve catches each pulse, reads it in a basis she
+                    picks at random, and sends Bob a fresh pulse carrying the bit she read, in her basis.
+                    <strong>What QBER do you expect (a) without Eve, (b) with Eve?</strong></div>
+                <details>
+                    <summary>Show the answer</summary>
+                    <div class="answer">
+                        (a) Zero: with matching bases, Bob reads exactly Alice's bit (P1: the certain cases).
+                        <br>
+                        (b) 25%. Half the time Eve picks Alice's basis, reads Alice's bit and resends it
+                        faithfully: no error. The other half she picks the wrong basis: her bit is a coin flip,
+                        her pulse arrives in the wrong basis, and Bob's bit is a coin flip too, wrong half the
+                        time. So $Q = \tfrac12\cdot 0 + \tfrac12\cdot\tfrac12 = \tfrac14$. The errors sit only
+                        on pulses where Eve's basis differed from Alice's.
+                    </div>
+                </details>
+            </div>
+
+            <div class="predict-card">
+                <div><span class="p-num">P4.</span>To look for Eve, Alice and Bob compare 6 of their sifted bits
+                    in public, the <strong>test bits</strong>, and then drop them from the key. Suppose Eve
+                    intercepted every pulse. <strong>What is the chance that all 6 test bits still agree, so
+                    that Eve goes unnoticed?</strong></div>
+                <details>
+                    <summary>Show the answer</summary>
+                    <div class="answer">
+                        Each test bit exposes Eve with probability $\tfrac14$ (the QBER of P3), so it lets her
+                        through with probability $\tfrac34$. Six independent test bits all let her through with
+                        probability $(3/4)^6$, about 17.8%. Eve slips past a 6-bit test surprisingly often;
+                        Part D of the bench guide shows how many test bits make her escape rare, and what they
+                        cost in pulses.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  4 · PLAYBOX                                                         -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="playbox" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">4 · Playbox</span>
+            <h2 class="section-title"><i class="fa-solid fa-dice text-warning me-2"></i>Are you a good random number generator?</h2>
+            <div class="question-box">
+                <span class="q-tag">THE QUESTION</span>
+                At the bench every basis and every bit comes from dice. Could your head do the dice's job?
+                Write 52 bits as if you were the dice, then see how they compare with a fair source.
+            </div>
+            <p class="lh-lg">
+                A <strong>run</strong> of 1s is a block of consecutive 1s with a 0, or the end of the string,
+                on each side: <code>0111010</code> has two runs, of length 3 and 1. For a fair source (every
+                bit 0 or 1 with probability ½, independently of the others) the chart shows the
+                <strong>expected number</strong> of runs of each length: the average over many repetitions,
+                not what every single string must contain.
+            </p>
+
+            <div class="sim-shell">
+                <div class="sim-head"><i class="fa-solid fa-chart-column me-2"></i>Run-length test
+                    <span style="opacity:.7;font-size:.85rem;">· the randomness check suggested in manual Ch. 10</span></div>
+                <div class="sim-body">
+                    <label for="bits-input" class="form-label fw-bold mb-1">Your bits (type, paste, or tap the
+                        buttons)</label>
+                    <textarea id="bits-input" class="form-control" rows="4" spellcheck="false"
+                              autocomplete="off" placeholder="e.g. 0110 1001 1101 …"></textarea>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <button type="button" class="btn btn-outline-dark bit-btn" id="btn-0" aria-label="Add a 0">0</button>
+                        <button type="button" class="btn btn-outline-dark bit-btn" id="btn-1" aria-label="Add a 1">1</button>
+                        <button type="button" class="btn btn-outline-secondary tool-btn" id="btn-undo">
+                            <i class="fa-solid fa-delete-left me-1"></i>Undo</button>
+                        <button type="button" class="btn btn-outline-secondary tool-btn" id="btn-clear">
+                            <i class="fa-solid fa-eraser me-1"></i>Clear</button>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                        <button type="button" class="btn btn-success tool-btn" id="btn-fair">
+                            <i class="fa-solid fa-shuffle me-1"></i>Let a fair source do it</button>
+                        <label class="visually-hidden" for="fair-length">Number of fair bits</label>
+                        <select id="fair-length" class="form-select w-auto">
+                            <option value="52" selected>52 bits</option>
+                            <option value="500">500 bits</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-primary tool-btn" id="btn-back" hidden>
+                            <i class="fa-solid fa-rotate-left me-1"></i>Back to my bits</button>
+                    </div>
+                    <p class="fair-note mt-2 mb-0">The fair source is your browser's built-in random number
+                        generator (<code>crypto.getRandomValues</code>). It is <em>pseudo-random</em>: computed by
+                        an algorithm rather than drawn from a physical process, so not quantum. But it is
+                        <em>unbiased</em>: every bit is 0 or 1 with probability ½, independently, exactly the
+                        fair source described above.</p>
+                    <div id="input-error" class="input-error" role="alert" hidden></div>
+
+                    <div class="row g-2 mt-2" aria-live="polite">
+                        <div class="col-6 col-md-3"><div class="stat-card">
+                            <div class="stat-label">Bits, $L$</div>
+                            <div class="stat-value" id="stat-L">0</div></div></div>
+                        <div class="col-6 col-md-3"><div class="stat-card">
+                            <div class="stat-label">Runs of 1s</div>
+                            <div class="stat-value" id="stat-runs">0</div>
+                            <div class="stat-sub">fair source: <span id="stat-runs-exp">—</span></div></div></div>
+                        <div class="col-6 col-md-3"><div class="stat-card">
+                            <div class="stat-label">Longest run of 1s</div>
+                            <div class="stat-value" id="stat-longest">0</div></div></div>
+                        <div class="col-6 col-md-3"><div class="stat-card">
+                            <div class="stat-label">Runs of length ≥ 5</div>
+                            <div class="stat-value" id="stat-long">0</div>
+                            <div class="stat-sub">fair source: <span id="stat-long-exp">—</span></div></div></div>
+                    </div>
+
+                    <div class="chart-wrap" id="chart"></div>
+                    <div class="chart-legend">
+                        <span><i class="swatch-bar" aria-hidden="true"></i>your runs of 1s, counted by length $n$</span>
+                        <span><i class="swatch-dot" aria-hidden="true"></i>fair source: expected number (dots)</span>
+                    </div>
+                    <p class="chart-note mb-0" id="chart-note" hidden></p>
+                    <details class="mt-2">
+                        <summary class="fw-bold" style="cursor:pointer;color:#0f766e;">The numbers behind the chart</summary>
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm numbers-table mb-0">
+                                <thead><tr><th scope="col">run length $n$</th><th scope="col">your runs</th>
+                                    <th scope="col">fair source, expected</th></tr></thead>
+                                <tbody id="numbers-body"></tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <div class="triple-box">
+                <div><span class="t-step">Intuition.</span>For a run of exactly $n$ ones to start somewhere in
+                    the middle of the string, $n + 2$ bits must come out right: a 0, then $n$ ones, then a 0.
+                    Each fair bit comes out right with probability ½, so every extra 1 in the run halves its
+                    chance.</div>
+                <div><span class="t-step">Formula.</span>Counting every place a run can start (at the two ends
+                    of the string one fewer bit has to match), the expected number of runs of length exactly
+                    $n < L$ in $L$ fair bits is
+                    $$\frac{L - n + 3}{2^{\,n+2}},$$
+                    and $2^{-L}$ for $n = L$ (the all-ones string). The expected total number of runs is
+                    $(L + 1)/4$. As $L$ grows, the fraction of runs
+                    that have length $n$ tends to $2^{-n}$: half of all runs are single 1s, a quarter are
+                    pairs, an eighth are triples, and so on.</div>
+                <div><span class="t-step">Number.</span><span id="number-msg">Type or generate some bits
+                    above, and the expected number of long runs for your string appears here.</span><span
+                    id="number-live" hidden>In your $L$ = <span id="num-L"></span> bits a fair source gives,
+                    on average, <span id="num-exp"></span> runs of 1s of length 5 or more. Your string has
+                    <span id="num-obs"></span>.</span></div>
+                <div class="mb-0"><span class="t-step">Play it.</span>Press <em>Let a fair source do it</em>
+                    a few times with 500 bits and watch the bars settle onto the dots; then look again at your
+                    own 52.</div>
+            </div>
+            <p class="lh-lg">
+                Runs of 0s obey exactly the same law: swap every 0 and 1 and nothing in the argument changes.
+            </p>
+
+            <div class="shock-box">
+                <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
+                <strong>Long runs look non-random, so people leave them out.</strong> Asked to write random
+                bits, people rarely write a run longer than 5, because it does not look random (manual Ch. 10).
+                A fair source writes them anyway: in 52 fair bits, expect on average
+                <span id="shock-ge5">…</span> runs of 1s of length 5 or more, <span id="shock-gt5">…</span>
+                of them longer than 5, and as many runs of 0s. Across many strings, too few long runs gives a
+                human writer away. That is why the kit ships dice (a black 8-sided die for Alice's basis and
+                bit, a red 6-sided die for Bob's basis; manual Ch. 10) and why the bench guide says <em>use the dice,
+                not your head</em>. In BB84 it matters: if Alice's choices are predictable, Eve guesses her
+                basis more often than half the time, and fewer of her interceptions leave errors behind.
+            </div>
+
+            <div class="anchor-box">
+                <span class="a-tag"><i class="fa-solid fa-industry me-1"></i>REAL-WORLD ANCHOR</span>
+                Real QKD systems draw their basis and bit choices from <strong>quantum random number
+                generators</strong> (QRNGs): devices whose bits come from a quantum measurement, for example a
+                single photon meeting a beam splitter, where nothing decides in advance which exit it takes.
+                The kit manual (Ch. 10) names ID Quantique's <strong>Quantis</strong> as a commercial example.
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  5 · AFTER THE LAB                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="after" class="row mb-4">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">5 · After the lab</span>
+            <h2 class="section-title"><i class="fa-solid fa-code text-warning me-2"></i>What happens to your data after the lab?</h2>
+            <div class="task-box">
+                <div class="task-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <span>The analysis notebook</span>
+                    <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab9/lab9_bb84_bench.ipynb"
+                       class="btn btn-sm colab-btn">
+                        <i class="fa-solid fa-terminal me-1"></i>Open Colab Notebook
+                    </a>
+                </div>
+                <div class="task-body">
+                    <p class="mb-2">The notebook reproduces the worked example of manual Ch. 6, turns your
+                        worksheet counts into a QBER with its standard error (the typical size of the random
+                        scatter of an estimate) and pools the whole class's counts, then runs this page's
+                        run-length test on your own bits.</p>
+                    <p class="text-muted mb-0" style="font-size:.88rem;">
+                        <i class="fa-solid fa-circle-info me-1"></i>Keep a copy of the bits you wrote in the
+                        playbox: copy them out of the box before you close this page.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div><!-- /container -->
+
+<footer class="text-center py-4 mt-2 bg-light border-top">
+    <p class="mb-1 text-muted px-3" style="font-size:.85rem;">
+        Source: Thorlabs, <em>EDU-QCRY1 Quantum Cryptography Demonstration Kit User Manual</em>, Rev D (2026),
+        cited as “manual Ch. x” or “manual §x”. The schematic on this page is our own.
+    </p>
+    <p class="mb-0 text-muted">Quantum Computing Foundation — Lab Module 9</p>
+</footer>
+
+<script>
+// ─── LAB9 CORE EXTRACT START (do not move: the cross-check harness slices here) ───
+/* Pure functions only: no DOM, no randomness. Port of the run-length law
+   (randomness.one_run_lengths and the closed form it is checked against). */
+
+// "0 1 1\n0" -> [0, 1, 1, 0]; whitespace is ignored, any other character throws.
+function parseBits(text) {
+    const bits = [];
+    let position = 0;
+    for (const ch of String(text)) {
+        position++;
+        if (ch === '0' || ch === '1') bits.push(ch === '1' ? 1 : 0);
+        else if (!/\s/.test(ch)) throw new Error('not a bit: "' + ch + '" (character ' + position + ')');
+    }
+    return bits;
+}
+
+// Lengths of the maximal runs of 1s, left to right.
+function oneRunLengths(bits) {
+    const runs = [];
+    let current = 0;
+    for (const bit of bits) {
+        if (bit) current++;
+        else if (current) { runs.push(current); current = 0; }
+    }
+    if (current) runs.push(current);
+    return runs;
+}
+
+// Array of length L: entry n - 1 = number of 1-runs of length exactly n.
+function runLengthCounts(bits) {
+    const counts = new Array(bits.length).fill(0);
+    for (const n of oneRunLengths(bits)) counts[n - 1]++;
+    return counts;
+}
+
+function requirePositiveInteger(value, name) {
+    if (!Number.isInteger(value) || value < 1) throw new RangeError(name + ' must be a positive integer');
+}
+
+// Expected number of 1-runs of length exactly n in L fair bits:
+// (L - n + 3) / 2^(n+2) for n < L, 2^(-L) for n = L, 0 for n > L.
+function expectedRunCount(L, n) {
+    requirePositiveInteger(L, 'L');
+    requirePositiveInteger(n, 'n');
+    if (n > L) return 0;
+    if (n === L) return Math.pow(2, -L);
+    return (L - n + 3) / Math.pow(2, n + 2);
+}
+
+// Expected number of 1-runs of length n >= m in L fair bits.
+function expectedRunsAtLeast(L, m) {
+    requirePositiveInteger(L, 'L');
+    requirePositiveInteger(m, 'm');
+    let sum = 0;
+    for (let n = m; n <= L; n++) sum += expectedRunCount(L, n);
+    return sum;
+}
+
+// Expected total number of 1-runs in L fair bits.
+function expectedTotalRuns(L) {
+    requirePositiveInteger(L, 'L');
+    return (L + 1) / 4;
+}
+// ─── LAB9 CORE EXTRACT END ───
+</script>
+<script>
+/* Playbox UI (DOM, and the browser's generator for the fair source).
+   Every run count and expectation shown comes from the CORE above. */
+(function () {
+    'use strict';
+    const LONG_RUN = 5;       // the "runs of length >= 5" readout
+    const MIN_BARS = 8;       // chart shows n = 1..max(8, longest run)
+    const MAX_BARS = 32;      // beyond this the longest run is reported, not drawn
+    const byId = function (id) { return document.getElementById(id); };
+    const input = byId('bits-input');
+    let stashed = null;       // the student's own bits while a fair string is shown
+
+    function setText(id, value) { byId(id).textContent = String(value); }
+    function fmt(x) { return x.toFixed(2); }
+    function fmtSmall(x) { return x === 0 ? '0' : (x < 0.005 ? '< 0.01' : x.toFixed(2)); }
+
+    // Groups of 4, a line break every 32 bits (whitespace is ignored by parseBits).
+    function formatBits(bits) {
+        let out = '';
+        bits.forEach(function (b, i) {
+            if (i > 0) out += i % 32 === 0 ? '\n' : (i % 4 === 0 ? ' ' : '');
+            out += b;
+        });
+        return out;
+    }
+
+    function fairBits(count) {
+        const bytes = new Uint8Array(Math.ceil(count / 8));
+        window.crypto.getRandomValues(bytes);
+        const bits = [];
+        for (let i = 0; i < count; i++) bits.push((bytes[i >> 3] >> (i & 7)) & 1);
+        return bits;
+    }
+
+    function niceStep(top) {
+        const raw = top / 5;
+        const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+        for (const m of [1, 2, 5, 10]) if (m * pow >= raw) return m * pow;
+        return 10 * pow;
+    }
+
+    function drawChart(counts, L, longest) {
+        const box = byId('chart');
+        const note = byId('chart-note');
+        note.hidden = true;
+        if (L === 0) {
+            box.innerHTML = '<p class="chart-empty">No bits yet: type some, tap 0 and 1, or let a fair source do it.</p>';
+            return;
+        }
+        const nMax = Math.min(Math.max(MIN_BARS, longest), MAX_BARS);
+        if (longest > MAX_BARS) {
+            note.textContent = 'Your longest run (' + longest + ') is off the right edge of the chart.';
+            note.hidden = false;
+        }
+        const obs = [], exp = [];
+        for (let n = 1; n <= nMax; n++) {
+            obs.push(n <= L ? counts[n - 1] : 0);
+            exp.push(expectedRunCount(L, n));
+        }
+        const top = Math.max(1, Math.max.apply(null, obs.concat(exp)));
+        const step = niceStep(top);
+        const ticks = Math.ceil(top / step - 1e-9);
+        const yMax = ticks * step;
+        // Drawn at the container's own width, so the text keeps its size on a phone.
+        const W = Math.round(Math.max(300, Math.min(600, box.clientWidth || 520)));
+        const H = W < 420 ? 250 : 280, ml = 44, mr = 10, mt = 26, mb = 48;  // mt: room for a count label
+        const pw = W - ml - mr, ph = H - mt - mb, slot = pw / nMax;
+        const y = function (v) { return mt + ph - (v / yMax) * ph; };
+        const xMid = function (i) { return ml + (i + 0.5) * slot; };
+        const labelEvery = slot >= 22 ? 1 : (slot >= 11 ? 2 : 4);
+        let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bar chart of your runs of 1s by length n, from 1 to '
+            + nMax + ', with the expected number for a fair source as dots">'
+            + '<g font-family="system-ui, -apple-system, \'Segoe UI\', Roboto, sans-serif" font-size="14" fill="#475569">';
+        for (let k = 0; k <= ticks; k++) {
+            const v = k * step, yy = y(v).toFixed(1);
+            s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + yy + '" y2="' + yy + '" stroke="#e2e8f0"/>'
+                + '<text x="' + (ml - 6) + '" y="' + yy + '" dy="4" text-anchor="end">' + Number(v.toFixed(2)) + '</text>';
+        }
+        let barLabels = '';   // drawn last, so no dot hides a count
+        obs.forEach(function (c, i) {
+            if (c === 0) return;
+            const bw = slot * 0.62, x = xMid(i) - bw / 2;
+            s += '<rect x="' + x.toFixed(1) + '" y="' + y(c).toFixed(1) + '" width="' + bw.toFixed(1)
+                + '" height="' + (y(0) - y(c)).toFixed(1) + '" fill="#0d9488" rx="2"/>';
+            if (slot >= 18) barLabels += '<text x="' + xMid(i).toFixed(1) + '" y="' + (y(c) - 5).toFixed(1)
+                + '" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e" stroke="#fff"'
+                + ' stroke-width="3" paint-order="stroke">' + c + '</text>';
+        });
+        s += '<polyline fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 3" points="'
+            + exp.map(function (e, i) { return xMid(i).toFixed(1) + ',' + y(e).toFixed(1); }).join(' ') + '"/>';
+        exp.forEach(function (e, i) {
+            s += '<circle cx="' + xMid(i).toFixed(1) + '" cy="' + y(e).toFixed(1) + '" r="4" fill="#1e293b"/>';
+        });
+        s += barLabels;
+        s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="#64748b"/>';
+        for (let i = 0; i < nMax; i++) {
+            if ((i + 1) % labelEvery !== 0 && i !== 0) continue;
+            s += '<text x="' + xMid(i).toFixed(1) + '" y="' + (y(0) + 18) + '" text-anchor="middle">' + (i + 1) + '</text>';
+        }
+        s += '<text x="' + (ml + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle" fill="#1e293b">run length n</text>'
+            + '<text transform="translate(13 ' + (mt + ph / 2) + ') rotate(-90)" text-anchor="middle" fill="#1e293b">number of runs</text>'
+            + '</g></svg>';
+        box.innerHTML = s;
+    }
+
+    function fillTable(counts, L, nMax) {
+        const body = byId('numbers-body');
+        if (L === 0) { body.innerHTML = '<tr><td colspan="3" class="text-muted">No bits yet.</td></tr>'; return; }
+        let rows = '';
+        for (let n = 1; n <= nMax; n++) {
+            rows += '<tr><td>' + n + '</td><td>' + (n <= L ? counts[n - 1] : 0) + '</td><td>'
+                + fmtSmall(expectedRunCount(L, n)) + '</td></tr>';
+        }
+        body.innerHTML = rows;
+    }
+
+    function showNumberMessage(message) {
+        setText('number-msg', message);
+        byId('number-msg').hidden = false;
+        byId('number-live').hidden = true;
+    }
+
+    function showError(message) {
+        const box = byId('input-error');
+        box.textContent = message;
+        box.hidden = message === '';
+    }
+
+    function update() {
+        let bits;
+        try {
+            bits = parseBits(input.value);
+        } catch (e) {
+            showError('Only 0, 1, spaces and line breaks, please: ' + e.message + '.');
+            ['stat-L', 'stat-runs', 'stat-runs-exp', 'stat-longest', 'stat-long', 'stat-long-exp']
+                .forEach(function (id) { setText(id, '—'); });
+            byId('chart').innerHTML = '<p class="chart-empty">Fix the character above to see the chart.</p>';
+            byId('chart-note').hidden = true;
+            byId('numbers-body').innerHTML = '';
+            showNumberMessage('Fix the character above first.');
+            return;
+        }
+        showError('');
+        const L = bits.length;
+        const runs = oneRunLengths(bits);
+        const counts = runLengthCounts(bits);
+        const longest = runs.reduce(function (a, b) { return Math.max(a, b); }, 0);
+        const observedLong = runs.filter(function (n) { return n >= LONG_RUN; }).length;
+        setText('stat-L', L);
+        setText('stat-runs', runs.length);
+        setText('stat-longest', longest);
+        setText('stat-long', observedLong);
+        if (L === 0) {   // the expectations are defined for L >= 1 only
+            setText('stat-runs-exp', '—');
+            setText('stat-long-exp', '—');
+            showNumberMessage('Type or generate some bits above, and the expected number of long runs for your string appears here.');
+        } else {
+            const expectedLong = expectedRunsAtLeast(L, LONG_RUN);
+            setText('stat-runs-exp', fmt(expectedTotalRuns(L)));
+            setText('stat-long-exp', fmt(expectedLong));
+            setText('num-L', L);
+            setText('num-exp', fmt(expectedLong));
+            setText('num-obs', observedLong);
+            byId('number-msg').hidden = true;
+            byId('number-live').hidden = false;
+        }
+        drawChart(counts, L, longest);
+        fillTable(counts, L, Math.min(Math.max(MIN_BARS, longest), MAX_BARS));
+    }
+
+    function tap(bit) {
+        let count = -1;
+        try { count = parseBits(input.value).length; } catch (e) { /* keep the text; the error stays shown */ }
+        let sep = '';
+        if (count > 0 && !/\s$/.test(input.value)) sep = count % 32 === 0 ? '\n' : (count % 4 === 0 ? ' ' : '');
+        input.value += sep + bit;
+        update();
+    }
+
+    byId('btn-0').addEventListener('click', function () { tap('0'); });
+    byId('btn-1').addEventListener('click', function () { tap('1'); });
+    byId('btn-undo').addEventListener('click', function () {
+        input.value = input.value.replace(/\s*\S\s*$/, '');
+        update();
+    });
+    byId('btn-clear').addEventListener('click', function () { input.value = ''; update(); });
+    byId('btn-fair').addEventListener('click', function () {
+        if (stashed === null) stashed = input.value;
+        input.value = formatBits(fairBits(Number(byId('fair-length').value)));
+        byId('btn-back').hidden = false;
+        update();
+    });
+    byId('btn-back').addEventListener('click', function () {
+        input.value = stashed === null ? '' : stashed;
+        stashed = null;
+        byId('btn-back').hidden = true;
+        update();
+    });
+    input.addEventListener('input', update);
+    let resizeTimer = null;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(update, 150);
+    });
+
+    // Shock box: the fair-source reference at the kit's 52 bits.
+    setText('shock-ge5', fmt(expectedRunsAtLeast(52, LONG_RUN)));
+    setText('shock-gt5', fmt(expectedRunsAtLeast(52, LONG_RUN + 1)));
+    update();
+})();
+</script>
+
+<!-- MathJax -->
+<script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
