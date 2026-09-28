@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 10 — Quantum Optics on the Bench · pre-lab companion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --clr-hero1: #0f172a; --clr-hero2: #4c1d95;
+            --clr-accent: #f59e0b; --clr-accent2: #0d9488;
+            --clr-pump: #7c3aed; --clr-beam: #dc2626; --clr-obs: #0d9488; --clr-ref: #1e293b;
+        }
+        body { background: #f6f7fb; color: #1f2430; }
+        .hero-section { background: linear-gradient(135deg, var(--clr-hero1), var(--clr-hero2));
+            color: #fff; padding: 48px 0 40px; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.35); border-radius: 20px;
+            padding: 5px 14px; font-size: .82rem; margin: 3px; }
+        .hero-tag { display: inline-block; background: var(--clr-accent); color: #1f2430;
+            border-radius: 20px; padding: 5px 14px; font-size: .82rem; font-weight: 700; margin: 3px; }
+        .hero-bring { max-width: 720px; margin: 18px auto 0; font-size: .95rem; opacity: .9; }
+        .guide-btn { background: #fff; color: #4c1d95; font-weight: 700; }
+        .page-nav a { display: inline-block; margin: 3px; padding: 5px 12px; border-radius: 16px;
+            background: #fff; border: 1px solid #e2e8f0; font-size: .85rem; color: #334155;
+            text-decoration: none; }
+        .page-nav a:hover { border-color: #94a3b8; }
+        .kicker { display: block; font-size: .75rem; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #0f766e; margin-bottom: 4px; }
+        .section-title { border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+            margin-bottom: 18px; font-weight: 700; }
+        .question-box { background: #eef2ff; border-left: 5px solid #6366f1;
+            border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 14px 0 20px;
+            font-size: 1.04rem; font-style: italic; color: #312e81; }
+        .question-box .q-tag { display: block; font-style: normal; font-weight: 800;
+            font-size: .72rem; letter-spacing: 1.5px; color: #6366f1; margin-bottom: 4px; }
+        .term-list dt { font-weight: 700; color: #1e293b; }
+        .term-list dd { margin-bottom: 8px; color: #475569; }
+        .kit-figure { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 14px; margin: 18px 0 8px; }
+        .kit-figure svg { display: block; width: 100%; height: auto; }
+        .kit-figure figcaption { font-size: .85rem; color: #64748b; margin-top: 8px; }
+        .kit-narrow { max-width: 380px; margin: 0 auto; }
+        .dev-box { background: #fffbeb; border: 2px solid #d97706; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 24px 0; position: relative; }
+        .dev-tag { position: absolute; top: -12px; left: 16px; background: #d97706;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .safety-box { background: #fef2f2; border: 2px solid #dc2626; border-radius: 10px;
+            padding: 18px 20px 10px; margin: 18px 0; position: relative; }
+        .safety-tag { position: absolute; top: -12px; left: 16px; background: #dc2626;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .safety-list li { margin-bottom: 10px; }
+        .predict-table td, .predict-table th { vertical-align: middle; }
+        .predict-table input { min-width: 110px; }
+        .answer { background: #f0fdfa; border-radius: 8px; padding: 10px 14px; font-size: .95rem; }
+        .triple-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px;
+            padding: 14px 18px; margin: 18px 0; font-size: .96rem; }
+        .triple-box > div { margin-bottom: 6px; }
+        .triple-box .t-step { font-weight: 800; color: #0f766e; margin-right: 6px; }
+        .shock-box { background: #fff7ed; border: 2px solid #ea580c; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 24px 0; position: relative; }
+        .shock-tag { position: absolute; top: -12px; left: 16px; background: #ea580c;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
+        .anchor-box { background: #fefce8; border-left: 5px solid var(--clr-accent);
+            border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; font-size: .95rem; }
+        .anchor-box .a-tag { display: block; font-weight: 800; font-size: .72rem;
+            letter-spacing: 1.5px; color: #b45309; margin-bottom: 4px; }
+        .sim-shell { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+            box-shadow: 0 8px 26px rgba(15,23,42,.08); overflow: hidden; }
+        .sim-head { background: #0f172a; color: #fff; padding: 12px 20px; }
+        .sim-body { padding: 18px; }
+        .tool-btn { min-height: 44px; }
+        .fair-note { font-size: .82rem; color: #64748b; }
+        .window-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+            background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 10px 14px;
+            margin-top: 14px; font-size: .92rem; min-height: 52px; }
+        .lamp { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+        .lamp i { display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+            background: #334155; border: 2px solid #475569; }
+        .lamp.on i { background: #facc15; border-color: #fde68a; box-shadow: 0 0 8px #facc15; }
+        .lamp.off-duty { opacity: .35; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 10px 12px; text-align: center; height: 100%; }
+        .stat-value { font-size: 1.25rem; font-weight: 800; font-family: monospace; color: #062f43; }
+        .stat-label { font-size: .76rem; color: #475569; font-weight: 600; margin-bottom: 2px; }
+        .stat-sub { font-size: .78rem; color: #64748b; }
+        .g2-card { background: #eef2ff; border-color: #c7d2fe; }
+        .chance-line { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
+            padding: 8px 12px; font-size: .95rem; }
+        .chance-line strong { font-family: monospace; font-size: 1.05rem; color: #062f43; }
+        .reading { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px;
+            padding: 8px 12px; margin-top: 12px; font-weight: 600; color: #0f766e; }
+        .chart-wrap { max-width: 640px; margin: 16px auto 0; }
+        .chart-wrap svg { display: block; width: 100%; height: auto; }
+        .chart-empty { text-align: center; color: #64748b; padding: 36px 8px; margin: 0;
+            border: 1px dashed #cbd5e1; border-radius: 8px; }
+        .chart-legend { font-size: .85rem; color: #475569; text-align: center; margin-top: 6px; }
+        .chart-legend span { display: inline-block; margin: 2px 10px; }
+        .swatch-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--clr-obs); margin-right: 5px; vertical-align: 0; }
+        .swatch-ring { display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+            border: 2px solid var(--clr-obs); margin-right: 5px; vertical-align: 0; }
+        .swatch-line { display: inline-block; width: 18px; height: 0; border-top: 2px dashed var(--clr-ref);
+            margin-right: 5px; vertical-align: 3px; }
+        .swatch-bound { display: inline-block; width: 18px; height: 0; border-top: 2px dotted #dc2626;
+            margin-right: 5px; vertical-align: 3px; }
+        .task-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+            overflow: hidden; margin: 16px 0; }
+        .task-header { background: #f1f5f9; padding: 12px 18px; font-weight: 700; }
+        .task-body { padding: 16px 18px; }
+        .colab-btn { background: #f59e0b; color: #1f2430; font-weight: 700; }
+        section { scroll-margin-top: 12px; }
+        mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+        @media (max-width: 575.98px) {
+            .hero-section { padding: 36px 0 30px; }
+            .hero-section h1 { font-size: 1.9rem; }
+            .sim-body { padding: 14px 12px; }
+            .triple-box { padding: 12px 14px; }
+            .dev-box, .shock-box, .safety-box { padding: 18px 14px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  0 · HEADER                                                             -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<header class="hero-section text-center">
+    <div class="container">
+        <p class="mb-2" style="font-size:.8rem;letter-spacing:2px;text-transform:uppercase;opacity:.7;">
+            Quantum Computing Foundation
+        </p>
+        <h1 class="display-5 fw-bold mb-2">
+            <i class="fa-solid fa-lightbulb"></i> Lab 10 — Quantum Optics on the Bench · pre-lab companion
+        </h1>
+        <p class="lead mb-3 opacity-75">
+            Single photons on a tabletop kit: what to know before you walk in.
+        </p>
+        <div>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites:
+                Fundamental Concepts of Quantum Technologies, nothing else</span>
+            <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS · in person at i-LAMP</span>
+            <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 15 min before the lab</span>
+        </div>
+        <p class="hero-bring">
+            <i class="fa-solid fa-pen me-1"></i><strong>Bring:</strong> a pen, a calculator and the bench
+            guide; its last two pages are the worksheet you fill in at the bench. The kit, its time tagger and
+            the software are set up by the staff.
+        </p>
+        <a href="../latex/lab10_optics_bench.pdf" class="btn btn-sm guide-btn mt-2">
+            <i class="fa-solid fa-file-pdf me-1"></i>Bench guide (PDF)
+        </a>
+    </div>
+</header>
+
+<div class="container mt-4 pb-4">
+    <nav class="page-nav text-center mb-4" aria-label="On this page">
+        <a href="#kit">1 · The kit</a>
+        <a href="#safety">2 · Safety</a>
+        <a href="#predict">3 · Predictions</a>
+        <a href="#playbox">4 · Playbox</a>
+        <a href="#after">5 · After the lab</a>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  1 · KIT ANATOMY                                                     -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="kit" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">1 · Kit anatomy</span>
+            <h2 class="section-title"><i class="fa-solid fa-table-cells-large text-warning me-2"></i>What will be on the table?</h2>
+            <p class="lh-lg">
+                The lab asks one question in four steps: <strong>does the light on the bench come as single
+                photons, and can one photon interfere with itself?</strong> You answer it from detector clicks
+                alone, on the Thorlabs EDU-QOP1 Quantum Optics Kit. These are its parts:
+            </p>
+            <dl class="term-list">
+                <dt>Pump laser (405 nm, violet)</dt>
+                <dd>Drives the crystal in Parts B–D. Only the staff switch it on.</dd>
+                <dt>Crystal (the pair source)</dt>
+                <dd>Pumped at 405 nm, it emits two photons of about 810 nm at once. One photon of each pair
+                    goes to detector T, the other to the beam splitter.</dd>
+                <dt>Detectors T, A, B</dt>
+                <dd>Single-photon detectors. T is the herald arm; A and B sit at the two outputs of the beam
+                    splitter.</dd>
+                <dt>Beam splitter</dt>
+                <dd>A half-transparent mirror with two outputs (course document QC10, <em>Light</em>).</dd>
+                <dt>Michelson interferometer (Part D)</dt>
+                <dd>Placed by the staff in one beam-splitter output, with B behind it: a second beam splitter
+                    sends the light into two arms, mirrors send it back, and the arms recombine. A stage moves
+                    one mirror by $x$.</dd>
+                <dt>Time tagger and software</dt>
+                <dd>Records when each detector clicks and counts the coincidences; the software prints the
+                    rates and $g^{(2)}$ (defined below).</dd>
+                <dt>Alignment laser (635 nm, red)</dt>
+                <dd>In Part A, dimmed by the kit's filter, it replaces the crystal: A and B only, no T.</dd>
+            </dl>
+
+            <figure class="kit-figure">
+                <!-- Wide layout (tablet and up) -->
+                <div class="d-none d-md-block">
+                <svg viewBox="0 0 760 330" role="img" aria-labelledby="kit-wide-title kit-wide-desc">
+                    <title id="kit-wide-title">Schematic of the kit for Parts B to D</title>
+                    <desc id="kit-wide-desc">The violet pump laser drives the crystal. The crystal sends one photon
+                        of each pair to detector T and the other to a beam splitter, whose two outputs go to
+                        detectors A and B. In Part D a Michelson interferometer sits between the beam splitter and
+                        B. Cables from T, A and B go to the time tagger, which counts coincidences in windows of
+                        width delta t.</desc>
+                    <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1e293b">
+                        <!-- beams -->
+                        <line x1="128" y1="150" x2="200" y2="150" stroke="#7c3aed" stroke-width="3.5"/>
+                        <line x1="300" y1="140" x2="600" y2="72" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="300" y1="160" x2="400" y2="190" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="400" y1="190" x2="600" y2="190" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="400" y1="190" x2="400" y2="282" stroke="#dc2626" stroke-width="3"/>
+                        <!-- pump -->
+                        <rect x="14" y="132" width="114" height="36" rx="5" fill="#2e1065"/>
+                        <text x="71" y="155" text-anchor="middle" fill="#ede9fe" font-weight="700">pump laser</text>
+                        <text x="71" y="188" text-anchor="middle" fill="#6d28d9">405 nm · staff only</text>
+                        <!-- crystal -->
+                        <rect x="200" y="128" width="100" height="44" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+                        <text x="250" y="148" text-anchor="middle" font-weight="700">crystal</text>
+                        <text x="250" y="164" text-anchor="middle" font-size="12" fill="#9a3412">pair source</text>
+                        <text x="430" y="92" text-anchor="middle" font-size="12" fill="#dc2626">≈ 810 nm</text>
+                        <!-- beam splitter -->
+                        <rect x="382" y="172" width="36" height="36" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+                        <line x1="382" y1="172" x2="418" y2="208" stroke="#0369a1" stroke-width="2"/>
+                        <text x="470" y="180" text-anchor="middle" font-weight="700">beam splitter</text>
+                        <text x="200" y="226" text-anchor="middle" font-size="12" fill="#64748b">Part A: the dimmed 635 nm laser</text>
+                        <text x="200" y="242" text-anchor="middle" font-size="12" fill="#64748b">enters the beam splitter; no crystal, no T</text>
+                        <!-- Michelson (Part D) -->
+                        <rect x="352" y="226" width="96" height="34" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="6 4"/>
+                        <text x="400" y="240" text-anchor="middle" font-size="12" font-weight="700" fill="#5b21b6">Michelson</text>
+                        <text x="400" y="256" text-anchor="middle" font-size="11" fill="#5b21b6">Part D only</text>
+                        <!-- detectors -->
+                        <rect x="600" y="54" width="70" height="36" rx="5" fill="#334155"/>
+                        <text x="635" y="77" text-anchor="middle" fill="#fff" font-weight="700">T</text>
+                        <text x="635" y="44" text-anchor="middle" font-size="12" fill="#475569">herald</text>
+                        <rect x="600" y="172" width="70" height="36" rx="5" fill="#334155"/>
+                        <text x="635" y="195" text-anchor="middle" fill="#fff" font-weight="700">A</text>
+                        <rect x="365" y="282" width="70" height="36" rx="5" fill="#334155"/>
+                        <text x="400" y="305" text-anchor="middle" fill="#fff" font-weight="700">B</text>
+                        <!-- time tagger -->
+                        <rect x="560" y="262" width="186" height="56" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+                        <text x="653" y="284" text-anchor="middle" font-weight="700">time tagger</text>
+                        <text x="653" y="302" text-anchor="middle" font-size="12" fill="#475569">counts clicks in windows Δt</text>
+                        <path d="M670 72 H720 V262" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <path d="M670 190 H700 V262" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <path d="M435 300 H560" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+                    </g>
+                </svg>
+                </div>
+                <!-- Narrow layout (phones) -->
+                <div class="d-md-none kit-narrow">
+                <svg viewBox="0 0 340 600" role="img" aria-labelledby="kit-narrow-title kit-narrow-desc">
+                    <title id="kit-narrow-title">Schematic of the kit for Parts B to D, top to bottom</title>
+                    <desc id="kit-narrow-desc">The violet pump laser drives the crystal. The crystal sends one photon
+                        of each pair to detector T and the other to a beam splitter, whose two outputs go to
+                        detectors A and B. In Part D a Michelson interferometer sits between the beam splitter and
+                        B. Cables from T, A and B go to the time tagger.</desc>
+                    <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14" fill="#1e293b">
+                        <!-- beams -->
+                        <line x1="120" y1="64" x2="120" y2="126" stroke="#7c3aed" stroke-width="3.5"/>
+                        <line x1="140" y1="170" x2="270" y2="230" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="110" y1="170" x2="110" y2="300" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="110" y1="300" x2="250" y2="300" stroke="#dc2626" stroke-width="3"/>
+                        <line x1="110" y1="300" x2="110" y2="470" stroke="#dc2626" stroke-width="3"/>
+                        <!-- pump -->
+                        <rect x="60" y="18" width="120" height="46" rx="5" fill="#2e1065"/>
+                        <text x="120" y="46" text-anchor="middle" fill="#ede9fe" font-weight="700">pump laser</text>
+                        <text x="190" y="94" font-size="13" fill="#6d28d9">405 nm · staff only</text>
+                        <!-- crystal -->
+                        <rect x="70" y="126" width="100" height="44" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+                        <text x="120" y="146" text-anchor="middle" font-weight="700">crystal</text>
+                        <text x="120" y="162" text-anchor="middle" font-size="12" fill="#9a3412">pair source</text>
+                        <!-- T -->
+                        <rect x="250" y="222" width="70" height="36" rx="5" fill="#334155"/>
+                        <text x="285" y="245" text-anchor="middle" fill="#fff" font-weight="700">T</text>
+                        <text x="285" y="212" text-anchor="middle" font-size="12" fill="#475569">herald</text>
+                        <!-- beam splitter -->
+                        <rect x="92" y="282" width="36" height="36" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/>
+                        <line x1="92" y1="282" x2="128" y2="318" stroke="#0369a1" stroke-width="2"/>
+                        <text x="84" y="271" text-anchor="end" font-weight="700">beam</text>
+                        <text x="84" y="290" text-anchor="end" font-weight="700">splitter</text>
+                        <!-- A -->
+                        <rect x="250" y="282" width="70" height="36" rx="5" fill="#334155"/>
+                        <text x="285" y="305" text-anchor="middle" fill="#fff" font-weight="700">A</text>
+                        <!-- Michelson -->
+                        <rect x="58" y="360" width="104" height="44" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="6 4"/>
+                        <text x="110" y="379" text-anchor="middle" font-size="13" font-weight="700" fill="#5b21b6">Michelson</text>
+                        <text x="110" y="395" text-anchor="middle" font-size="12" fill="#5b21b6">Part D only</text>
+                        <!-- B -->
+                        <rect x="75" y="470" width="70" height="36" rx="5" fill="#334155"/>
+                        <text x="110" y="493" text-anchor="middle" fill="#fff" font-weight="700">B</text>
+                        <!-- time tagger -->
+                        <rect x="180" y="440" width="150" height="66" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+                        <text x="255" y="466" text-anchor="middle" font-weight="700">time tagger</text>
+                        <text x="255" y="486" text-anchor="middle" font-size="12" fill="#475569">counts in windows Δt</text>
+                        <path d="M320 240 H332 V440" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <path d="M320 300 H326" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <path d="M145 488 H180" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <text x="18" y="548" font-size="12" fill="#64748b">Part A: dimmed 635 nm laser into the</text>
+                        <text x="18" y="566" font-size="12" fill="#64748b">beam splitter, no crystal, no T.</text>
+                    </g>
+                </svg>
+                </div>
+                <figcaption>Our own schematic, not to scale, of Parts B–D. The Michelson (dashed) is inserted by
+                    the staff for Part D only.</figcaption>
+            </figure>
+
+            <h3 class="h5 fw-bold mt-4">Words you need</h3>
+            <dl class="term-list">
+                <dt>Click</dt>
+                <dd>One pulse of a single-photon detector.</dd>
+                <dt>Coincidence and window $\Delta t$</dt>
+                <dd>Two (or three) detectors click in the same <strong>window</strong> $\Delta t$ (5&nbsp;ns
+                    here, set in the software).</dd>
+                <dt>$g^{(2)}$</dt>
+                <dd>With $P(X)$ the probability that detector $X$ clicks in one window,
+                    $$g^{(2)} = \frac{P(A \text{ and } B)}{P(A)\,P(B)}:$$
+                    $1$ means no correlation, $&lt; 1$ fewer coincidences than chance, $&gt; 1$ more. On the
+                    bench $P(X) = R_X\,\Delta t$, with $R_X$ the click rate (clicks per second).</dd>
+                <dt>Accidentals</dt>
+                <dd>The coincidences expected by pure chance if A and B click independently, rate
+                    $R_A R_B\,\Delta t$; so $g^{(2)}$ = coincidences / accidentals.</dd>
+                <dt>Poisson light</dt>
+                <dd>Photons arriving independently at random times, like raindrops. A laser, however dim, is
+                    Poisson light.</dd>
+                <dt>Heralding</dt>
+                <dd>A click at T announces that its partner photon is on the way to the beam splitter; A and B
+                    are counted only together with T.</dd>
+                <dt>Interference and visibility</dt>
+                <dd>A wave split in two and recombined adds up or cancels, depending on the path difference;
+                    visibility $\mathcal{V} = (R_{\max} - R_{\min})/(R_{\max} + R_{\min})$, 1 for perfect
+                    fringes.</dd>
+                <dt>Standard deviation $\sigma$</dt>
+                <dd>The typical scatter of repeated results; a count of $N$ clicks scatters by about
+                    $\sqrt{N}$.</dd>
+            </dl>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  2 · SAFETY                                                          -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="safety" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">2 · Safety</span>
+            <h2 class="section-title"><i class="fa-solid fa-shield text-warning me-2"></i>Is it safe?</h2>
+            <div class="safety-box">
+                <span class="safety-tag"><i class="fa-solid fa-triangle-exclamation me-1"></i>SAFETY FIRST</span>
+                <ul class="safety-list lh-lg mb-0">
+                    <li>The room is <strong>dark</strong> during measurements.</li>
+                    <li>The 405&nbsp;nm pump laser is class 3B: <strong>only the staff switch it on</strong> (key,
+                        interlock).</li>
+                    <li>While it is on (Parts B–D) you follow the <strong>i-LAMP eyewear and conduct rules of the
+                        laser safety officer</strong>. The manual is explicit: “Always wear laser safety glasses
+                        when working with the pump laser!” (manual §7.6.4).</li>
+                    <li>You use the 635&nbsp;nm alignment laser and the software (manual Ch.&nbsp;1,
+                        Ch.&nbsp;14).</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  3 · PREDICTIONS                                                     -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="predict" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">3 · Predictions</span>
+            <h2 class="section-title"><i class="fa-solid fa-lightbulb text-warning me-2"></i>What do you expect?</h2>
+            <p class="lh-lg">
+                Each Part of the bench guide opens with a question. Write your prediction before you open the
+                answers; at the bench you measure and compare. Nothing you type here is sent or saved.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-sm predict-table bg-white border">
+                    <thead class="table-light"><tr>
+                        <th scope="col">Part</th><th scope="col">Question</th>
+                        <th scope="col">Number to predict</th><th scope="col">Your prediction</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><th scope="row">A</th><td>Is a very dim laser a single-photon source?</td>
+                            <td>$g^{(2)}$ of the dimmed laser (A and B)</td>
+                            <td><input type="text" class="form-control form-control-sm" aria-label="Your prediction for Part A"></td></tr>
+                        <tr><th scope="row">B</th><td>Does the crystal really make pairs?</td>
+                            <td>coincidences T&amp;A / accidentals</td>
+                            <td><input type="text" class="form-control form-control-sm" aria-label="Your prediction for Part B"></td></tr>
+                        <tr><th scope="row">C</th><td>Can one photon take both exits?</td>
+                            <td>$g^{(2)}$ of heralded photons (T, A, B)</td>
+                            <td><input type="text" class="form-control form-control-sm" aria-label="Your prediction for Part C"></td></tr>
+                        <tr><th scope="row">D</th><td>Does a single photon interfere with itself?</td>
+                            <td>fringe period in mirror position; wavelength $\lambda$</td>
+                            <td><input type="text" class="form-control form-control-sm" aria-label="Your prediction for Part D"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <details>
+                <summary class="fw-bold" style="cursor:pointer;color:#0f766e;">Show the answers</summary>
+                <div class="answer mt-2">
+                    <p class="mb-2"><strong>A:</strong> $g^{(2)} \approx 1$. Poisson light stays Poisson however
+                        dim: each photon picks its exit on its own. The manual's example (§9.1, Table&nbsp;1)
+                        gives 1.0020.</p>
+                    <p class="mb-2"><strong>B:</strong> the manual expects at least 30 (§9.2); its example
+                        (§9.4, Table&nbsp;2) gives ≈&nbsp;115: coincidences are about 115 times the
+                        accidentals.</p>
+                    <p class="mb-2"><strong>C:</strong> $g^{(2)} &lt; 1$: one photon cannot take both exits, and
+                        any classical light obeys $g^{(2)} \ge 1$. Table&nbsp;2 gives 0.0190, about 1170 standard
+                        deviations below 1.</p>
+                    <p class="mb-0"><strong>D:</strong> the light goes out and back, so moving the mirror by $x$
+                        changes the path by $2x$: the fringe period is $\lambda/2 \approx 405$&nbsp;nm in mirror
+                        position, and the spacing of the maxima gives back $\lambda \approx 810$&nbsp;nm.</p>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  4 · PLAYBOX                                                         -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="playbox" class="row mb-5">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">4 · Playbox</span>
+            <h2 class="section-title"><i class="fa-solid fa-dice text-warning me-2"></i>Photon statistics at a beam splitter</h2>
+            <div class="question-box">
+                <span class="q-tag">THE QUESTION</span>
+                Manual §9.1 estimates that only 0.004 photons are inside the dimmed-laser setup at any moment.
+                Does such rare light behave like single photons? And does a heralded photon ever turn up at both
+                exits?
+            </div>
+            <p class="lh-lg">
+                The playbox runs the two sources window by window through an ideal 50:50 beam splitter and
+                ideal detectors (no loss, no dark counts). Per window the number of photons (laser) or pairs
+                (heralded) is Poisson with mean $\mu$ or $m$; each photon then picks its exit, A or B, like a
+                coin toss. Every click counts toward $g^{(2)}$ exactly as on the bench.
+            </p>
+
+            <div class="sim-shell">
+                <div class="sim-head"><i class="fa-solid fa-circle-nodes me-2"></i>Photon statistics at a beam splitter
+                    <span style="opacity:.7;font-size:.85rem;">· ideal detectors, window by window</span></div>
+                <div class="sim-body">
+                    <div class="d-flex flex-wrap align-items-center gap-2" role="group" aria-label="Source">
+                        <span class="fw-bold me-1">Source:</span>
+                        <input type="radio" class="btn-check" name="source" id="src-laser" value="laser" checked>
+                        <label class="btn btn-outline-primary" for="src-laser"><i class="fa-solid fa-wave-square me-1"></i>Attenuated laser</label>
+                        <input type="radio" class="btn-check" name="source" id="src-heralded" value="heralded">
+                        <label class="btn btn-outline-primary" for="src-heralded"><i class="fa-solid fa-bullhorn me-1"></i>Heralded photon</label>
+                    </div>
+                    <p class="fair-note mt-1 mb-0" id="source-note"></p>
+
+                    <div class="mt-3">
+                        <label for="mean-slider" class="form-label fw-bold mb-1"><span id="mean-label">Mean photons per window, μ</span>:
+                            <span id="mean-value" class="font-monospace"></span></label>
+                        <input type="range" class="form-range" id="mean-slider" min="0" max="10" step="1" value="6">
+                        <div class="d-flex justify-content-between fair-note"><span id="mean-min"></span><span>dimmer ← → brighter</span><span id="mean-max"></span></div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <button type="button" class="btn btn-dark tool-btn" id="btn-1">1 window</button>
+                        <button type="button" class="btn btn-dark tool-btn" id="btn-100">100 windows</button>
+                        <button type="button" class="btn btn-dark tool-btn" id="btn-10000">10 000 windows</button>
+                        <button type="button" class="btn btn-outline-secondary tool-btn" id="btn-reset">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Reset</button>
+                    </div>
+                    <p class="fair-note mt-2 mb-0">The windows come from this page's own seeded random-number
+                        generator (seed 1010): Reset, a new source or a new mean starts it again, so the same
+                        clicks give the same numbers. It is not the generator of the notebook, so its numbers differ
+                        from the notebook's.</p>
+
+                    <div class="window-strip" aria-live="polite">
+                        <span id="last-text">No window yet: press a button.</span>
+                        <span class="lamp" id="lamp-T"><i></i>T</span>
+                        <span class="lamp" id="lamp-A"><i></i>A</span>
+                        <span class="lamp" id="lamp-B"><i></i>B</span>
+                    </div>
+
+                    <div class="row g-2 mt-2" aria-live="polite">
+                        <div class="col-6 col-md-3"><div class="stat-card">
+                            <div class="stat-label">Windows</div>
+                            <div class="stat-value" id="stat-windows">0</div></div></div>
+                        <div class="col-6 col-md-3" id="card-T" hidden><div class="stat-card">
+                            <div class="stat-label">$N_T$</div>
+                            <div class="stat-value" id="stat-T">0</div></div></div>
+                        <div class="col-6 col-md-3" id="card-A"><div class="stat-card">
+                            <div class="stat-label" id="label-A">$N_A$</div>
+                            <div class="stat-value" id="stat-A">0</div></div></div>
+                        <div class="col-6 col-md-3" id="card-B"><div class="stat-card">
+                            <div class="stat-label" id="label-B">$N_B$</div>
+                            <div class="stat-value" id="stat-B">0</div></div></div>
+                        <div class="col-6 col-md-3"><div class="stat-card">
+                            <div class="stat-label" id="label-C">$N_{AB}$</div>
+                            <div class="stat-value" id="stat-C">0</div></div></div>
+                    </div>
+                    <div class="chance-line mt-2" aria-live="polite">
+                        <div><span id="chance-seen-label">Coincidences seen</span>: <strong id="chance-seen">0</strong>
+                            · expected by chance: <strong id="chance-exp">—</strong>
+                            <span class="stat-sub" id="chance-formula"></span></div>
+                        <div class="stat-sub" id="chance-dist">&nbsp;</div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-6"><div class="stat-card g2-card">
+                            <div class="stat-label">$g^{(2)}$ so far, $\pm\,\sigma$</div>
+                            <div class="stat-value" id="stat-g2">—</div>
+                            <div class="stat-sub" id="stat-g2-sub">&nbsp;</div></div></div>
+                        <div class="col-md-6"><div class="stat-card">
+                            <div class="stat-label" id="ref-label">Ideal value</div>
+                            <div class="stat-value" id="stat-ref">—</div>
+                            <div class="stat-sub" id="stat-ref-sub">&nbsp;</div></div></div>
+                    </div>
+                    <p class="reading mb-0" id="reading"></p>
+
+                    <div class="chart-wrap" id="chart"></div>
+                    <div class="chart-legend">
+                        <span><i class="swatch-dot" aria-hidden="true"></i>$g^{(2)}$ after each press, $\pm\sigma$</span>
+                        <span><i class="swatch-ring" aria-hidden="true"></i>fewer than 10 coincidences: no error bar</span>
+                        <span><i class="swatch-line" aria-hidden="true"></i><span id="legend-ref">ideal value</span></span>
+                        <span id="legend-bound" hidden><i class="swatch-bound" aria-hidden="true"></i>classical bound 1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="triple-box">
+                <div><span class="t-step">Estimators.</span>$g^{(2)}$ = coincidences seen / expected by chance.
+                    With $W$ windows, chance expects $N_A N_B/W$ coincidences (laser) or $N_{TA} N_{TB}/N_T$
+                    triples (heralded; a triple is T&amp;A and T&amp;B both coincident), the bench guide's
+                    formulas. The error bar $\sigma \approx g^{(2)}/\sqrt{N}$, with $N$ the coincidences seen,
+                    is shown from $N = 10$ on. The distance from chance, (expected − seen)/√expected, is shown
+                    once chance expects at least 1.</div>
+                <div><span class="t-step">Laser.</span>Each photon picks its exit on its own, so A and B click
+                    independently: $g^{(2)} = 1$ exactly, at every $\mu$. Dimming does not change that; it only
+                    makes coincidences rarer, so after the same number of windows $N_{AB}$ is smaller and the
+                    error bar wider. Try $\mu = 0.1$, then $0.01$.</div>
+                <div><span class="t-step">Heralded.</span>One pair gives one click at T and one photon at A
+                    <em>or</em> B, never both. A triple needs two pairs in the same window, so the ideal value
+                    is $g^{(2)} = 1 - e^{-m} \approx m$ for small $m$: far below the classical bound 1, and the
+                    smaller $m$, the lower.</div>
+                <div class="mb-0"><span class="t-step">Play it.</span>Press <em>10 000 windows</em> a few times
+                    and watch the error bar shrink onto the dashed line; then change the mean and do it
+                    again.</div>
+            </div>
+
+            <div class="anchor-box">
+                <span class="a-tag"><i class="fa-solid fa-industry me-1"></i>REAL-WORLD ANCHORS</span>
+                <strong>A:</strong> Hanbury Brown and Twiss (1956) correlated two detectors' signals, the method
+                behind Part A; it measured the sizes of stars. <strong>C:</strong> Grangier, Roger and Aspect
+                (1986) ran Part C with heralded photons from atoms and found 0.18; today Quandela builds
+                quantum-dot single-photon sources for photonic quantum computers. <strong>D:</strong> LIGO's
+                kilometre-long Michelson interferometers reported gravitational waves (2016).
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  5 · AFTER THE LAB                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <section id="after" class="row mb-4">
+        <div class="col-lg-9 mx-auto">
+            <span class="kicker">5 · After the lab</span>
+            <h2 class="section-title"><i class="fa-solid fa-code text-warning me-2"></i>What happens to your data after the lab?</h2>
+            <div class="task-box">
+                <div class="task-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <span>The analysis notebook</span>
+                    <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab10/lab10_optics_bench.ipynb"
+                       class="btn btn-sm colab-btn">
+                        <i class="fa-solid fa-terminal me-1"></i>Open Colab Notebook
+                    </a>
+                </div>
+                <div class="task-body">
+                    <p class="mb-2">The notebook recomputes the manual's worked examples (Tables&nbsp;1 and 2) and
+                        turns a Michelson scan into a wavelength from the spacing of the fringe maxima.</p>
+                    <p class="text-muted mb-0" style="font-size:.88rem;">
+                        <i class="fa-solid fa-circle-info me-1"></i>Keep your worksheet: its counts are what you
+                        compare with the manual's examples.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div><!-- /container -->
+
+<footer class="text-center py-4 mt-2 bg-light border-top">
+    <p class="mb-1 text-muted px-3" style="font-size:.85rem;">
+        Source: Thorlabs, <em>EDU-QOP1(/M) Quantum Optics Kit User Guide</em>, Rev. D (2025-10-25), cited as
+        “manual §x”. The schematic on this page is our own.
+    </p>
+    <p class="mb-0 text-muted">Quantum Computing Foundation — Lab Module 10</p>
+</footer>
+
+<script>
+// ─── LAB10 CORE EXTRACT START (do not move: the cross-check harness slices here) ───
+/* Pure functions only: no DOM. Photon statistics at an ideal 50:50 beam
+   splitter, window by window (bench guide Parts A and C), and the exact
+   click probabilities the reference values come from.
+
+   RNG AND DRAW ORDER (binding for reproducibility): one mulberry32 stream
+   per run, seeded (the page uses 1010). Per window, in order:
+     1. one uniform u -> count n = min{k : u < F(k)}, F the Poisson(mean)
+        CDF built by P(0) = e^-mean, P(k) = P(k-1) mean/k, F(k) = F(k-1) + P(k)
+        (laser: photons, heralded: pairs);
+     2. n uniforms, one per photon reaching the beam splitter (laser: every
+        photon; heralded: every signal photon, idlers draw none): the photon
+        goes to A iff u < 1/2, else to B.
+   Ideal detectors: X clicks iff at least one photon reaches it; heralded T
+   clicks iff n >= 1; a triple is T&A and T&B both coincident. The draw
+   ORDER is the Python reference's; the generator is not, so seed numbers
+   are not comparable across tools. */
+
+const PLAYBOX_SEED = 1010;
+const SPLIT_THRESHOLD = 0.5;   // photon to A iff u < 1/2 (50:50)
+const MAX_MEAN = 50;           // e^-mean stays far from underflow
+
+function mulberry32(seed) {
+    let s = seed >>> 0;
+    return function () {
+        s |= 0; s = (s + 0x6D2B79F5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+function requireMean(mean) {
+    if (typeof mean !== 'number' || !Number.isFinite(mean) || mean <= 0 || mean > MAX_MEAN) {
+        throw new RangeError('mean must be a number in (0, ' + MAX_MEAN + ']');
+    }
+}
+
+// F(0), F(1), ... accumulated in order until P(k) underflows below 1e-300.
+function poissonCdfTable(mean) {
+    requireMean(mean);
+    let p = Math.exp(-mean);
+    const cdf = [p];
+    let k = 0;
+    for (;;) {
+        k++;
+        p *= mean / k;
+        if (p < 1e-300 && k > mean) return cdf;
+        cdf.push(cdf[cdf.length - 1] + p);
+    }
+}
+
+// n = min{k : u < F(k)}; the last index if u >= every tabulated F.
+function poissonInversion(u, cdf) {
+    let n = 0;
+    const last = cdf.length - 1;
+    while (n < last && u >= cdf[n]) n++;
+    return n;
+}
+
+// n photons meet the beam splitter: one uniform each; returns how many go to A.
+function splitPhotons(rng, n) {
+    let toA = 0;
+    for (let j = 0; j < n; j++) if (rng() < SPLIT_THRESHOLD) toA++;
+    return toA;
+}
+
+function windowClicks(source, n, toA) {
+    return { T: source === 'heralded' && n >= 1, A: toA >= 1, B: n - toA >= 1 };
+}
+
+function newCounts() {
+    return { windows: 0, T: 0, A: 0, B: 0, AB: 0, TA: 0, TB: 0, TAB: 0 };
+}
+
+function tallyWindow(counts, clicks) {
+    counts.windows++;
+    if (clicks.T) counts.T++;
+    if (clicks.A) counts.A++;
+    if (clicks.B) counts.B++;
+    if (clicks.A && clicks.B) counts.AB++;
+    const ta = clicks.T && clicks.A, tb = clicks.T && clicks.B;
+    if (ta) counts.TA++;
+    if (tb) counts.TB++;
+    if (ta && tb) counts.TAB++;   // CC triple
+}
+
+// makeRng(seed) -> () => uniform in [0, 1); default mulberry32.
+function createPlaybox(source, mean, seed, makeRng) {
+    if (source !== 'laser' && source !== 'heralded') throw new RangeError('source must be "laser" or "heralded"');
+    requireMean(mean);
+    if (!Number.isInteger(seed)) throw new RangeError('seed must be an integer');
+    const box = { source: source, mean: mean, seed: seed, makeRng: makeRng || mulberry32,
+                  cdf: poissonCdfTable(mean) };
+    return resetPlaybox(box);
+}
+
+// Back to the seed: fresh stream, zero counts.
+function resetPlaybox(box) {
+    box.rng = box.makeRng(box.seed);
+    box.counts = newCounts();
+    box.last = null;
+    return box;
+}
+
+function stepPlaybox(box, windows) {
+    if (!Number.isInteger(windows) || windows < 0) throw new RangeError('windows must be a non-negative integer');
+    for (let w = 0; w < windows; w++) {
+        const n = poissonInversion(box.rng(), box.cdf);
+        const toA = splitPhotons(box.rng, n);
+        const clicks = windowClicks(box.source, n, toA);
+        tallyWindow(box.counts, clicks);
+        box.last = { n: n, toA: toA, clicks: clicks };
+    }
+    return box;
+}
+
+function playboxCounts(box) {
+    const c = box.counts;
+    if (box.source === 'laser') return { N_A: c.A, N_B: c.B, N_AB: c.AB };
+    return { N_T: c.T, N_TA: c.TA, N_TB: c.TB, N_TAB: c.TAB };
+}
+
+const MIN_COINCIDENCES_FOR_SIGMA = 10;   // below this no error bar is quoted
+
+// Coincidences seen and expected by chance (the accidentals), as counts:
+// laser N_AB vs N_A N_B / W; heralded N_TAB vs N_TA N_TB / N_T (triples).
+// expected is null before any window (laser) or any T click (heralded).
+function chanceCoincidences(box) {
+    const c = box.counts;
+    if (box.source === 'laser') {
+        return { seen: c.AB, expected: c.windows === 0 ? null : c.A * c.B / c.windows };
+    }
+    return { seen: c.TAB, expected: c.T === 0 ? null : c.TA * c.TB / c.T };
+}
+
+// sigma ~ g2/sqrt(N) (Poisson noise of the N coincidences), only for N >= 10.
+function g2Sigma(g2, coincidences) {
+    return coincidences >= MIN_COINCIDENCES_FOR_SIGMA ? g2 / Math.sqrt(coincidences) : null;
+}
+
+// (expected - seen)/sqrt(expected): how many Poisson standard deviations of
+// the chance count the seen count lies below it; null while expected < 1.
+function chanceDistance(seen, expected) {
+    if (expected === null || !(expected >= 1)) return null;
+    return (expected - seen) / Math.sqrt(expected);
+}
+
+// g2 = coincidences / accidentals so far, with sigma (null below 10
+// coincidences). null while the expected count is 0 or undefined.
+function g2Estimate(box) {
+    const k = chanceCoincidences(box);
+    if (k.expected === null || k.expected === 0) return null;
+    const g2 = k.seen / k.expected;
+    return { g2: g2, sigma: g2Sigma(g2, k.seen), coincidences: k.seen, expected: k.expected };
+}
+
+/* ── exact click probabilities (the reference values) ─────────────────────── */
+function oneMinusExp(x) { return -Math.expm1(-x); }   // 1 - e^-x without cancellation
+
+// 1 - q^n - (1-q)^n = sum_{k=1}^{n-1} C(n,k) q^k (1-q)^(n-k): both exits hit.
+function bothPortsBracket(n, q) {
+    let sum = 0, binom = 1;
+    for (let k = 1; k < n; k++) {
+        binom = binom * (n - k + 1) / k;
+        sum += binom * Math.pow(q, k) * Math.pow(1 - q, n - k);
+    }
+    return sum;
+}
+
+// Laser, n ~ Poisson(mu), each photon to A w.p. q: P(A), P(B) and
+// P(A and B) = sum_{n>=1} P(n)[1 - q^n - (1-q)^n] (never as P(A)P(B)).
+function laserClickProbabilities(mu, q) {
+    requireMean(mu);
+    if (q === undefined) q = SPLIT_THRESHOLD;
+    if (!(q > 0 && q < 1)) throw new RangeError('split must be in (0, 1)');
+    let pn = Math.exp(-mu), partial = 0;
+    for (let n = 1; n <= 1000; n++) {
+        pn *= mu / n;
+        partial += pn * bothPortsBracket(n, q);
+        if (n + 2 > mu && partial > 0) {
+            const tail = pn * mu / (n + 1) / (1 - mu / (n + 2));
+            if (tail < 1e-15 * partial) {
+                return { A: oneMinusExp(mu * q), B: oneMinusExp(mu * (1 - q)), AB: partial };
+            }
+        }
+    }
+    throw new Error('coincidence sum not converged (mu = ' + mu + ')');
+}
+
+function laserG2(mu, q) {
+    const p = laserClickProbabilities(mu, q);
+    return p.AB / (p.A * p.B);
+}
+
+// Heralded, pairs k ~ Poisson(m); idler clicks T w.p. etaT, signal reaches A or
+// B w.p. eta/2 each (defaults 1: ideal). Independent Poisson pair classes,
+// cancellation-free products (CC triples).
+function heraldedClickProbabilities(m, etaT, eta) {
+    requireMean(m);
+    if (etaT === undefined) etaT = 1;
+    if (eta === undefined) eta = 1;
+    if (!(etaT > 0 && etaT <= 1 && eta > 0 && eta <= 1)) throw new RangeError('efficiencies must be in (0, 1]');
+    const xA = m * etaT * eta / 2, xB = xA;
+    const y = m * etaT * (1 - eta);
+    const zA = m * (1 - etaT) * eta / 2, zB = zA;
+    const u = oneMinusExp;
+    return {
+        T: u(xA + xB + y),
+        TA: u(xA) + Math.exp(-xA) * u(xB + y) * u(zA),
+        TB: u(xB) + Math.exp(-xB) * u(xA + y) * u(zB),
+        TAB: u(xA) * u(xB) + u(xA) * Math.exp(-xB) * u(zB) + Math.exp(-xA) * u(xB) * u(zA)
+            + Math.exp(-(xA + xB)) * u(y) * u(zA) * u(zB),
+    };
+}
+
+// Ideal detectors: 1 - e^-m.
+function heraldedG2(m, etaT, eta) {
+    const p = heraldedClickProbabilities(m, etaT, eta);
+    return p.TAB * p.T / (p.TA * p.TB);
+}
+// ─── LAB10 CORE EXTRACT END ───
+</script>
+<script>
+/* Playbox UI (DOM only). Every count, g2, sigma and reference value shown
+   comes from the CORE above. */
+(function () {
+    'use strict';
+    const MEANS = {
+        laser: [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2],
+        heralded: [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1],
+    };
+    const DEFAULT_INDEX = { laser: 6, heralded: 4 };   // mu = 0.1, m = 0.02
+    const MAX_HISTORY = 60;
+    const byId = function (id) { return document.getElementById(id); };
+    const slider = byId('mean-slider');
+    let source = 'laser';
+    let box = null;
+    let history = [];
+
+    function setText(id, value) { byId(id).textContent = String(value); }
+    function fmtMean(x) { return String(x); }
+    function fmtG2(x) { return x.toFixed(3); }
+    function fmtSigma(s) {
+        if (s >= 10) return s.toFixed(0);
+        if (s >= 1) return s.toFixed(1);
+        return s.toPrecision(2);
+    }
+    function fmtInt(n) { return n.toLocaleString('en-US'); }
+
+    function meanNow() { return MEANS[source][Number(slider.value)]; }
+    function reference() { return source === 'laser' ? laserG2(meanNow()) : heraldedG2(meanNow()); }
+
+    function typeset(el) {
+        if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([el]).catch(function () {});
+    }
+
+    function configureSource() {
+        const heralded = source === 'heralded';
+        const means = MEANS[source];
+        slider.max = String(means.length - 1);
+        slider.value = String(DEFAULT_INDEX[source]);
+        setText('mean-label', heralded ? 'Mean pairs per window, m' : 'Mean photons per window, μ');
+        setText('mean-min', fmtMean(means[0]));
+        setText('mean-max', fmtMean(means[means.length - 1]));
+        setText('source-note', heralded
+            ? 'Heralded photon: pairs from the crystal; one photon of each pair clicks T, the other meets the beam splitter.'
+            : 'Attenuated laser: Poisson photons straight into the beam splitter; T is not used.');
+        byId('card-T').hidden = !heralded;
+        byId('label-A').innerHTML = heralded ? '$N_{TA}$' : '$N_A$';
+        byId('label-B').innerHTML = heralded ? '$N_{TB}$' : '$N_B$';
+        byId('label-C').innerHTML = heralded ? '$N_{TAB}$ (triples)' : '$N_{AB}$ (coincidences)';
+        byId('ref-label').innerHTML = heralded ? 'Ideal value $1 - e^{-m}$' : 'Ideal value (Poisson light)';
+        byId('legend-ref').textContent = heralded ? 'ideal value 1 − e^−m' : 'ideal value 1';
+        byId('legend-bound').hidden = !heralded;
+        byId('lamp-T').classList.toggle('off-duty', !heralded);
+        setText('reading', heralded
+            ? 'The photon does not show up at both exits: a triple needs two pairs in one window.'
+            : 'Dimmer only widens the error bar: g2 stays at 1.');
+        typeset(byId('playbox'));
+    }
+
+    function restart() {
+        box = createPlaybox(source, meanNow(), PLAYBOX_SEED);
+        history = [];
+        render();
+    }
+
+    function lamp(id, on) { byId(id).classList.toggle('on', !!on); }
+
+    function renderLast() {
+        const last = box.last;
+        if (last === null) {
+            setText('last-text', 'No window yet: press a button.');
+            lamp('lamp-T', false); lamp('lamp-A', false); lamp('lamp-B', false);
+            return;
+        }
+        const toB = last.n - last.toA;
+        let text;
+        if (source === 'laser') {
+            text = 'Last window: ' + last.n + (last.n === 1 ? ' photon' : ' photons')
+                + (last.n ? ' (' + last.toA + ' to A, ' + toB + ' to B)' : '');
+        } else {
+            text = 'Last window: ' + last.n + (last.n === 1 ? ' pair' : ' pairs')
+                + (last.n ? ' (signal photons: ' + last.toA + ' to A, ' + toB + ' to B)' : '');
+        }
+        setText('last-text', text);
+        lamp('lamp-T', last.clicks.T); lamp('lamp-A', last.clicks.A); lamp('lamp-B', last.clicks.B);
+    }
+
+    function renderCounts() {
+        const c = box.counts;
+        setText('stat-windows', fmtInt(c.windows));
+        setText('stat-T', fmtInt(c.T));
+        if (source === 'laser') {
+            setText('stat-A', fmtInt(c.A)); setText('stat-B', fmtInt(c.B)); setText('stat-C', fmtInt(c.AB));
+        } else {
+            setText('stat-A', fmtInt(c.TA)); setText('stat-B', fmtInt(c.TB)); setText('stat-C', fmtInt(c.TAB));
+        }
+    }
+
+    function renderG2() {
+        const ref = reference();
+        setText('stat-ref', fmtG2(ref));
+        setText('stat-ref-sub', source === 'laser'
+            ? 'the same at every μ'
+            : 'classical light: at least 1');
+        const laser = source === 'laser';
+        const k = chanceCoincidences(box);
+        setText('chance-seen-label', laser ? 'Coincidences A&B seen' : 'Triples seen');
+        setText('chance-seen', fmtInt(k.seen));
+        setText('chance-exp', k.expected === null ? '—' : fmtCount(k.expected));
+        byId('chance-formula').innerHTML = laser
+            ? '(N<sub>A</sub> · N<sub>B</sub> / windows)'
+            : '(N<sub>TA</sub> · N<sub>TB</sub> / N<sub>T</sub>)';
+        const d = chanceDistance(k.seen, k.expected);
+        if (d === null) {
+            setText('chance-dist', k.expected === null
+                ? 'No windows yet.'
+                : 'Chance expects fewer than 1 so far: keep clicking.');
+        } else if (laser) {
+            setText('chance-dist', '|seen − expected|/√expected = ' + Math.abs(d).toFixed(1) + ' σ from chance');
+        } else {
+            setText('chance-dist', '(expected − seen)/√expected = ' + d.toFixed(1) + ' σ below the classical expectation');
+        }
+
+        const est = g2Estimate(box);
+        if (est === null) {
+            setText('stat-g2', '—');
+            setText('stat-g2-sub', laser
+                ? 'needs at least one click at A and one at B'
+                : 'needs at least one T&A and one T&B coincidence');
+        } else if (est.sigma === null) {
+            setText('stat-g2', '—');
+            setText('stat-g2-sub', 'too few coincidences for an error bar: keep clicking (' + est.coincidences
+                + ' of ' + MIN_COINCIDENCES_FOR_SIGMA + ')');
+        } else {
+            setText('stat-g2', fmtG2(est.g2) + ' ± ' + fmtSigma(est.sigma));
+            setText('stat-g2-sub', 'coincidences / expected by chance; σ ≈ g2/√' + est.coincidences);
+        }
+    }
+
+    function fmtCount(x) {
+        if (x >= 100) return fmtInt(Math.round(x));
+        if (x >= 10) return x.toFixed(1);
+        return x.toFixed(2);
+    }
+
+    function niceTop(v) {
+        for (const t of [0.05, 0.1, 0.2, 0.5, 1, 1.5, 2, 3]) if (v <= t) return t;
+        return 3;
+    }
+
+    function drawChart() {
+        const wrap = byId('chart');
+        const points = history.filter(function (h) { return h.est !== null; });
+        if (points.length === 0) {
+            wrap.innerHTML = '<p class="chart-empty">Press a button: after each press the chart adds $g^{(2)}$ with its error bar.</p>';
+            typeset(wrap);
+            return;
+        }
+        const ref = reference();
+        const heralded = source === 'heralded';
+        const yTop = heralded ? 1.2 : 2;
+        const W = Math.round(Math.max(300, Math.min(640, wrap.clientWidth || 560)));
+        const H = W < 420 ? 250 : 280, ml = 46, mr = 12, mt = 14, mb = 46;
+        const pw = W - ml - mr, ph = H - mt - mb;
+        const maxW = points[points.length - 1].windows;
+        const xDecades = Math.max(4, Math.ceil(Math.log10(Math.max(maxW, 1)) + 1e-9));
+        const x = function (w) { return ml + (Math.log10(Math.max(w, 1)) / xDecades) * pw; };
+        const y = function (v) { return mt + ph - (Math.min(Math.max(v, 0), yTop) / yTop) * ph; };
+        const step = heralded ? 0.2 : 0.5;
+        let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="g2 after each press against the number of windows, with error bars and the ideal value as a dashed line">'
+            + '<g font-family="system-ui, -apple-system, \'Segoe UI\', Roboto, sans-serif" font-size="13" fill="#475569">';
+        for (let v = 0; v <= yTop + 1e-9; v += step) {
+            const yy = y(v).toFixed(1);
+            s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + yy + '" y2="' + yy + '" stroke="#e2e8f0"/>'
+                + '<text x="' + (ml - 6) + '" y="' + yy + '" dy="4" text-anchor="end">' + Number(v.toFixed(1)) + '</text>';
+        }
+        for (let d = 0; d <= xDecades; d++) {
+            const xx = x(Math.pow(10, d)).toFixed(1);
+            s += '<line x1="' + xx + '" x2="' + xx + '" y1="' + mt + '" y2="' + (mt + ph) + '" stroke="#f1f5f9"/>'
+                + '<text x="' + xx + '" y="' + (mt + ph + 17) + '" text-anchor="middle">10' + '<tspan dy="-5" font-size="10">' + d + '</tspan></text>';
+        }
+        if (heralded) {
+            s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1)
+                + '" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="2 3"/>';
+        }
+        s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(ref).toFixed(1) + '" y2="' + y(ref).toFixed(1)
+            + '" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="6 4"/>';
+        points.forEach(function (p) {
+            const xx = x(p.windows).toFixed(1), yy = y(p.est.g2).toFixed(1);
+            if (p.est.sigma === null) {   // fewer than 10 coincidences: no error bar
+                s += '<circle cx="' + xx + '" cy="' + yy + '" r="3.5" fill="#fff" stroke="#0d9488" stroke-width="1.5"/>';
+                return;
+            }
+            const lo = y(p.est.g2 - p.est.sigma), hi = y(p.est.g2 + p.est.sigma);
+            s += '<line x1="' + xx + '" x2="' + xx + '" y1="' + hi.toFixed(1) + '" y2="' + lo.toFixed(1) + '" stroke="#0d9488" stroke-width="1.5"/>'
+                + '<circle cx="' + xx + '" cy="' + yy + '" r="3.5" fill="#0d9488"/>';
+        });
+        s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + (mt + ph) + '" y2="' + (mt + ph) + '" stroke="#64748b"/>'
+            + '<text x="' + (ml + pw / 2) + '" y="' + (H - 6) + '" text-anchor="middle" fill="#1e293b">windows so far (log scale)</text>'
+            + '<text transform="translate(13 ' + (mt + ph / 2) + ') rotate(-90)" text-anchor="middle" fill="#1e293b">g2</text>'
+            + '</g></svg>';
+        wrap.innerHTML = s;
+    }
+
+    function render() {
+        setText('mean-value', fmtMean(meanNow()));
+        slider.setAttribute('aria-valuetext', fmtMean(meanNow()));
+        renderLast();
+        renderCounts();
+        renderG2();
+        drawChart();
+    }
+
+    function run(windows) {
+        stepPlaybox(box, windows);
+        history.push({ windows: box.counts.windows, est: g2Estimate(box) });
+        if (history.length > MAX_HISTORY) history.shift();
+        render();
+    }
+
+    byId('btn-1').addEventListener('click', function () { run(1); });
+    byId('btn-100').addEventListener('click', function () { run(100); });
+    byId('btn-10000').addEventListener('click', function () { run(10000); });
+    byId('btn-reset').addEventListener('click', restart);
+    slider.addEventListener('input', restart);
+    ['src-laser', 'src-heralded'].forEach(function (id) {
+        byId(id).addEventListener('change', function () {
+            source = byId(id).value;
+            configureSource();
+            restart();
+        });
+    });
+    let resizeTimer = null;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawChart, 150);
+    });
+
+    configureSource();
+    restart();
+})();
+</script>
+
+<!-- MathJax -->
+<script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>
