@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum+ Labs — Università Cattolica × i-LAMP</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --hero1:   #0d0221;
+      --hero2:   #1a0a4e;
+      --accent:  #f59e0b;
+      --accent2: #6d28d9;
+      --text:    #1f2937;
+      --muted:   #6b7280;
+    }
+
+    body { background: #f9fafb; color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
+
+    /* ── HERO ──────────────────────────────────────────────── */
+    .hero-section {
+      background: linear-gradient(135deg, var(--hero1) 0%, var(--hero2) 100%);
+      padding: 4rem 0 3.5rem;
+      color: #fff;
+      text-align: center;
+    }
+    .hero-section h1 {
+      font-size: clamp(1.8rem, 5vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: .5rem;
+      line-height: 1.2;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2.6vw, 1.2rem);
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .hero-tagline {
+      font-size: 1rem;
+      color: rgba(255,255,255,.7);
+      max-width: 600px;
+      margin: 0 auto 1.75rem;
+    }
+    .hero-badges { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+    .hero-pill {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      padding: .3rem .9rem;
+      font-size: .78rem;
+      color: rgba(255,255,255,.85);
+    }
+
+    /* ── SECTION HEADINGS ─────────────────────────────────── */
+    .section-heading {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--hero2);
+      margin-bottom: .25rem;
+    }
+    .section-rule {
+      border: none;
+      border-top: 3px solid var(--accent);
+      width: 3rem;
+      margin: .5rem 0 1rem;
+      opacity: 1;
+    }
+    .section-intro { color: var(--muted); font-size: .95rem; margin-bottom: 1.5rem; max-width: 760px; }
+
+    /* ── HOW-TO BOX ───────────────────────────────────────── */
+    .howto-box {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid var(--accent2);
+      border-radius: 8px;
+      padding: 1.5rem 1.75rem;
+    }
+    .howto-box ol { margin: 0; padding-left: 1.25rem; }
+    .howto-box li { margin-bottom: .45rem; font-size: .93rem; line-height: 1.5; }
+
+    /* ── LAB CARDS ────────────────────────────────────────── */
+    .lab-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .lab-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(109,40,217,.15);
+    }
+    .lab-card-header {
+      background: linear-gradient(135deg, var(--hero1), var(--hero2));
+      border-radius: 12px 12px 0 0;
+      padding: .9rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .lab-badge {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: .72rem;
+      padding: .22rem .6rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .lab-mode {
+      color: rgba(255,255,255,.7);
+      font-size: .7rem;
+      font-weight: 500;
+      margin-left: .5rem;
+    }
+    .lab-icon {
+      color: rgba(255,255,255,.55);
+      font-size: 1.15rem;
+    }
+    .lab-card-body  { padding: 1.1rem 1.25rem .5rem; flex: 1; }
+    .lab-title      { font-size: 1.05rem; font-weight: 700; margin-bottom: .35rem; color: var(--text); }
+    .lab-desc       { font-size: .875rem; color: var(--muted); margin: 0 0 .6rem; line-height: 1.45; }
+    .lab-prereq     { font-size: .8rem; color: var(--text); margin: 0; line-height: 1.4; }
+    .lab-prereq strong { color: var(--accent2); }
+    .lab-card-footer {
+      padding: .65rem 1.25rem 1.1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      align-items: center;
+    }
+    .btn-lab, .btn-alt {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-weight: 700;
+      font-size: .82rem;
+      padding: .4rem .8rem;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .btn-lab { background: var(--accent); color: var(--hero1); }
+    .btn-lab:hover { background: #d97706; color: var(--hero1); }
+    .btn-alt { background: #fff; color: var(--accent2); border: 1px solid var(--accent2); }
+    .btn-alt:hover { background: var(--accent2); color: #fff; }
+    .pdf-pending { font-size: .78rem; color: var(--muted); font-style: italic; }
+
+    /* ── SUPPLEMENTARY LIST ───────────────────────────────── */
+    .supp-list { list-style: none; padding: 0; margin: 0; }
+    .supp-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: .7rem;
+      padding: .65rem .9rem;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      margin-bottom: .5rem;
+      transition: border-color .15s;
+    }
+    .supp-list li:hover { border-color: var(--accent2); }
+    .supp-list i { color: var(--accent2); margin-top: .2rem; }
+    .supp-list a { color: var(--accent2); text-decoration: none; font-size: .93rem; font-weight: 600; }
+    .supp-list a:hover { text-decoration: underline; }
+    .supp-desc { display: block; font-size: .82rem; color: var(--muted); }
+    .supp-note {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-left: auto;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    /* ── FEEDBACK ─────────────────────────────────────────── */
+    .feedback-box {
+      text-align: center;
+      padding: 2rem 1.25rem;
+      background: linear-gradient(135deg, var(--hero1) 0%, var(--hero2) 100%);
+      color: #fff;
+      border-radius: 12px;
+    }
+    .feedback-box p { opacity: .85; margin-bottom: 1.4rem; }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+    footer {
+      background: var(--hero1);
+      color: rgba(255,255,255,.5);
+      font-size: .8rem;
+      padding: 1.5rem 0;
+      text-align: center;
+      margin-top: 2rem;
+    }
+    footer .hl { color: rgba(255,255,255,.85); }
+    footer a   { color: rgba(255,255,255,.65); word-break: break-word; }
+    footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header class="hero-section">
+  <div class="container">
+    <h1><i class="fa-solid fa-atom me-2" style="color:var(--accent)"></i>Quantum+ Labs</h1>
+    <p class="hero-sub">Università Cattolica del Sacro Cuore × i-LAMP Brescia</p>
+    <p class="hero-tagline">
+      Interactive labs on quantum computing and quantum technologies: from programming
+      qubits in Qiskit to quantum key distribution and single photons on a real optical bench.
+    </p>
+    <div class="hero-badges">
+      <span class="hero-pill"><i class="fa-solid fa-flask-vial me-1"></i>10 labs</span>
+      <span class="hero-pill"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS each</span>
+      <span class="hero-pill"><i class="fa-solid fa-laptop me-1"></i>Online: Labs 1–8</span>
+      <span class="hero-pill"><i class="fa-solid fa-users me-1"></i>In person: Labs 9–10</span>
+      <span class="hero-pill"><i class="fa-brands fa-google me-1"></i>Colab-ready notebooks</span>
+    </div>
+  </div>
+</header>
+
+<main class="container py-5">
+
+  <section id="how-to-use" class="mb-5">
+    <h2 class="section-heading"><i class="fa-solid fa-circle-play me-2"></i>How to use</h2>
+    <hr class="section-rule">
+    <div class="howto-box">
+      <ol>
+        <li>Click <strong>Open lab</strong> on any card to open the lab's interactive page in your browser.</li>
+        <li>Click <strong>Notebook (Colab)</strong> to run the lab's Python code in Google Colab.
+          You need a Google account and an internet connection; nothing to install.</li>
+        <li>Click <strong>Guide (PDF)</strong> for the lab's written guide.</li>
+        <li><strong>Labs 9–10</strong> are pre-lab companions for a scheduled bench session at
+          i-LAMP Brescia: go through the page and the notebook before your session.</li>
+      </ol>
+      <p class="mb-0 mt-3" style="font-size:.85rem; color:var(--muted)">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        Recommended browsers: Chrome, Firefox or Edge (recent versions). Layout and icons load
+        from the internet; lab pages and PDFs open from this folder.
+      </p>
+    </div>
+  </section>
+
+  <section id="qiskit" class="mb-5">
+    <h2 class="section-heading"><i class="fa-solid fa-code me-2"></i>Programming with Qiskit</h2>
+    <hr class="section-rule">
+    <p class="section-intro">Hands-on quantum programming with Qiskit, from a single qubit to Grover, Shor and variational algorithms, with an application to finance. Labs 3, 3.5 and 3.6 together form one item of the course plan and are best taken in that order.</p>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab1">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 1</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-atom lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">The Single Qubit</h3>
+            <p class="lab-desc">From linear algebra to quantum reality: gates and the Bloch sphere.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab1/code/lab1.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab1/latex/Lab1.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab1/lab1_intro.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab2">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 2</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-link lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Multi-Qubit Systems</h3>
+            <p class="lab-desc">Entanglement and the &quot;spooky action at a distance&quot;.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses; Lab 1</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab2/code/lab2.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab2/latex/lab2.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab2/lab2_entanglement.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab3">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 3</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-diagram-project lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Quantum Algorithms</h3>
+            <p class="lab-desc">Oracles, phase kickback and the dawn of quantum advantage.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses; Labs 1–2</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab3/code/lab3.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab3/latex/lab3.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3/lab3_deutsch.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab3_5">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 3.5</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-magnifying-glass lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Grover&#x27;s Algorithm</h3>
+            <p class="lab-desc">Quantum search and amplitude amplification.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses; Labs 1–2</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab3.5/code/grover.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab3.5/latex/grover.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3.5/lab3_5_grover.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab3_6">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 3.6</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-key lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Shor&#x27;s Algorithm</h3>
+            <p class="lab-desc">Quantum factoring via period finding and the QFT.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses; Labs 1–2</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab3.6/code/shor.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab3.6/latex/shor.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3.6/lab3_6_shor.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab4">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 4</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-flask lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Variational Quantum Algorithms</h3>
+            <p class="lab-desc">Hybrid classical-quantum computing: VQE and QAOA.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses; Labs 1–2</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab4/code/hybrid.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab4/latex/hybrid.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab4/lab4_hybrid.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab4_finance">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 4 Finance</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-chart-line lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Quantum Portfolio Optimization</h3>
+            <p class="lab-desc">Finance and industry: QUBO and QAOA on real asset data.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Computing courses; Labs 1–2</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab4_Finance/code/finance_v2_explain.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab4_Finance/latex/finance.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab4_finance/lab4_finance.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="tech" class="mb-5">
+    <h2 class="section-heading"><i class="fa-solid fa-microchip me-2"></i>Quantum technologies</h2>
+    <hr class="section-rule">
+    <p class="section-intro">Online simulators for the physics behind quantum technologies: measurement, quantum key distribution, quantum optics and a quantum board game. These labs do not assume the Qiskit labs.</p>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab5_qm">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 5</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-eye lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Quantum Measurements</h3>
+            <p class="lab-desc">Superposition, state collapse, spin and polarization on the Bloch sphere.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies course only</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab5_QuantumMeasurements/code/lab5_quantum_measurements.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab5/lab5_quantum_measurements.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+            <span class="pdf-pending">Guide PDF in preparation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab6_bb84">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 6</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-lock lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Quantum Key Distribution: BB84</h3>
+            <p class="lab-desc">The BB84 protocol: measurement as a security primitive.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Communication courses</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab6_BB84/code/lab6_bb84.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab6_BB84/latex/lab6_bb84.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab6/lab6_bb84.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab7_optics">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 7</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-lightbulb lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Quantum Optics</h3>
+            <p class="lab-desc">Single photons, interference and entangled light.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies course only</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab7_Optics/code/lab7_optics.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab7_Optics/latex/lab7_optics.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab7/lab7_optics.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab8_qtris">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 8</span><span class="lab-mode">online</span></div>
+            <i class="fa-solid fa-puzzle-piece lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">QTris</h3>
+            <p class="lab-desc">Quantum mechanics as a board game: a digital adaptation of QTris by NQSTI.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies course only</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab8_QTris/code/lab8_qtris.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab8_QTris/latex/lab8_qtris.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab8/lab8_qtris.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="inperson" class="mb-5">
+    <h2 class="section-heading"><i class="fa-solid fa-users me-2"></i>In person at i-LAMP</h2>
+    <hr class="section-rule">
+    <p class="section-intro">Pre-lab companions for the bench sessions at i-LAMP Brescia: go through the page and the notebook before your scheduled session.</p>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab9_bb84_bench">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 9</span><span class="lab-mode">in person</span></div>
+            <i class="fa-solid fa-shield-halved lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">BB84 on the Bench</h3>
+            <p class="lab-desc">Quantum key distribution on a tabletop kit: what to know before you walk in.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies and Quantum Communication courses</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab9_BB84Bench/code/lab9_bb84_bench.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab9_BB84Bench/latex/lab9_bb84_bench.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab9/lab9_bb84_bench.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-4">
+        <div class="lab-card h-100" id="lab10_optics_bench">
+          <div class="lab-card-header">
+            <div><span class="lab-badge">Lab 10</span><span class="lab-mode">in person</span></div>
+            <i class="fa-solid fa-microscope lab-icon"></i>
+          </div>
+          <div class="lab-card-body">
+            <h3 class="lab-title">Quantum Optics on the Bench</h3>
+            <p class="lab-desc">Single photons on a tabletop kit: what to know before you walk in.</p>
+            <p class="lab-prereq"><strong>Prerequisites:</strong> Fundamental Concepts of Quantum Technologies course only</p>
+          </div>
+          <div class="lab-card-footer">
+            <a href="Lab10_OpticsBench/code/lab10_optics_bench.html" class="btn-lab">Open lab <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="Lab10_OpticsBench/latex/lab10_optics_bench.pdf" class="btn-alt"><i class="fa-solid fa-file-pdf"></i> Guide (PDF)</a>
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab10/lab10_optics_bench.ipynb" class="btn-alt" target="_blank" rel="noopener"><i class="fa-brands fa-google"></i> Notebook (Colab)</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="supplementary" class="mb-5">
+    <h2 class="section-heading"><i class="fa-solid fa-book me-2"></i>Supplementary (optional, advanced)</h2>
+    <hr class="section-rule">
+    <p class="section-intro">Extra reading for students who want the full mathematical
+    details. None of it is needed to complete the labs.</p>
+    <ul class="supp-list">
+      <li>
+        <i class="fa-solid fa-file-pdf"></i>
+        <div>
+          <a href="support_material/phase_kickback_proof.pdf">Phase Kickback: a Proof</a>
+          <span class="supp-desc">Step-by-step proof of phase kickback for the CNOT gate (goes with Lab 3).</span>
+        </div>
+        <span class="supp-note">Advanced</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-file-pdf"></i>
+        <div>
+          <a href="support_material/amplitude_amplification.pdf">Amplitude Amplification: the Geometric Picture</a>
+          <span class="supp-desc">Grover&#x27;s algorithm as a rotation in a two-dimensional subspace (goes with Lab 3.5).</span>
+        </div>
+        <span class="supp-note">Advanced</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-file-pdf"></i>
+        <div>
+          <a href="support_material/quantum_interference.pdf">Quantum Interference: a Mathematical Introduction</a>
+          <span class="supp-desc">How interference makes quantum algorithms work (goes with Labs 1-3).</span>
+        </div>
+        <span class="supp-note">Advanced</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-book-open"></i>
+        <div>
+          <a href="support_material/grover/grovers_algorithm.html">Grover Deep-Dive</a>
+          <span class="supp-desc">Interactive, step-by-step view of amplitude amplification (goes with Lab 3.5).</span>
+        </div>
+        <span class="supp-note">Advanced</span>
+      </li>
+    </ul>
+  </section>
+
+  <section id="feedback" class="mb-4">
+    <div class="feedback-box">
+      <h3 class="mb-2">Your feedback matters</h3>
+      <p>Help us improve these labs by sharing your experience. The form is anonymous.</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfLOem22Pmg_QkbJ8kBCEwr2AjdxdvUCANAMUZ_7i07pGETCw/viewform" class="btn-lab" target="_blank" rel="noopener">
+        <i class="fa-solid fa-comment-dots"></i> Open the feedback form
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <span class="hl">Quantum+ Labs</span> &middot; v2 &middot; 2026-09-28<br>
+    Lab pages and guides: <a href="https://github.com/LMrilo/Quantum_plus-labs">github.com/LMrilo/Quantum_plus-labs</a> &middot;
+    Notebooks: <a href="https://github.com/LMrilo/quantum-labs-2026">github.com/LMrilo/quantum-labs-2026</a>
+  </div>
+</footer>
+
+</body>
+</html>
