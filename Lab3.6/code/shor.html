@@ -295,21 +295,23 @@
                             fill="rgba(255,152,0,0.08)" stroke="#f9ab00" stroke-width="1" stroke-dasharray="4,3"/>
                         <text x="92" y="12" font-size="8" fill="#e65100" text-anchor="middle">ORACLE  U_f</text>
 
-                        <!-- c-U^1: CCX + CX on W, controlled c0 -->
+                        <!-- x7 mod 15 on W, controlled c0 -->
                         <circle cx="72" cy="38" r="4" fill="#343a40"/>
                         <line x1="72" y1="38" x2="72" y2="198" stroke="#343a40" stroke-width="1.3"/>
                         <circle cx="72" cy="198" r="7" fill="white" stroke="#343a40" stroke-width="1.3"/>
                         <line x1="65" y1="198" x2="79" y2="198" stroke="#343a40" stroke-width="1.3"/>
                         <line x1="72" y1="191" x2="72" y2="205" stroke="#343a40" stroke-width="1.3"/>
-                        <text x="86" y="35" font-size="7" fill="#555" font-family="monospace">c-U¹</text>
+                        <text x="86" y="35" font-size="7" fill="#555" font-family="monospace">×7</text>
 
-                        <!-- c-U^2: CX on W, controlled c1 -->
+                        <!-- x4 mod 15 on W, controlled c1 -->
                         <circle cx="106" cy="78" r="4" fill="#343a40"/>
                         <line x1="106" y1="78" x2="106" y2="198" stroke="#343a40" stroke-width="1.3"/>
                         <circle cx="106" cy="198" r="7" fill="white" stroke="#343a40" stroke-width="1.3"/>
                         <line x1="99"  y1="198" x2="113" y2="198" stroke="#343a40" stroke-width="1.3"/>
                         <line x1="106" y1="191" x2="106" y2="205" stroke="#343a40" stroke-width="1.3"/>
-                        <text x="116" y="75" font-size="7" fill="#555" font-family="monospace">c-U²</text>
+                        <text x="116" y="75" font-size="7" fill="#555" font-family="monospace">×4</text>
+                        <text x="92" y="135" font-size="7" fill="#555" font-family="monospace" text-anchor="middle" stroke="#fff8ee" stroke-width="3" paint-order="stroke">c₂, c₃: no gate</text>
+                        <text x="92" y="145" font-size="7" fill="#555" font-family="monospace" text-anchor="middle" stroke="#fff8ee" stroke-width="3" paint-order="stroke">(7⁴ ≡ 1)</text>
 
                         <!-- separator -->
                         <line x1="140" y1="12" x2="140" y2="210" stroke="#dee2e6" stroke-width="1" stroke-dasharray="3,3"/>
@@ -317,7 +319,7 @@
                         <!-- IQFT block -->
                         <rect x="144" y="18" width="70" height="155" rx="4"
                             fill="rgba(13,110,253,0.06)" stroke="#0d6efd" stroke-width="1" stroke-dasharray="4,3"/>
-                        <text x="179" y="12" font-size="8" fill="#0041a8" text-anchor="middle">IQFT⁻¹</text>
+                        <text x="179" y="12" font-size="8" fill="#0041a8" text-anchor="middle">IQFT</text>
 
                         <rect x="150" y="27" width="58" height="136" rx="3"
                             fill="rgba(13,110,253,0.07)"/>
@@ -444,6 +446,11 @@
                         <rect x="175" y="69" width="20" height="22" rx="2" fill="#e3f2fd" stroke="#1976d2"/>
                         <text x="185" y="84" text-anchor="middle" font-size="9" fill="#1976d2">M</text>
                     </svg>
+                    <div class="text-center mt-2" style="font-size:.75rem; color:#888;">
+                        The figure uses the textbook ordering (top wire = most significant bit).
+                        The code in Part F uses Qiskit's order (qubit 0 = least significant bit),
+                        so there the same circuit appears mirrored, followed by the same final swap.
+                    </div>
                 </div>
             </div>
         </div>
@@ -463,54 +470,133 @@
             </a>
         </div>
         <div class="task-body">
-            <p>The circuit uses 4 counting qubits and a 2-qubit orbit-encoded
-            work register. The modular exponentiation is built from controlled
-            cyclic shift gates.</p>
+            <p>The circuit uses 4 counting qubits and a 4-qubit work register that starts at the number 1. Counting qubit $j$ multiplies the work register by $7^{2^j} \bmod 15$: by 7 for $j=0$ and by 4 for $j=1$. Qubits $j=2,3$ need no gate at all, because $7^4 \equiv 7^8 \equiv 1 \pmod{15}$. Each multiplication modulo 15 is built from swaps and bit flips: doubling a 4-bit number modulo 15 simply moves every bit one place up, with the top bit wrapping around to the bottom.</p>
+            <p>The powers $7^{2^j} \bmod 15$ are computed classically beforehand (by repeated squaring), as in any real run of Shor's algorithm. For a realistic $N$ it is extremely unlikely that any of them turns out to be 1; here the tiny $N = 15$ lets us see $7^4 \equiv 1$ directly — a reminder that this is a toy instance, not a way of knowing $r$ in advance.</p>
 <pre><code>import math, fractions
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+import numpy as np
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, Operator
 
 def build_qft(n):
-    qc = QuantumCircuit(n)
-    for i in range(n):
-        qc.h(i)
-        for j in range(i+1, n):
-            qc.cp(math.pi / 2**(j-i), j, i)
-    for i in range(n//2):
-        qc.swap(i, n-1-i)
+    """Quantum Fourier Transform on n qubits.
+    Qubit 0 is the least significant bit (Qiskit's order), so the integer x
+    is read from a measured bitstring with int(bitstring, 2).
+    Maps |x&gt; to (1/sqrt(2^n)) * sum over k of exp(2*pi*i * x*k / 2^n) |k&gt;."""
+    qc = QuantumCircuit(n, name='QFT')
+    for j in reversed(range(n)):            # start from the most significant qubit
+        qc.h(j)
+        for k in reversed(range(j)):        # controlled phase rotations from the lower qubits
+            qc.cp(math.pi / 2 ** (j - k), k, j)
+    for i in range(n // 2):                 # swaps put the output bits in the right order
+        qc.swap(i, n - 1 - i)
     return qc
 
-def build_shor_N15_a7():
-    C = QuantumRegister(4, 'count')
-    W = QuantumRegister(2, 'work')
-    c = ClassicalRegister(4)
-    qc = QuantumCircuit(C, W, c)
+# 1) Verify: the circuit's matrix equals the Fourier-transform matrix
+n_qubits = 3
+M = 2 ** n_qubits
+fourier = np.array([[np.exp(2j * np.pi * x * k / M) for x in range(M)]
+                    for k in range(M)]) / np.sqrt(M)
+print("QFT circuit equals the Fourier matrix:",
+      np.allclose(Operator(build_qft(n_qubits)).data, fourier))
 
-    qc.h(C)                          # superposition
+# 2) Apply the QFT to |001&gt; (decimal 1) and look at the phases
+qc_qft = QuantumCircuit(n_qubits)
+qc_qft.x(0)                                  # qubit 0 = least significant bit -&gt; |001&gt;
+qc_qft.compose(build_qft(n_qubits), inplace=True)
+state = Statevector.from_instruction(qc_qft)
+
+print("QFT|001&gt;: every outcome has probability 1/8; the phase grows by 1/8 of a turn per step:")
+for k, amp in enumerate(state.data):
+    turns = (np.angle(amp) / (2 * np.pi)) % 1
+    print(f"  |{k:03b}&gt;  (k={k})  probability = {abs(amp)**2:.3f}   phase = {round(turns*8)}/8 of a turn")
+
+N, a = 15, 7
+n_count = 4      # counting register: 4 qubits -&gt; measured values y = 0 ... 15
+n_work = 4       # work register: 4 qubits hold one number 0 ... 15
+
+def c_mult_mod15(qc, ctrl, w, factor):
+    """If qubit `ctrl` is 1, multiply the number held in the work qubits w by `factor`, modulo 15.
+    w[0] is the least significant bit. Works for the values 1 ... 14, the only ones that occur here.
+    Trick: doubling mod 15 moves every bit one place up, the top bit wrapping to the bottom, so
+      x4 = move every bit two places (two swaps);
+      x7 = x(-8) = move every bit three places, then flip all bits (15 - z = NOT z for 4 bits)."""
+    if factor == 1:
+        return                                  # multiplying by 1 changes nothing
+    if factor == 4:
+        qc.cswap(ctrl, w[0], w[2])
+        qc.cswap(ctrl, w[1], w[3])
+    elif factor == 7:
+        qc.cswap(ctrl, w[0], w[1])
+        qc.cswap(ctrl, w[1], w[2])
+        qc.cswap(ctrl, w[2], w[3])
+        for q in w:
+            qc.cx(ctrl, q)
+    else:
+        raise ValueError("for a = 7 only the factors 1, 4 and 7 are needed")
+
+# Check the arithmetic on every allowed input before trusting it
+for factor in (7, 4):
+    for y in range(1, 15):
+        test = QuantumCircuit(5)                # qubit 0 = control, qubits 1-4 = work
+        test.x(0)
+        for b in range(4):
+            if (y &gt;&gt; b) &amp; 1:
+                test.x(1 + b)
+        c_mult_mod15(test, 0, [1, 2, 3, 4], factor)
+        out = int(np.argmax(np.abs(Statevector(test).data))) &gt;&gt; 1
+        assert out == (factor * y) % N
+print("Checked: the gates multiply by 7 and by 4 modulo 15 on every input 1 ... 14.")
+
+def build_shor_circuit():
+    c = QuantumRegister(n_count, 'count')
+    w = QuantumRegister(n_work, 'work')
+    cr = ClassicalRegister(n_count, 'c')
+    qc = QuantumCircuit(c, w, cr)
+
+    qc.h(c)            # counting register: equal superposition of x = 0 ... 15
+    qc.x(w[0])         # work register starts at the number 1 (|0001&gt;)
+    # Counting qubit j multiplies the work register by a^(2^j) mod 15.
+    # Together they multiply by a^x, so the work register ends up holding 7^x mod 15.
+    #   j=0: 7^1 = 7    j=1: 7^2 = 49 = 4 (mod 15)    j=2: 7^4 = 1    j=3: 7^8 = 1
+    for j in range(n_count):
+        c_mult_mod15(qc, c[j], w, pow(a, 2 ** j, N))
     qc.barrier()
-    qc.ccx(C[0], W[0], W[1])         # c-U^1 (counting[0])
-    qc.cx(C[0], W[0])
-    qc.cx(C[1], W[1])                # c-U^2 (counting[1])
-    qc.barrier()
-    qc.compose(build_qft(4).inverse(),
-               qubits=C, inplace=True)  # IQFT
-    qc.measure(C, c)
+    qc.compose(build_qft(n_count).inverse(), qubits=c, inplace=True)   # inverse QFT
+    qc.measure(c, cr)
     return qc
 
-qc = build_shor_N15_a7()
-counts = AerSimulator().run(qc, shots=2000).result().get_counts()
+qc_shor = build_shor_circuit()
+exact = Statevector(qc_shor.remove_final_measurements(inplace=False)).probabilities_dict(qargs=range(n_count))
+print("Exact probabilities:", {str(k): round(float(v), 3) for k, v in sorted(exact.items()) if v &gt; 1e-9})
 
-for state, n in sorted(counts.items(), key=lambda x: -x[1]):
-    y    = int(state, 2)
-    phi  = fractions.Fraction(y, 16).limit_denominator(15)
-    r    = phi.denominator
-    prob = n/2000*100
-    print(f"|{state}> y={y:2d}  phi={phi}  r={r}  ({prob:.1f}%)")
+counts = AerSimulator(seed_simulator=1234).run(qc_shor, shots=1000).result().get_counts()
+print("Shor results (1000 shots, seeded):", dict(sorted(counts.items())))
 
-# Factor extraction
-r, a, N = 4, 7, 15
-print(f"\ngcd(a^(r/2)-1, N) = gcd({a**(r//2)-1}, {N}) = {math.gcd(a**(r//2)-1,N)}")
-print(f"gcd(a^(r/2)+1, N) = gcd({a**(r//2)+1}, {N}) = {math.gcd(a**(r//2)+1,N)}")</code></pre>
+print(f"{'bits':&gt;6} {'y':&gt;3} {'y/16':&gt;6} {'fraction':&gt;9}   result")
+factors = set()
+for bits in sorted(counts, key=lambda b: int(b, 2)):
+    y = int(bits, 2)                                     # counting register as an integer
+    frac = fractions.Fraction(y, 2 ** n_count).limit_denominator(N - 1)
+    r = frac.denominator                                 # candidate period
+    if y == 0:
+        result = "phase 0 carries no information -&gt; run again"
+    else:
+        note = ""
+        while pow(a, r, N) != 1 and r &lt; N:               # denominator too small? try its multiples
+            note = f"{a}^{frac.denominator} mod {N} = {pow(a, frac.denominator, N)}, not 1 -&gt; try multiples; "
+            r += frac.denominator
+        if pow(a, r, N) != 1:
+            result = "no period found from this outcome -&gt; run again"
+        elif r % 2 == 1 or pow(a, r // 2, N) == N - 1:
+            result = f"r = {r} cannot be used -&gt; choose another a"
+        else:
+            p, q = math.gcd(a ** (r // 2) - 1, N), math.gcd(a ** (r // 2) + 1, N)
+            result = note + f"r = {r}:  gcd({a}^{r//2} - 1, {N}) = {p},  gcd({a}^{r//2} + 1, {N}) = {q}"
+            factors |= {p, q}
+    print(f"{bits:&gt;6} {y:&gt;3} {str(y)+'/16':&gt;6} {str(frac):&gt;9}   {result}   [{counts[bits]} shots]")
+
+print("\nFactors found:", sorted(factors), "-&gt;", " x ".join(map(str, sorted(factors))), "=", math.prod(factors))</code></pre>
         </div>
     </div>
 

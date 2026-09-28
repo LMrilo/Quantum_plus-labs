@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{tcolorbox}
+\tcbuselibrary{breakable}
 \usepackage{float}
 \usepackage{tikz}
 \usetikzlibrary{quantikz2}
@@ -61,14 +62,14 @@
 \newtcolorbox{composerbox}{colback=purple!5!white,colframe=purple!75!black,
     title=IBM Composer View, fonttitle=\bfseries}
 \newtcolorbox{mathbox}[1][Step-by-Step: State Vector Evolution]{%
-    colback=red!5!white,colframe=red!75!black,title=#1, fonttitle=\bfseries}
+    colback=red!5!white,colframe=red!75!black,title={#1}, fonttitle=\bfseries}
 \newtcolorbox{defbox}[1][Definition]{%
-    colback=teal!5!white,colframe=teal!70!black,title=#1, fonttitle=\bfseries}
+    colback=teal!5!white,colframe=teal!70!black,title={#1}, fonttitle=\bfseries}
 
 % ── Math shorthands ────────────────────────────────────────────────────────────
-\newcommand{\ket}[1]{|#1\rangle}
-\newcommand{\bra}[1]{\langle#1|}
-\newcommand{\braket}[2]{\langle#1|#2\rangle}
+\providecommand{\ket}[1]{|#1\rangle}
+\providecommand{\bra}[1]{\langle#1|}
+\providecommand{\braket}[2]{\langle#1|#2\rangle}
 \newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
 \newcommand{\ord}{\mathrm{ord}}
 
@@ -236,6 +237,9 @@ The circuit for $n=3$ qubits is shown below:
     \ctrl{-1} & \qw & \gate{H} & \targX{} & \qw
 \end{quantikz}
 \]
+The figure uses the textbook ordering (top wire = most significant bit). The code in Part E uses
+Qiskit's order (qubit 0 = least significant bit), so there the same circuit appears mirrored,
+followed by the same final swap.
 
 \subsection{The QFT and Periodicity}
 
@@ -421,114 +425,153 @@ across all $n$ qubits simultaneously, but for the \emph{period-$r$ subspace}.
 
 \subsection{Exercise 3: Python Implementation}
 
-The full implementation searches for the period of $f(x) = 7^x \bmod 15$
-using $n=4$ counting qubits and a 2-qubit orbit-encoded work register.
+The full implementation searches for the period of $f(x) = 7^x \bmod 15$.
+The circuit uses 4 counting qubits and a 4-qubit work register that starts at the number 1. Counting qubit $j$ multiplies the work register by $7^{2^j} \bmod 15$: by 7 for $j=0$ and by 4 for $j=1$. Qubits $j=2,3$ need no gate at all, because $7^4 \equiv 7^8 \equiv 1 \pmod{15}$. Each multiplication modulo 15 is built from swaps and bit flips: doubling a 4-bit number modulo 15 simply moves every bit one place up, with the top bit wrapping around to the bottom.
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
+The powers $7^{2^j} \bmod 15$ are computed classically beforehand (by repeated squaring), as in any real run of Shor's algorithm. For a realistic $N$ it is extremely unlikely that any of them turns out to be 1; here the tiny $N = 15$ lets us see $7^4 \equiv 1$ directly — a reminder that this is a toy instance, not a way of knowing $r$ in advance.
+
+Copy the code from the notebook (Open in Colab) or from the lab page, not from this PDF:
+long lines are wrapped here and quotes are typeset, so text copied from the PDF will not run.
+
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,
     title=Coding Task: QFT Circuit, fonttitle=\bfseries]
 \begin{lstlisting}[language=Python]
-import math
-from qiskit import QuantumCircuit
+import math, fractions
+import numpy as np
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, Operator
 
-def build_qft(n: int) -> QuantumCircuit:
-    """
-    Constructs an n-qubit Quantum Fourier Transform circuit.
-    Uses Hadamard + controlled-phase (CP) gates + SWAP.
-    """
-    qc = QuantumCircuit(n)
-    for i in range(n):
-        qc.h(i)
-        for j in range(i + 1, n):
-            angle = math.pi / (2 ** (j - i))
-            qc.cp(angle, j, i)   # controlled phase R_{j-i+1}
-    # Bit-reversal: swap qubits
-    for i in range(n // 2):
+def build_qft(n):
+    """Quantum Fourier Transform on n qubits.
+    Qubit 0 is the least significant bit (Qiskit's order), so the integer x
+    is read from a measured bitstring with int(bitstring, 2).
+    Maps |x> to (1/sqrt(2^n)) * sum over k of exp(2*pi*i * x*k / 2^n) |k>."""
+    qc = QuantumCircuit(n, name='QFT')
+    for j in reversed(range(n)):            # start from the most significant qubit
+        qc.h(j)
+        for k in reversed(range(j)):        # controlled phase rotations from the lower qubits
+            qc.cp(math.pi / 2 ** (j - k), k, j)
+    for i in range(n // 2):                 # swaps put the output bits in the right order
         qc.swap(i, n - 1 - i)
     return qc
+
+# 1) Verify: the circuit's matrix equals the Fourier-transform matrix
+n_qubits = 3
+M = 2 ** n_qubits
+fourier = np.array([[np.exp(2j * np.pi * x * k / M) for x in range(M)]
+                    for k in range(M)]) / np.sqrt(M)
+print("QFT circuit equals the Fourier matrix:",
+      np.allclose(Operator(build_qft(n_qubits)).data, fourier))
+
+# 2) Apply the QFT to |001> (decimal 1) and look at the phases
+qc_qft = QuantumCircuit(n_qubits)
+qc_qft.x(0)                                  # qubit 0 = least significant bit -> |001>
+qc_qft.compose(build_qft(n_qubits), inplace=True)
+state = Statevector.from_instruction(qc_qft)
+
+print("QFT|001>: every outcome has probability 1/8; the phase grows by 1/8 of a turn per step:")
+for k, amp in enumerate(state.data):
+    turns = (np.angle(amp) / (2 * np.pi)) % 1
+    print(f"  |{k:03b}>  (k={k})  probability = {abs(amp)**2:.3f}   phase = {round(turns*8)}/8 of a turn")
 \end{lstlisting}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
-    title=Coding Task: Full Order-Finding Circuit for $N=15$\, $a=7$,
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,
+    title={Coding Task: Full Order-Finding Circuit for $N=15$, $a=7$},
     fonttitle=\bfseries]
 \begin{lstlisting}[language=Python]
-from qiskit import QuantumRegister, ClassicalRegister
-import fractions
+N, a = 15, 7
+n_count = 4      # counting register: 4 qubits -> measured values y = 0 ... 15
+n_work = 4       # work register: 4 qubits hold one number 0 ... 15
 
-def build_shor_circuit() -> QuantumCircuit:
-    """
-    Order-finding for a=7, N=15 using:
-    - 4 counting qubits (register C)
-    - 2 work qubits encoding the orbit {1,7,4,13} as {00,01,10,11}
-    
-    Modular exponentiation via controlled cyclic shifts:
-      C[0] controls U^1 (add 1 mod 4): CCNOT(C0,W0,W1) + CNOT(C0,W0)
-      C[1] controls U^2 (add 2 mod 4): CNOT(C1,W1)
-      C[2] controls U^4 = I: nothing
-      C[3] controls U^8 = I: nothing
-    """
-    qr_c = QuantumRegister(4, 'count')
-    qr_w = QuantumRegister(2, 'work')
-    cr   = ClassicalRegister(4, 'c')
-    qc   = QuantumCircuit(qr_c, qr_w, cr)
+def c_mult_mod15(qc, ctrl, w, factor):
+    """If qubit `ctrl` is 1, multiply the number held in the work qubits w by `factor`, modulo 15.
+    w[0] is the least significant bit. Works for the values 1 ... 14, the only ones that occur here.
+    Trick: doubling mod 15 moves every bit one place up, the top bit wrapping to the bottom, so
+      x4 = move every bit two places (two swaps);
+      x7 = x(-8) = move every bit three places, then flip all bits (15 - z = NOT z for 4 bits)."""
+    if factor == 1:
+        return                                  # multiplying by 1 changes nothing
+    if factor == 4:
+        qc.cswap(ctrl, w[0], w[2])
+        qc.cswap(ctrl, w[1], w[3])
+    elif factor == 7:
+        qc.cswap(ctrl, w[0], w[1])
+        qc.cswap(ctrl, w[1], w[2])
+        qc.cswap(ctrl, w[2], w[3])
+        for q in w:
+            qc.cx(ctrl, q)
+    else:
+        raise ValueError("for a = 7 only the factors 1, 4 and 7 are needed")
 
-    # 1. Superposition on counting register
-    qc.h(qr_c)
+# Check the arithmetic on every allowed input before trusting it
+for factor in (7, 4):
+    for y in range(1, 15):
+        test = QuantumCircuit(5)                # qubit 0 = control, qubits 1-4 = work
+        test.x(0)
+        for b in range(4):
+            if (y >> b) & 1:
+                test.x(1 + b)
+        c_mult_mod15(test, 0, [1, 2, 3, 4], factor)
+        out = int(np.argmax(np.abs(Statevector(test).data))) >> 1
+        assert out == (factor * y) % N
+print("Checked: the gates multiply by 7 and by 4 modulo 15 on every input 1 ... 14.")
+
+def build_shor_circuit():
+    c = QuantumRegister(n_count, 'count')
+    w = QuantumRegister(n_work, 'work')
+    cr = ClassicalRegister(n_count, 'c')
+    qc = QuantumCircuit(c, w, cr)
+
+    qc.h(c)            # counting register: equal superposition of x = 0 ... 15
+    qc.x(w[0])         # work register starts at the number 1 (|0001>)
+    # Counting qubit j multiplies the work register by a^(2^j) mod 15.
+    # Together they multiply by a^x, so the work register ends up holding 7^x mod 15.
+    #   j=0: 7^1 = 7    j=1: 7^2 = 49 = 4 (mod 15)    j=2: 7^4 = 1    j=3: 7^8 = 1
+    for j in range(n_count):
+        c_mult_mod15(qc, c[j], w, pow(a, 2 ** j, N))
     qc.barrier()
-
-    # 2. Controlled modular exponentiation
-    #    c-U^1: controlled by count[0]
-    qc.ccx(qr_c[0], qr_w[0], qr_w[1])
-    qc.cx(qr_c[0],  qr_w[0])
-    #    c-U^2: controlled by count[1]
-    qc.cx(qr_c[1],  qr_w[1])
-    #    c-U^4 = I (count[2]) and c-U^8 = I (count[3]): omitted
-    qc.barrier()
-
-    # 3. Inverse QFT on counting register
-    qft_inv = build_qft(4).inverse()
-    qc.compose(qft_inv, qubits=qr_c, inplace=True)
-    qc.barrier()
-
-    # 4. Measure counting register
-    qc.measure(qr_c, cr)
+    qc.compose(build_qft(n_count).inverse(), qubits=c, inplace=True)   # inverse QFT
+    qc.measure(c, cr)
     return qc
 \end{lstlisting}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,
     title=Coding Task: Run and Extract the Period, fonttitle=\bfseries]
 \begin{lstlisting}[language=Python]
-from qiskit_aer import AerSimulator
+qc_shor = build_shor_circuit()
+exact = Statevector(qc_shor.remove_final_measurements(inplace=False)).probabilities_dict(qargs=range(n_count))
+print("Exact probabilities:", {str(k): round(float(v), 3) for k, v in sorted(exact.items()) if v > 1e-9})
 
-def extract_period(y: int, n_count: int, N: int = 15) -> int:
-    """
-    Use the continued-fractions algorithm to find the period r
-    from a measured bitstring y (integer) and n_count counting qubits.
-    """
-    phase = y / (2 ** n_count)
-    frac  = fractions.Fraction(phase).limit_denominator(N)
-    return frac.denominator   # period estimate
+counts = AerSimulator(seed_simulator=1234).run(qc_shor, shots=1000).result().get_counts()
+print("Shor results (1000 shots, seeded):", dict(sorted(counts.items())))
 
-# Run the simulation
-qc  = build_shor_circuit()
-sim = AerSimulator()
-job = sim.run(qc, shots=2000)
-counts = job.result().get_counts()
+print(f"{'bits':>6} {'y':>3} {'y/16':>6} {'fraction':>9}   result")
+factors = set()
+for bits in sorted(counts, key=lambda b: int(b, 2)):
+    y = int(bits, 2)                                     # counting register as an integer
+    frac = fractions.Fraction(y, 2 ** n_count).limit_denominator(N - 1)
+    r = frac.denominator                                 # candidate period
+    if y == 0:
+        result = "phase 0 carries no information -> run again"
+    else:
+        note = ""
+        while pow(a, r, N) != 1 and r < N:               # denominator too small? try its multiples
+            note = f"{a}^{frac.denominator} mod {N} = {pow(a, frac.denominator, N)}, not 1 -> try multiples; "
+            r += frac.denominator
+        if pow(a, r, N) != 1:
+            result = "no period found from this outcome -> run again"
+        elif r % 2 == 1 or pow(a, r // 2, N) == N - 1:
+            result = f"r = {r} cannot be used -> choose another a"
+        else:
+            p, q = math.gcd(a ** (r // 2) - 1, N), math.gcd(a ** (r // 2) + 1, N)
+            result = note + f"r = {r}:  gcd({a}^{r//2} - 1, {N}) = {p},  gcd({a}^{r//2} + 1, {N}) = {q}"
+            factors |= {p, q}
+    print(f"{bits:>6} {y:>3} {str(y)+'/16':>6} {str(frac):>9}   {result}   [{counts[bits]} shots]")
 
-print("Measurement Results:")
-for state, shots in sorted(counts.items(), key=lambda x: -x[1]):
-    y   = int(state, 2)
-    r   = extract_period(y, 4)
-    pct = shots / 2000 * 100
-    print(f"  |{state}> (y={y:2d})  ->  r_hat = {r}  ({pct:.1f}%)")
-
-# Factor extraction
-r = 4
-a = 7
-p = math.gcd(a ** (r // 2) - 1, 15)
-q = math.gcd(a ** (r // 2) + 1, 15)
-print(f"\nFactors of 15: gcd(7^2-1, 15) = {p}, gcd(7^2+1, 15) = {q}")
+print("\nFactors found:", sorted(factors), "->", " x ".join(map(str, sorted(factors))), "=", math.prod(factors))
 \end{lstlisting}
 \textbf{Expected output:} Peaks at \texttt{0000}, \texttt{0100}, \texttt{1000},
 \texttt{1100} (values $0, 4, 8, 12$), each $\approx\!25\%$. Extracted period $r=4$.
