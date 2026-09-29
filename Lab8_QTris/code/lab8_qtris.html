@@ -193,9 +193,8 @@
                     $|L\rangle = |-\rangle$; cards as unitaries; dice as the Born rule.</li>
                 <li>Predict measurement statistics for single tiles and entangled pairs, decorated or not,
                     and confirm them against both the printed d100 tables and the exact probabilities.</li>
-                <li>Explain why the pink-square gate is a single canonical rotation $R(-60°)$, and how one
-                    rotation produces the game's 25, 75, 93 and 7 — including where the $\sqrt{3}$
-                    comes from.</li>
+                <li>Explain how one rotation, $R(-60°)$, produces the game's 25, 75, 93 and 7 — including where the $\sqrt{3}$
+                    comes from — and which choice the printed rows leave open (deviation 6).</li>
                 <li>Distinguish Procedure 1 and Procedure 2 for a rotated-basis measurement: identical
                     statistics, different post-measurement states — on the game's own tiles.</li>
                 <li>Recognize state-dependent rotational invariance: why two pink squares cancel exactly on
@@ -338,7 +337,7 @@
             </div>
             <p class="text-secondary lh-lg">
                 The same logic exposes the phase. The card $Z$ flips orientation,
-                $Z|\pm\rangle = |\mp\rangle$, yet changes <em>nothing</em> a color measurement can see —
+                $Z|\pm\rangle = |\mp\rangle$, yet changes <em>nothing</em> a color measurement can see (on a plain tile — under a pink square a card acts beneath it; see <a href="#deviations">deviation 6</a>) —
                 both orientations measure 50/50. Invisible? Only until an $H$ converts the hidden difference
                 into opposite certainties: $H|+\rangle = |0\rangle$ (white for sure) while
                 $H|-\rangle = |1\rangle$ (black for sure).
@@ -439,7 +438,9 @@
             <p class="text-secondary lh-lg">
                 The rulebook never writes the pink square's matrix — it only prints its measurement table:
                 a decorated white tile measures white 25%, decorated black 75%, decorated bianconere 93%
-                and 7%. Those four rows pin the gate completely. A canonical rotation by angle $\theta$
+                and 7%. Those four rows pin the gate up to one choice: a mirror-type gate,
+                $\begin{pmatrix} 1/2 & \sqrt{3}/2 \\ \sqrt{3}/2 & -1/2 \end{pmatrix}$, reproduces the same four rows.
+                This page uses the rotation (see <a href="#deviations">deviation 6</a>). A canonical rotation by angle $\theta$
                 sends $|0\rangle$ to $\cos\theta\,|0\rangle + \dots$, so $\cos^2\theta = \tfrac14$ forces
                 $\theta = 60°$; matching the 93 to the <em>right</em>-oriented bianconera fixes the sense:
             </p>
@@ -494,8 +495,8 @@
             <div class="shock-box">
                 <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
                 <strong>Measurement is the game's only irreversible move.</strong> Every card can be undone
-                — $X$, $Y$, $Z$, $H$ and the pink square are their own inverses, $C_X$ un-entangles what it
-                entangled. The dice cannot be un-rolled, and a white tile carries no memory of the
+                — $X$, $Y$, $Z$ and $H$ are their own inverses, a second $U$ card removes the pink square
+                (<a href="#deviations">deviation 6</a>), and $C_X$ un-entangles what it entangled. The dice cannot be un-rolled, and a white tile carries no memory of the
                 bianconera it came from. Reversible dynamics, irreversible measurement: the deepest
                 asymmetry in quantum mechanics, playable with cardboard.
             </div>
@@ -848,7 +849,7 @@
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <!--  DECLARED DEVIATIONS                                                 -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
-    <div class="row mb-5">
+    <div class="row mb-5" id="deviations">
         <div class="col-lg-9 mx-auto">
             <h2 class="section-title"><i class="fa-solid fa-code-compare text-warning me-2"></i>
                 Declared Deviations from the Printed Game</h2>
@@ -878,6 +879,18 @@
                     modes; the impossible printed bands appear only in the erratum panel above. Serving the
                     physics — openly — was judged more faithful to the game's philosophy than serving the
                     typo.</li>
+                <li><strong>The pink square acts last.</strong> Following the rulebook (a card on a decorated tile
+                    follows the same rules as on a plain tile, and a second $U$ card removes the square), this page treats
+                    the pink square as the <em>last</em> operation on its tile, applied just before the color measurement.
+                    Two consequences you can check in the Sandbox. (i) A card $C$ played on a decorated tile acts on the
+                    tile <em>beneath</em> the square; physically that is the operation $U\,C\,U^{-1}$, not $C$ itself — so
+                    a $Z$ card, invisible on a plain tile, turns a decorated right-oriented bianconera (93% white) into a
+                    decorated left-oriented one (7% white). (ii) Removing a square undoes it: the operation is
+                    $U^{-1} = R(+60°)$, not a second $U$ (two $U$ rotations would leave a white tile white only 25% of the
+                    time). Every card is still a reversible quantum operation; the page names each card by what it does to
+                    the tile beneath the square. The mirror-type gate of Part 4 fits the same four printed rows and is its
+                    own inverse; this page keeps the rotation $R(-60°)$, on which its tables, notebook and erratum analysis
+                    are built.</li>
             </ol>
         </div>
     </div>
@@ -2213,7 +2226,7 @@ function uiSetMode(m) {
     $id('mode-exact').classList.toggle('active', m === 'exact');
     if (ui.game) ui.game.mode = m;
 }
-function uiNewGame() {
+function uiNewGame(silent) {
     const seed = parseInt($id('seed-input').value, 10) || 0;
     const setup = $id('setup-select').value;
     ui.game = createGame(ui.preset, setup, seed, ui.mode);
@@ -2224,6 +2237,7 @@ function uiNewGame() {
         (ui.mode === 'table' ? 'printed tables' : 'exact mode') + ', seed ' + seed + '). ' +
         'Turn order: higher roll plays White and moves first. ' + seatName(g.whiteSeat) + ' won the roll.';
     $id('roll-detail').innerHTML = 'No roll yet.';
+    if (silent) { ui.lastSeat = g.mulliganQueue[0]; renderAll(); return; }
     maybeHandoff(g.mulliganQueue[0], function () { renderAll(); });
 }
 function onCardClick(i) {
@@ -2538,7 +2552,7 @@ const REPLAY_CAPTIONS = {
     p13: 'White toys with its own trick: H on the bianconera at 2 makes it certainly white…',
     p14: '…and the second H puts the bianconera right back. Two flips of the coin-maker cancel. Hold that thought — the dice, later, will not.',
     p15: 'X on the bianconera at 7: invisible. X swaps white and black — and a half-white-half-black tile is its own swap. An X that changes nothing: keep count.',
-    p16: 'X under the pink square at 3: invisible again — by the page’s rule the card acts on the tile beneath and the pink square is reapplied on top (see the deviations note below); L is X-proof, so nothing moves.',
+    p16: 'X under the pink square at 3: invisible again — by the page’s rule the card acts on the tile beneath and the pink square is reapplied on top (deviation 6 in the guide below); L is X-proof, so nothing moves.',
     p17: 'Y on the bianconera at 2 flips its orientation — Y acts like X and Z in one card, and on a bianconera only the Z half shows.',
     p18: 'I on the rescued white tile at 5. The certainty survives — plain monochrome tiles don’t even roll at the sweep; nothing left to chance there.',
     p19: 'Z on the white tile at 4 — one last invisible protest from Black.',
@@ -2729,7 +2743,7 @@ window.addEventListener('DOMContentLoaded', function () {
     uiSetMode('table');
     renderErratumPanel();
     sbRender(); sbRenderCounters();
-    uiNewGame();
+    uiNewGame(true);
 });
 </script>
 </body>

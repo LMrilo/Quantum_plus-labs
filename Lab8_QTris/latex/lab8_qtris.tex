@@ -137,9 +137,9 @@ four Bell states.
     \item \textbf{Predict measurement statistics} for single tiles and entangled pairs,
           decorated or not, and confirm them against both the printed d100 tables and
           the exact probabilities.
-    \item \textbf{Explain why the pink-square gate is a single canonical rotation}
-          $R(-60^\circ)$, and how one rotation produces the game's 25, 75, 93 and 7 ---
-          including where the $\sqrt{3}$ comes from.
+    \item \textbf{Explain how one rotation, $R(-60^\circ)$, produces the game's 25, 75, 93 and 7}
+          --- including where the $\sqrt{3}$ comes from --- and which choice the printed rows leave
+          open (deviation~\ref{dev:pink}).
     \item \textbf{Distinguish Procedure 1 and Procedure 2} for a rotated-basis
           measurement: identical statistics, different post-measurement states --- on
           the game's own tiles.
@@ -348,7 +348,7 @@ kittens for exactly this reason: the superposition is a real, manipulable thing.
 \end{shockbox}
 
 The same logic exposes the phase. The card $Z$ flips orientation,
-$Z\ket{\pm} = \ket{\mp}$, yet changes \emph{nothing} a colour measurement can see ---
+$Z\ket{\pm} = \ket{\mp}$, yet changes \emph{nothing} a colour measurement can see (on a plain tile --- under a pink square a card acts beneath it; see deviation~\ref{dev:pink}) ---
 both orientations measure 50/50. Invisible? Only until an $H$ converts the hidden
 difference into opposite certainties: $H\ket{+} = \ket{0}$ (white for sure) while
 $H\ket{-} = \ket{1}$ (black for sure).
@@ -531,7 +531,9 @@ $\sqrt{3}$ in it?
 
 The rulebook never writes the pink square's matrix --- it only prints its measurement
 table: a decorated white tile measures white 25\%, decorated black 75\%, decorated
-bianconere 93\% and 7\%. Those four rows pin the gate completely. Take the square to be
+bianconere 93\% and 7\%. Those four rows pin the gate up to one choice: a mirror-type gate,
+$\left(\begin{smallmatrix} 1/2 & \sqrt{3}/2 \\ \sqrt{3}/2 & -1/2 \end{smallmatrix}\right)$,
+reproduces the same four rows. This guide uses the rotation (deviation~\ref{dev:pink}). Take the square to be
 a canonical (real) rotation by an angle $\theta$,
 
 \begin{equation}
@@ -724,8 +726,8 @@ once real, are stable.
 
 \begin{shockbox}
 \textbf{Measurement is the game's only irreversible move.} Every card can be undone
---- $X$, $Y$, $Z$, $H$ and the pink square are their own inverses, $C_X$ un-entangles
-what it entangled. The dice cannot be un-rolled, and a white tile carries no memory of
+--- $X$, $Y$, $Z$ and $H$ are their own inverses, a second $U$ card removes the pink square
+(deviation~\ref{dev:pink}), and $C_X$ un-entangles what it entangled. The dice cannot be un-rolled, and a white tile carries no memory of
 the bianconera it came from. Reversible dynamics, irreversible measurement: the deepest
 asymmetry in quantum mechanics, playable with cardboard.
 \end{shockbox}
@@ -929,6 +931,19 @@ Everything this adaptation does differently from the physical edition, in one li
           \emph{both} dice modes; the impossible printed bands appear only in the
           erratum panel. Serving the physics --- openly --- was judged more faithful to
           the game's philosophy than serving the typo.
+    \item\label{dev:pink} \textbf{The pink square acts last.} Following the rulebook (a card on a
+          decorated tile follows the same rules as on a plain tile, and a second $U$ card removes the
+          square), this adaptation treats the pink square as the \emph{last} operation on its tile,
+          applied just before the colour measurement. Two consequences you can check in the sandbox.
+          (i)~A card $C$ played on a decorated tile acts on the tile \emph{beneath} the square;
+          physically that is the operation $U\,C\,U^{-1}$, not $C$ itself --- so a $Z$ card, invisible
+          on a plain tile, turns a decorated right-oriented bianconera (93\% white) into a decorated
+          left-oriented one (7\% white). (ii)~Removing a square undoes it: the operation is
+          $U^{-1} = R(+60^\circ)$, not a second $U$ (two $U$ rotations would leave a white tile white
+          only 25\% of the time). Every card is still a reversible quantum operation; the guide names
+          each card by what it does to the tile beneath the square. The mirror-type gate of Part~4
+          fits the same four printed rows and is its own inverse; this adaptation keeps the rotation
+          $R(-60^\circ)$, on which its tables, notebook and erratum analysis are built.
 \end{enumerate}
 
 \noindent For completeness, the game's own numbers as implemented: the four deck
