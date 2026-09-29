@@ -60,10 +60,18 @@
             padding:22px; margin:18px 0; border-radius:6px; }
         .def-box     { background:#e8f5e9; border-left:5px solid var(--clr-green);
             padding:18px; margin-bottom:18px; border-radius:4px; }
+        .theory-box  { background-color:#e3f2fd; border-left:5px solid #2196f3;
+            padding:15px; margin-bottom:15px; border-radius:4px;
+            font-size:0.95rem; }
         .bridge-box  { background:linear-gradient(135deg,#f3e5f5,#ede7f6);
             border-left:5px solid var(--clr-purple);
             padding:24px; border-radius:8px; margin-top:30px;
             box-shadow: 0 3px 12px rgba(106,27,154,.1); }
+        .shock-box { background: #fff7ed; border: 2px solid #ea580c; border-radius: 10px;
+            padding: 18px 20px 14px; margin: 22px 0 35px; position: relative; }
+        .shock-tag { position: absolute; top: -12px; left: 16px; background: #ea580c;
+            color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 12px; }
 
         /* ── Task cards ───────────────────────────────────────────────────── */
         .task-box { border:1px solid #dde4ee; border-radius:12px;
@@ -146,7 +154,7 @@
         </p>
         <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
             <span class="hero-badge"><i class="fa-regular fa-clock"></i> 75 min</span>
-            <span class="hero-badge"><i class="fa-solid fa-book"></i> Prerequisites: Lab 3.6</span>
+            <span class="hero-badge"><i class="fa-solid fa-book"></i> Prerequisites: Labs 1–2 (gates, CNOT, two-qubit states)</span>
             <span class="hero-badge"><i class="fa-solid fa-link-slash"></i> NISQ-Era Focus</span>
             <span class="hero-badge"><i class="fa-solid fa-right-long"></i> Bridge to Lab 4 Finance</span>
         </div>
@@ -160,9 +168,11 @@
         <p class="fs-5 text-secondary text-center">
             Today's quantum computers cannot run the deep circuits required
             by Shor or Grover on large inputs. The practical solution is
-            <strong>hybrid algorithms</strong>: short parametric quantum
-            circuits evaluated repeatedly, guided by a <em>classical</em>
-            optimizer. This lab builds the full technical foundation for
+            <strong>hybrid algorithms</strong> for NISQ (Noisy Intermediate-Scale
+            Quantum) processors, such as the Variational Quantum Eigensolver (VQE)
+            and the Quantum Approximate Optimization Algorithm (QAOA): short
+            parametric quantum circuits evaluated repeatedly, guided by a
+            <em>classical</em> optimizer. This lab builds the full technical foundation for
             the finance application in Lab 4 Finance.
         </p>
     </div></div>
@@ -171,11 +181,60 @@
         <div class="warning-box">
             <h5 class="mb-2"><i class="fa-solid fa-microchip text-warning"></i>
             &nbsp;The NISQ Constraint</h5>
-            <p class="mb-0">IBM's best QPUs (2025) sustain coherent circuits
+            <p class="mb-0">IBM's best quantum processors (QPUs, 2025) sustain coherent circuits
             of roughly 100–300 two-qubit gates before noise dominates.
             VQE and QAOA are designed around this limit: the quantum circuit
             is kept <em>shallow</em> while the classical optimizer does the
             heavy lifting of navigating the parameter space.</p>
+        </div>
+    </div></div>
+
+    <div class="row mb-4"><div class="col-lg-10 mx-auto">
+        <div class="theory-box">
+            <strong>Before Part A: the variational loop</strong>
+            <p class="mt-2 mb-2">Every algorithm in this lab runs the same loop. A short quantum circuit
+            with adjustable rotation angles $\theta$ prepares a state; a classical program reads the
+            measurement results and adjusts the angles:</p>
+            <ol class="mb-2">
+                <li>choose angles $\theta$;</li>
+                <li>run the circuit and measure it many times (each run is one <em>shot</em>);</li>
+                <li>average the results into one number, the <strong>cost</strong> $C(\theta)$;</li>
+                <li>a classical <strong>optimizer</strong> proposes new angles that should lower $C$.
+                Repeat until $C$ stops decreasing.</li>
+            </ol>
+            <ul class="mb-2">
+                <li><strong>$Z$ as a score.</strong> From Lab 1, $Z=\mathrm{diag}(1,-1)$: it gives the value
+                $+1$ to $|0\rangle$ and $-1$ to $|1\rangle$. $Z_i$ means $Z$ acting on qubit $i$, and
+                $Z_0Z_1$ multiplies the two values: $+1$ if the two bits are equal, $-1$ if they differ.</li>
+                <li><strong>Hamiltonian $H$ (the energy function).</strong> A sum of such terms that gives
+                every bit string a number, its <em>energy</em>. Part B uses $H=Z_0Z_1+0.5\,Z_0$:
+                $|00\rangle\to 1.5$, $|01\rangle\to -0.5$, $|10\rangle\to -1.5$, $|11\rangle\to 0.5$
+                (first symbol = qubit 0). A problem is encoded so that its best answer is the bit string
+                of lowest energy, the <strong>ground state</strong>, with energy $E_0$ (here $-1.5$, at
+                $|10\rangle$). Because these Hamiltonians contain only $Z$'s, each bit string has one
+                definite energy (in matrix language, it is an eigenvector of $H$ and the energy is its
+                eigenvalue).</li>
+                <li><strong>Expectation value $\langle H\rangle$ (the cost).</strong> A superposition has no
+                single energy: each shot returns one bit string $x$, with probability $P(x)$, and its energy
+                $E(x)$. The average over many shots is $\langle H\rangle=\sum_x P(x)\,E(x)$. This is the cost
+                $C(\theta)$. For one qubit, $\langle Z\rangle = P(0)-P(1)$.</li>
+                <li><strong>Why minimising works.</strong> An average can never be lower than the smallest
+                value it averages, so $C(\theta)\ge E_0$ for every $\theta$, with equality only when all the
+                probability sits on the ground state (the <em>variational principle</em>). Pushing $C$
+                down pushes the state toward the answer.</li>
+                <li><strong>Ansatz $U(\theta)$.</strong> German for "educated guess": a fixed circuit layout
+                whose rotation angles are the adjustable parameters. The rotation used here is $R_y(\theta)$, which turns
+                $|0\rangle$ into $\cos\tfrac{\theta}{2}|0\rangle+\sin\tfrac{\theta}{2}|1\rangle$; so
+                $R_y(0)$ does nothing and $R_y(\pi)|0\rangle=|1\rangle$.</li>
+                <li><strong>Classical optimizer.</strong> Ordinary numerical software, nothing quantum.
+                <em>Gradient-based</em> optimizers follow the slope downhill and need the gradient, which
+                Part A shows how to obtain from the quantum computer (the Part B widget works this way).
+                <em>Gradient-free</em> optimizers such as COBYLA (Constrained Optimization BY Linear
+                Approximations, used in Part E and the notebook) only compare cost values.</li>
+            </ul>
+            <p class="mb-0 small"><em>On real hardware each $C(\theta)$ is estimated from a finite number of
+            shots and carries noise; the widgets on this page use exact values. Optional, more formal
+            derivations: <a href="../latex/hybrid.pdf">Lab 4 Notes (PDF)</a>, Parts A–C.</em></p>
         </div>
     </div></div>
 
@@ -185,9 +244,25 @@
         Part A: The Parameter-Shift Rule
     </h2>
 
-    <p>For any gate $G(\theta) = e^{-i\theta P/2}$ (Pauli generator $P$),
-    the expectation value $f(\theta)$ is a trigonometric polynomial
-    $a + b\cos\theta + c\sin\theta$. Its exact derivative is:</p>
+    <p>Start with the smallest case: one qubit and one angle. Apply $R_y(\theta)$ to
+    $|0\rangle$ and measure. The state is
+    $\cos\tfrac{\theta}{2}|0\rangle+\sin\tfrac{\theta}{2}|1\rangle$, so
+    $P(0)=\cos^2\tfrac{\theta}{2}$, $P(1)=\sin^2\tfrac{\theta}{2}$, and the average of $Z$
+    is $f(\theta)=\langle Z\rangle=P(0)-P(1)=\cos\theta$. We write it
+    $\langle Z\rangle_{R_y(\theta)}$. A gradient-based optimizer needs the slope of this
+    curve, the derivative $\partial_\theta f$ (here $-\sin\theta$). But a quantum computer
+    returns only values of $f$, never its formula. The trick is to evaluate $f$ at two
+    shifted angles:
+    $\tfrac12\left[\cos(\theta+\tfrac{\pi}{2})-\cos(\theta-\tfrac{\pi}{2})\right]=\tfrac12\left[-\sin\theta-\sin\theta\right]=-\sin\theta$.
+    That is the exact slope, not an approximation. At $\theta=0.5$: $f(2.071)=-0.479$,
+    $f(-1.071)=+0.479$, and half their difference is $-0.479=-\sin 0.5$.</p>
+
+    <p>The same shift works for every rotation of the form $G(\theta)=e^{-i\theta P/2}$,
+    where $P$ is a Pauli operator ($X$, $Y$, $Z$ or a product such as $Z_0Z_1$). The
+    exponential is shorthand for $\cos\tfrac{\theta}{2}\,I-i\sin\tfrac{\theta}{2}\,P$;
+    with $P=Y$ it is exactly $R_y(\theta)$. For such a gate the measured average always has
+    the form $a+b\cos\theta+c\sin\theta$ ($a,b,c$ depend on the rest of the circuit, not
+    on $\theta$), and for every such function:</p>
 
     <div class="text-center mb-4">
         <span class="formula-chip">
@@ -195,13 +270,19 @@
         </span>
     </div>
 
+    <p class="small">This holds when $\theta$ enters a single gate. If one angle drives
+    several gates (as $\gamma$ does in Part C), apply the rule to each gate and add the
+    results.</p>
+
     <div class="task-box">
         <div class="task-header">
             Interactive: Parameter-Shift on $f(\theta) = \langle Z\rangle_{R_y(\theta)}$
         </div>
         <div class="task-body">
             <p>Drag the slider to move $\theta$. The chart shows $f(\theta) = \cos\theta$
-            (exact, in blue) and the two shifted evaluations used to estimate the gradient.</p>
+            (exact, in blue) and the two shifted evaluations that give the gradient exactly
+            (a shifted point that falls off the left or right edge is drawn one full turn,
+            $2\pi$, away: $f$ repeats every $2\pi$).</p>
 
             <div class="row g-4 align-items-center mb-3">
                 <div class="col-md-8">
@@ -210,7 +291,7 @@
                 <div class="col-md-4">
                     <label class="fw-bold mb-2 d-block">
                         $\theta$ =
-                        <span id="theta-val" class="text-primary">0.00</span> rad
+                        <span id="theta-val" class="text-primary">0.50</span> rad
                     </label>
                     <input type="range" class="form-range mb-3"
                            id="theta-slider" min="0" max="628" value="50">
@@ -242,13 +323,30 @@
     <!-- ═══════════════════════ PART B: VQE LANDSCAPE ════════════════════════ -->
     <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
         <i class="fa-solid fa-mountain section-icon"></i>
-        Part B: VQE Cost Landscape (2-Qubit Ising)
+        Part B: VQE Cost Landscape
     </h2>
 
-    <p>Hamiltonian: $H = Z_0Z_1 + 0.5\,Z_0$. Ansatz:
+    <p>Hamiltonian (2-Qubit Ising Model: an energy built from $Z$ products):
+    $H = Z_0Z_1 + 0.5\,Z_0$. Ansatz:
     $\mathrm{CX}_{01}(R_y(\theta_0)\otimes R_y(\theta_1))|00\rangle$.
     The heatmap shows $C(\theta_0, \theta_1)$ — the optimizer must find the
     global minimum at $(\pi, \pi)$ with energy $E_0 = -1.5$.</p>
+
+    <p><strong>Reading the landscape.</strong> $Z_0Z_1$ is $+1$ when the two qubits agree and
+    $-1$ when they differ. $0.5\,Z_0$ adds $+0.5$ if qubit 0 is $|0\rangle$ and $-0.5$ if it
+    is $|1\rangle$. So the four bit strings have energies $|00\rangle{:}\ 1.5$,
+    $|01\rangle{:}\ {-0.5}$, $|10\rangle{:}\ {-1.5}$, $|11\rangle{:}\ 0.5$, and the ground
+    state is $|10\rangle$ with $E_0=-1.5$. The ansatz reaches it at $(\pi,\pi)$:
+    $R_y(\pi)$ turns both qubits into $|1\rangle$, then the CX (control qubit 0) flips
+    qubit 1 back, $|11\rangle\to|10\rangle$. For general angles, working out the four
+    probabilities gives $C(\theta_0,\theta_1)=\langle H\rangle=\cos\theta_1+0.5\cos\theta_0$,
+    the formula the heatmap colours. Its lowest value is $-1-0.5=-1.5=E_0$, and no point of
+    the map goes lower.</p>
+
+    <p><strong>What the optimizer does here.</strong> At each step it measures the two
+    slopes $\partial C/\partial\theta_0$ and $\partial C/\partial\theta_1$ with the
+    parameter-shift rule of Part A (four cost evaluations) and takes a small step downhill.
+    Click near a red corner and watch the path bend toward the crosshair at $(\pi,\pi)$.</p>
 
     <div class="task-box">
         <div class="task-header">
@@ -264,7 +362,7 @@
                     <canvas id="landscape-canvas" class="landscape-canvas"></canvas>
                     <div class="mt-2 text-center small text-muted">
                         $\theta_0 \in [0, 2\pi]$ (x-axis) &nbsp;|&nbsp;
-                        $\theta_1 \in [0, 2\pi]$ (y-axis)
+                        $\theta_1 \in [0, 2\pi]$ (y-axis; $\theta_1$ increases downward)
                     </div>
                 </div>
                 <div class="col-md-5 d-flex flex-column justify-content-between">
@@ -278,11 +376,16 @@
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <div style="width:14px;height:14px;background:#00c9a7;
                                 border-radius:50%"></div>
-                            <span class="small">Current minimum</span>
+                            <span class="small">Target: true minimum $(\pi,\pi)$</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width:14px;height:14px;background:#f9ab00;
+                                border-radius:50%"></div>
+                            <span class="small">Optimizer's current point</span>
                         </div>
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <div style="width:24px;height:3px;background:white;
-                                border-radius:2px"></div>
+                            <div style="width:24px;height:5px;background:white;
+                                border:1px solid #555;border-radius:2px"></div>
                             <span class="small">Optimizer trajectory</span>
                         </div>
                         <div class="def-box p-2">
@@ -311,9 +414,15 @@
 
     <p>Graph $C_4$: nodes $\{0,1,2,3\}$, edges $\{(0,1),(1,2),(2,3),(3,0)\}$.
     Optimal cut = 4 edges (partition $\{0,2\}$ vs $\{1,3\}$).
-    Explore how increasing the number of QAOA layers $p$ improves
-    the approximation ratio and concentrates probability on the optimal
-    bitstrings $|0101\rangle$ and $|1010\rangle$.</p>
+    Explore how the number of QAOA layers $p$ changes the approximation ratio
+    and how much probability lands on the two optimal bitstrings
+    $|0101\rangle$ and $|1010\rangle$.</p>
+
+    <p><strong>The problem.</strong> Split the four nodes into two groups. An edge is
+    <em>cut</em> if its two ends land in different groups; MaxCut asks for the split that
+    cuts the most edges. Write a split as a bit string, one bit per node, read left to right
+    as nodes 0, 1, 2, 3 (0 = one group, 1 = the other). $|0101\rangle$ puts $\{0,2\}$
+    against $\{1,3\}$ and cuts all 4 edges, the best possible; $|0000\rangle$ cuts none.</p>
 
     <div class="theory-box">
         <strong>From graph to Hamiltonian — derivation</strong>
@@ -332,6 +441,22 @@
         The $X$ gate flips $|0\rangle \leftrightarrow |1\rangle$, so $e^{-i\beta H_B}$ allows the optimizer
         to explore different node assignments — without it, the algorithm would stay stuck in its initial state.</p>
     </div>
+
+    <p><strong>The QAOA recipe</strong> (Quantum Approximate Optimization Algorithm).
+    (1) Start from H on every qubit (Lab 1): all 16 splits equally likely.
+    (2) <em>Cost layer</em>: on each edge, a phase whose sign depends on whether that edge is
+    cut, with strength $\gamma$. (3) <em>Mixer</em>: $R_x(2\beta)$ on every qubit, a rotation
+    that mixes $|0\rangle$ and $|1\rangle$ (this is the gate written $e^{-i\beta X}$; applied
+    to all qubits it is $e^{-i\beta H_B}$). (4) Repeat steps 2–3 $p$ times, each <em>layer</em>
+    with its own $(\gamma_k,\beta_k)$: $2p$ angles in all. (5) Measure: each shot returns
+    one split. A classical optimizer tunes the $2p$ angles to maximise the average number of
+    cut edges. The <strong>approximation ratio</strong> is that average divided by the best
+    possible cut (4 here); 1 means every shot returns an optimal split.</p>
+
+    <p class="small text-muted">Convention: the circuit applies $e^{-i\gamma Z_iZ_j}$ on each
+    edge (CNOT, $R_z(2\gamma)$, CNOT). Since $H_C=\sum(I-Z_iZ_j)/2$, this equals
+    $e^{-i\gamma' H_C}$ with $\gamma'=-2\gamma$ times an overall phase factor that changes no
+    probability: the same family of circuits with a rescaled angle.</p>
 
     <div class="task-box">
         <div class="task-header">Interactive QAOA Simulator — MaxCut on $C_4$</div>
@@ -424,13 +549,25 @@
         </div>
     </div>
 
+    <div class="shock-box">
+        <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE, AND SPECIAL TO THIS GRAPH</span>
+        At $p=1$ QAOA cuts 3 of the 4 edges on average (ratio 0.75), and only 53% of shots
+        return an optimal split. At $p=2$ <em>every</em> shot returns $|0101\rangle$ or
+        $|1010\rangle$ (ratio 1.00), so $p=3$ has nothing left to improve. Do not generalise:
+        on large graphs, shallow QAOA is not exact. That is why the depth $p$ is the knob that
+        matters.
+    </div>
+
     <!-- ═══════════════════════ PART D: BRIDGE ═══════════════════════════════ -->
     <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
         <i class="fa-solid fa-arrow-right-arrow-left section-icon"></i>
-        Part D: Bridge to Lab 4 Finance — From MaxCut to Portfolio
+        Part D (preview, optional): Bridge to Lab 4 Finance — From MaxCut to Portfolio
     </h2>
 
     <div class="bridge-box">
+        <p class="small"><em>Preview: nothing in Parts A–C or E depends on this box. $\Sigma$,
+        $\mu$ and $\lambda$ are defined in Lab 4 Finance; $\delta_{ij}$ is 1 if $i=j$ and 0
+        otherwise; $K$ is the number of assets the portfolio must hold.</em></p>
         <h5 class="mb-3">
             <i class="fa-solid fa-chart-line" style="color:var(--clr-purple)"></i>
             &nbsp;The Portfolio Optimization QUBO
@@ -462,14 +599,15 @@
         <p class="mb-1"><strong>Connection to this lab:</strong></p>
         <ul class="mb-0">
             <li>The QAOA circuit structure ($e^{-i\gamma H_C}$,
-                $e^{-i\beta H_B}$) is <em>identical</em> to what you
-                built for MaxCut.</li>
+                $e^{-i\beta H_B}$) is <em>identical</em> to the MaxCut
+                circuit of Part C (code in Part E).</li>
             <li>The $ZZ$ rotation $e^{-i\gamma Z_iZ_j}$ is
                 implemented with the same CNOT–$R_z$–CNOT decomposition.</li>
-            <li>The classical optimizer (COBYLA or SPSA) is unchanged;
-                only $H_C$ is different.</li>
-            <li>The parameter-shift rule computes gradients for all
-                $(\gamma_k, \beta_k)$ exactly as in VQE.</li>
+            <li>The classical optimizer is unchanged; only $H_C$ is different.
+                COBYLA (used in Part E) is gradient-free: it only compares cost values.
+                A gradient-based optimizer would take its slopes from the parameter-shift
+                rule of Part A. Because each $\gamma_k$ drives one gate per edge, the rule
+                is applied to every such gate and the results added.</li>
         </ul>
     </div>
 
@@ -481,17 +619,28 @@
 
     <div class="task-box">
         <div class="task-header d-flex justify-content-between align-items-center">
-            <span>Exercises 1–3: PSR, VQE, QAOA</span>
+            <span>Exercises 1–3: PSR (parameter-shift rule), VQE, QAOA</span>
             <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab4/lab4_hybrid.ipynb"
                class="btn btn-sm colab-btn">
                 <i class="fa-solid fa-terminal"></i> Open Colab Notebook
             </a>
         </div>
         <div class="task-body">
+            <p>This script runs the QAOA of Part C on a simulator for $p=1,2,3$.
+            <code>build_qaoa</code> builds the circuit (H on every qubit, then $p$
+            cost-and-mixer layers). <code>maxcut_hamiltonian</code> writes $H_C$, the number
+            of cut edges, as a sum of Pauli terms. The <code>EstimatorV2</code> returns the
+            exact average $\langle H_C\rangle$ for a given set of angles, and COBYLA, a
+            classical optimizer that needs no gradient, tunes the $2p$ angles starting from
+            0.5. The Colab notebook contains this exercise (Exercise 3) together with the
+            parameter-shift check (Exercise 1) and the VQE of Part B (Exercise 2).</p>
+            <p><strong>Expected output:</strong> <code>p=1 MaxCut≈3.000/4 ratio≈0.750</code>,
+            then <code>ratio≈1.000</code> for $p=2$ and $p=3$, the same numbers as the
+            simulator above.</p>
 <pre><code>from qiskit import QuantumCircuit
 from qiskit.circuit import Parameter, ParameterVector
 from qiskit.quantum_info import SparsePauliOp
-from qiskit_aer.primitives import Estimator
+from qiskit_aer.primitives import EstimatorV2
 from scipy.optimize import minimize
 
 # ── QAOA circuit for MaxCut ─────────────────────────────────────────────────
@@ -523,7 +672,7 @@ edges = [(0,1), (1,2), (2,3), (3,0)]   # 4-cycle C4
 for p in [1, 2, 3]:
     qc, params = build_qaoa(4, edges, p)
     H = maxcut_hamiltonian(4, edges)
-    est = Estimator()
+    est = EstimatorV2()
 
     def cost(x):
         job = est.run([(qc, H, x)])
@@ -636,14 +785,14 @@ function drawPSR(theta) {
     const thetaPlus  = theta + Math.PI/2;
     const thetaMinus = theta - Math.PI/2;
 
-    [[thetaPlus, fPlus], [thetaMinus, fMinus]].forEach(([tx,fy]) => {
-        if(tx >= xMin && tx <= xMax) {
-            ctx.strokeStyle='#e53935'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-            ctx.beginPath(); ctx.moveTo(toX(tx),toY(0)); ctx.lineTo(toX(tx),toY(fy)); ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle='#e53935';
-            ctx.beginPath(); ctx.arc(toX(tx),toY(fy),5,0,2*Math.PI); ctx.fill();
-        }
+    // f repeats every 2π: a shifted point outside [0, 2π] is drawn one full turn away
+    [[thetaPlus, fPlus], [thetaMinus, fMinus]].forEach(([t,fy]) => {
+        const tx = ((t % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+        ctx.strokeStyle='#e53935'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(toX(tx),toY(0)); ctx.lineTo(toX(tx),toY(fy)); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#e53935';
+        ctx.beginPath(); ctx.arc(toX(tx),toY(fy),5,0,2*Math.PI); ctx.fill();
     });
 
     // Current θ dot (blue, larger)
@@ -682,40 +831,7 @@ document.getElementById('theta-slider').addEventListener('input', function(){
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PART B: VQE Cost Landscape
- *
- *  H = Z0Z1 + 0.5*Z0
- *  Ansatz: CX(R_y(θ0) ⊗ R_y(θ1))|00⟩
- *
- *  After CX: |ψ⟩ = cos(θ0/2)cos(θ1/2)|00⟩ + cos(θ0/2)sin(θ1/2)|01⟩
- *                 + sin(θ0/2)sin(θ1/2)|10⟩ + sin(θ0/2)cos(θ1/2)|11⟩
- *            wait — CX flips q1 if q0=1:
- *  R_y(θ0)⊗R_y(θ1)|00⟩ = (c0|0⟩+s0|1⟩)⊗(c1|0⟩+s1|1⟩)
- *                       = c0c1|00⟩ + c0s1|01⟩ + s0c1|10⟩ + s0s1|11⟩
- *  CX_{01}: q1 flips when q0=1 →
- *           c0c1|00⟩ + c0s1|01⟩ + s0s1|10⟩ + s0c1|11⟩
- *  (c0=cos(θ0/2), s0=sin(θ0/2), etc.)
- *
- *  ⟨Z0Z1⟩ = |c0c1|²(+1) + |c0s1|²(-1) + |s0s1|²(-1) + |s0c1|²(+1)
- *           = c0²c1² - c0²s1² - s0²s1² + s0²c1²
- *           = (c0²-s0²)(c1²-s1²) ... wait
- *           Actually Z0Z1 eigenvalues: |00⟩→+1, |01⟩→-1, |10⟩→-1, |11⟩→+1
- *  ⟨Z0Z1⟩ = c0²c1² - c0²s1² - s0²s1² + s0²c1²
- *           = c0²(c1²-s1²) + s0²(c1²-s1²) ... no:
- *           = (c0²+s0²)(c1²-s1²) ... no that's wrong
- *  Let me just compute:
- *           = c0²c1² - c0²s1² - s0²s1² + s0²c1²
- *           = c1²(c0²+s0²) - s1²(c0²+s0²)
- *           Wait: c0²c1² + s0²c1² = c1²(c0²+s0²) = c1²
- *           And: c0²s1² + s0²s1² = s1²
- *           So: ⟨Z0Z1⟩ = c1² - s1² = cos(θ1)
- *
- *  ⟨Z0⟩ eigenvalues: +1 for q0=0, -1 for q0=1
- *       = c0²c1² + c0²s1² - s0²s1² - s0²c1²
- *       = c0²(c1²+s1²) - s0²(c1²+s1²)
- *       = c0² - s0² = cos(θ0)
- *
- *  So: C(θ0,θ1) = ⟨Z0Z1⟩ + 0.5⟨Z0⟩ = cos(θ1) + 0.5*cos(θ0)
- *  Minimum at θ0=π, θ1=π → C = cos(π) + 0.5cos(π) = -1 - 0.5 = -1.5 ✓
+ *  C(θ₀,θ₁) = cos θ₁ + 0.5 cos θ₀
  * ═══════════════════════════════════════════════════════════════════════════ */
 function costVQE(th0, th1) {
     return Math.cos(th1) + 0.5 * Math.cos(th0);
@@ -876,13 +992,7 @@ document.getElementById('landscape-canvas').addEventListener('click', function(e
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PART C: QAOA MaxCut Simulator
  *
- *  4-qubit, 16-dim state vector. Optimal-parameter expectation values
- *  pre-computed via the exact QAOA analytics / tight numerical data.
- *
- *  For C4 MaxCut with optimal (γ*,β*):
- *    p=1: P(|0101⟩) = P(|1010⟩) ≈ 0.297  (approx ratio ≈ 0.75)
- *    p=2: P(|0101⟩) = P(|1010⟩) ≈ 0.426  (approx ratio ≈ 0.94)
- *    p=3: P(|0101⟩) = P(|1010⟩) ≈ 0.471  (approx ratio ≈ 0.99)
+ *  4-qubit, 16-dim state vector.
  *
  *  We generate the full 16-state distribution using the exact
  *  state-vector simulation (compact matrix ops in JS).
@@ -983,14 +1093,18 @@ function probFromSV(sv) {
     return sv.map(([re,im]) => re*re+im*im);
 }
 
-// Optimal parameters for C4 (pre-computed / well-known)
+// Angle convention of this page: cost layer e^{-iγ Z_u Z_v} per edge, mixer R_x(2β).
+// Angles maximise the average cut (numerical optimisation); ratios computed from the state.
 const OPTIMAL_PARAMS = {
-    1: [0.3927, 0.7854],          // γ≈π/8, β≈π/4
-    2: [0.45, 0.20, 0.79, 0.53],
-    3: [0.55, 0.25, 0.85, 0.60, 0.95, 0.78]
+    1: [Math.PI/8, 3*Math.PI/8],                              // ratio 0.75, P_opt 53.1%
+    2: [Math.PI/4, -Math.PI/8, Math.PI/8, Math.PI/4],         // ratio 1.00, P_opt 100%
+    3: [Math.PI/4, 0, -Math.PI/8, Math.PI/8, 0, Math.PI/4]    // ratio 1.00, P_opt 100%
 };
-
-const APPROX_RATIOS = { 1: 0.75, 2: 0.94, 3: 0.99 };
+const CUT = [...Array(16).keys()].map(i =>
+    EDGES.reduce((s, [u, v]) => s + ((((i >> u) & 1) !== ((i >> v) & 1)) ? 1 : 0), 0));
+function ratioFromProbs(probs) { return probs.reduce((s, q, i) => s + q * CUT[i], 0) / 4; }
+const APPROX_RATIOS = Object.fromEntries([1, 2, 3].map(p =>
+    [p, ratioFromProbs(probFromSV(runQAOA(OPTIMAL_PARAMS[p], p)))]));
 
 function setP(p) {
     document.querySelectorAll('.qaoa-p-btn').forEach(btn=>{
@@ -1060,7 +1174,7 @@ function updateQAOAInfo(p, probs) {
         Optimal states $|0101\\rangle$ + $|1010\\rangle$:
         <strong style="color:#2e7d32">${totalOpt.toFixed(1)}%</strong> total probability.
         Approximation ratio: <strong>${(ratio*100).toFixed(0)}%</strong> of MaxCut = 4.
-        ${p<3?`Increase p to ${p+1} for higher accuracy.`:'<em>Near-optimal solution reached.</em>'}`;
+        ${ratio < 0.999 ? 'Increase p to ' + (p+1) + '.' : '<em>Every shot returns an optimal cut.</em>'}`;
     if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([info]);
 }
 

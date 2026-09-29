@@ -113,7 +113,7 @@ it to a real-world portfolio optimization problem.
 \vspace{0.3cm}
 \noindent\textbf{Prerequisites:}
 \begin{itemize}
-    \item Lab 3.6 (Shor's Algorithm) and all preceding labs
+    \item Labs 1--2 (gates, CNOT, two-qubit states)
     \item Basic linear algebra: eigenvalues, Hermitian matrices, tensor products
     \item Classical optimization concepts: gradient descent, cost functions
 \end{itemize}
@@ -150,6 +150,7 @@ for small systematic errors.
 % ══════════════════════════════════════════════════════════════════════════════
 
 \subsection{Architecture of the Variational Loop}
+\label{sec:var-loop}
 
 A variational quantum algorithm operates as follows:
 
@@ -207,6 +208,7 @@ budget, but may not respect problem symmetry.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Part B: The Parameter-Shift Rule}
+\label{sec:psr}
 % ══════════════════════════════════════════════════════════════════════════════
 
 \subsection{The Gradient Problem in Quantum Circuits}
@@ -415,11 +417,12 @@ For $\theta_0$:
     &= \frac{1}{2}\bigl[C(\theta_0+\tfrac\pi2,\theta_1)
        - C(\theta_0-\tfrac\pi2,\theta_1)\bigr].
 \end{align}
-The optimizer (COBYLA or L-BFGS-B) uses these gradient estimates to descend
+The optimizer (L-BFGS-B) uses these gradient estimates to descend
 toward the minimum $(\pi, \pi)$.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Part D: QAOA — Quantum Approximate Optimization}
+\label{sec:qaoa-circ}
 % ══════════════════════════════════════════════════════════════════════════════
 
 \subsection{From VQE to Combinatorial Optimization}
@@ -532,9 +535,10 @@ out of 4). Increasing $p$ improves $r$:
     \hline
     $p$ & Parameters & Approx. ratio (simulation) \\ \hline
     1 & 2 & $\approx 0.75$ \\
-    2 & 4 & $\approx 0.94$ \\
-    3 & 6 & $\approx 0.99$ \\ \hline
+    2 & 4 & $1.00$ \\
+    3 & 6 & $1.00$ \\ \hline
 \end{tabular}
+\\[2pt]{\small (exact on $C_4$ from $p=2$)}
 \end{center}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -548,16 +552,39 @@ out of 4). Increasing $p$ improves $r$:
 \begin{studentbox}
 \textbf{Observe the parameter-shift rule directly:}
 \begin{enumerate}
-    \item Build the 1-qubit circuit: $R_y(\theta)\ket{0}$,
-          measure $\langle Z\rangle$.
-    \item Set $\theta = 0.5$ rad. Record $f(0.5)$.
-    \item Change to $\theta = 0.5 + \pi/2$. Record $f^+$.
-    \item Change to $\theta = 0.5 - \pi/2$. Record $f^-$.
-    \item Compute $(f^+ - f^-)/2$. Compare with the analytic
-          $-\sin(0.5) \approx -0.479$.
+    \item Build $R_y(\theta)\ket{0}$ and measure $\langle Z\rangle$.
+          \emph{This is $f(\theta)=\cos\theta$.}
+    \item Evaluate at $\theta = 0.5$~rad. Expected: $f(0.5) = \cos(0.5) \approx 0.878$.
+    \item Change to $\theta = 0.5 + \pi/2 \approx 2.071$~rad. Record $f^+ \approx -0.479$.
+    \item Change to $\theta = 0.5 - \pi/2 \approx -1.071$~rad. Record $f^- \approx +0.479$.
+    \item PSR gradient $= (f^+-f^-)/2 \approx -0.479$.
+          Analytic: $-\sin(0.5) \approx -0.479$. The rule is exact: the measured values differ from the analytic ones only by shot noise.
 \end{enumerate}
-\textbf{Expected:} The parameter-shift estimate matches the analytic
-gradient exactly (within shot noise).
+
+\medskip
+\textbf{OpenQASM 2.0 — three circuits to run in sequence:}
+\begin{lstlisting}[language={}]
+OPENQASM 2.0;
+include "qelib1.inc";
+// Circuit 1: f(theta) at theta = 0.5 rad
+qreg q[1]; creg c[1];
+ry(0.5) q[0];
+measure q[0] -> c[0];
+// Expected <Z> = cos(0.5) approx. 0.878
+
+// Circuit 2: f(theta + pi/2) -- positive shift
+// Replace ry(0.5) with ry(2.0708)
+// ry(2.0708) q[0];  // theta + pi/2 = 0.5 + 1.5708
+
+// Circuit 3: f(theta - pi/2) -- negative shift
+// Replace ry(0.5) with ry(-1.0708)
+// ry(-1.0708) q[0];  // theta - pi/2 = 0.5 - 1.5708
+
+// PSR gradient = (result_2 - result_3) / 2 approx. -0.479
+// Analytic: -sin(0.5) approx. -0.4794  --> identical
+\end{lstlisting}
+\textbf{Expected:} The parameter-shift value equals the analytic gradient
+$-\sin(0.5)\approx-0.479$; any difference in your measured values comes only from shot noise.
 \end{studentbox}
 
 \subsection{Exercise 2: Visualise the Cost Landscape}
@@ -644,7 +671,7 @@ QAOA is then applied to $H_{\text{portfolio}}$ using \emph{exactly the
 same circuit structure} built in this lab, but with this financial
 Hamiltonian as $H_C$.
 
-The skills you need: variational loop (\S\ref{sec:vqe-form}),
+The skills you need: variational loop (\S\ref{sec:var-loop}),
 parameter-shift gradients (\S\ref{sec:psr}), QAOA circuit
 construction (\S\ref{sec:qaoa-circ}).
 \end{bridgebox}
