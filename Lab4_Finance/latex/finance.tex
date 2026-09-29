@@ -68,7 +68,7 @@
     colback=green!5!white,colframe=green!65!black,
     title={#1}, fonttitle=\bfseries}
 \newtcolorbox{bridgebox}{colback=purple!5!white,colframe=purple!70!black,
-    title=Connection to Lab 4, fonttitle=\bfseries}
+    title={Optional: connection to Lab 4}, fonttitle=\bfseries}
 
 % ── Math shorthands ────────────────────────────────────────────────────────────
 \newcommand{\ket}[1]{|#1\rangle}
@@ -92,15 +92,16 @@
 \section{Introduction and Objectives}
 % ══════════════════════════════════════════════════════════════════════════════
 
-In Lab 4 you built the full technical machinery of variational quantum
-algorithms: the parameter-shift rule, VQE, and QAOA applied to the MaxCut
-combinatorial problem. This laboratory is the direct application of that
-machinery to a real-world industrial problem: \textbf{portfolio optimization
-in quantitative finance}.
+This laboratory applies a quantum optimization algorithm to a real-world
+industrial problem: \textbf{portfolio optimization in quantitative finance}.
+Everything it needs beyond Labs 1--2 is explained in this guide. If you did
+Lab 4, you have met the same algorithm on a small graph problem (MaxCut), and
+the optional boxes point out the connections.
 
-The core mathematical structure is identical to Lab 4 — a Quadratic
-Unconstrained Binary Optimization (QUBO) problem mapped to a QAOA Hamiltonian.
-The novelty is threefold: (i) the QUBO is derived from real financial data,
+The investment choice is written as a Quadratic Unconstrained Binary
+Optimization (QUBO) problem, rewritten as an operator on qubits (an Ising
+Hamiltonian), and searched with a short quantum circuit, the Quantum
+Approximate Optimization Algorithm (QAOA). The novelty is threefold: (i) the QUBO is derived from real financial data,
 (ii) interpreting the output requires both a technical and a business lens,
 and (iii) the problem has a natural classical solution that allows direct
 benchmarking.
@@ -108,7 +109,7 @@ benchmarking.
 \vspace{0.3cm}
 \noindent\textbf{Prerequisites:}
 \begin{itemize}
-    \item Lab 4: Variational Quantum Algorithms, QAOA, QUBO formulation
+    \item Labs 1--2 (Lab 4 helpful, not required)
     \item Basic probability and statistics: mean, variance, covariance
     \item No prior knowledge of quantitative finance is assumed
 \end{itemize}
@@ -120,19 +121,18 @@ benchmarking.
     \item Run QAOA on a 4-asset universe (AAPL, MSFT, JPM, XOM) and
           verify the result against brute-force.
     \item Interpret results from both a business and a technical perspective.
-    \item Understand the scaling advantage for large $n$ and the challenges
-          of NISQ hardware.
+    \item Understand how the circuit and the classical search space grow
+          with $n$, and what is (not yet) known about quantum advantage.
 \end{enumerate}
 
 \begin{warningbox}[Why Quantum for Portfolio Optimization?]
-For $n$ assets selecting $K$, the number of candidate portfolios is
-$\binom{n}{K}$. Classical branch-and-bound solvers handle this well up
-to $n \approx 1000$. However, adding realistic constraints (transaction
-costs, sector limits, ESG scores, integer lots) makes the problem
-NP-hard in general. QAOA provides a \emph{near-term heuristic} that
-may achieve quantum advantage for $n \gtrsim 100$ constrained assets —
-a scale that matters for institutional portfolios (e.g.\ Russell 2000
-universe, $n=2000$).
+For $n = 4$, $K = 2$ there are only 6 portfolios, and a laptop checks
+them all instantly. For $n = 50$, $K = 10$ there are
+$\binom{50}{10} \approx 10^{10}$: checking every one becomes impractical,
+and real desks use classical heuristics instead. QAOA's circuit grows only
+as $\mathcal{O}(n^2)$ gates per layer, which is why it is studied for this
+problem. Whether it can beat the best classical heuristics is an open
+research question. This lab shows what it does and does not deliver today.
 \end{warningbox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -161,7 +161,7 @@ variance), the second rewards expected return.
           (aggressive investor).
     \item $\lambda \to \infty$: minimise variance regardless of returns
           (defensive investor, cash-like).
-    \item Typical institutional values: $\lambda \in [0.5,\, 5]$.
+    \item In this lab we explore $\lambda \in [0.5,\, 5]$.
 \end{itemize}
 For this lab we use $\lambda = 1$ as the baseline.
 \end{defbox}
@@ -169,8 +169,13 @@ For this lab we use $\lambda = 1$ as the baseline.
 \subsection{The Combinatorial Version and its Hardness}
 
 In practice, portfolio managers must select \emph{exactly $K$ assets}
-from a universe of $n$ candidates and invest equally. The binary version
-of equation~\eqref{eq:mv-cont} is:
+from a universe of $n$ candidates.
+
+\noindent\textbf{Declared simplification:} a portfolio here is a
+\emph{selection} --- each chosen asset gets the same amount of money;
+choosing weights continuously (the full Markowitz problem) is not modelled.
+
+\noindent The binary version of equation~\eqref{eq:mv-cont} is:
 
 \begin{equation}
     \min_{x \in \{0,1\}^n}\; \lambda\, x^T \Sigma\, x
@@ -181,10 +186,18 @@ of equation~\eqref{eq:mv-cont} is:
 
 For $n=4$, $K=2$ there are only $\binom{4}{2} = 6$ candidates — trivially
 enumerable. For $n=50$, $K=10$ there are $\binom{50}{10} \approx 10^{10}$
-candidates. For $n=500$, $K=50$: $\sim\!10^{82}$ — far beyond brute-force.
+candidates. For $n=500$, $K=50$: $\approx 2.3 \times 10^{69}$ — far beyond brute-force.
 The continuous relaxation (equation~\eqref{eq:mv-cont}) gives the
 \emph{efficient frontier} but loses the discreteness that real portfolios
 require.
+
+\noindent\textbf{Efficient frontier.} A portfolio is \emph{efficient} if no
+other portfolio offers a higher expected return for the same or lower risk.
+The efficient ones, drawn in the risk--return plane, form the
+\emph{efficient frontier}; every other point is \emph{dominated}. Among our
+six 2-asset portfolios (equal weights), four are efficient (MSFT + JPM,
+AAPL + JPM, AAPL + XOM, AAPL + MSFT); MSFT + XOM and JPM + XOM are
+dominated. Moving $\lambda$ walks the optimum along this frontier.
 
 \subsection{Asset Universe: AAPL, MSFT, JPM, XOM (2020--2024)}
 
@@ -245,7 +258,39 @@ solution (wrong number of assets) is always worse than any feasible one.
 A safe choice is $\lambda_\text{pen} > \max_{x,\text{feasible}} |C(x)|$.
 
 Expanding and collecting, equation~\eqref{eq:qubo-full} takes the
-standard QUBO form:
+standard QUBO form.
+
+\begin{warningbox}[QUBO Derivation — step by step]
+Since $x_i \in \{0,1\}$, we have $x_i^2 = x_i$.
+Expand the budget penalty (dropping the constant $\lambda_\text{pen}K^2$):
+\[
+    \lambda_\text{pen}\!\left(\sum_i x_i - K\right)^{\!2}
+    \;\longrightarrow\;
+    \lambda_\text{pen}(1-2K)\!\sum_i x_i
+    \;+\; 2\lambda_\text{pen}\!\sum_{i<j} x_i x_j.
+\]
+Adding the financial objective and grouping:
+\begin{itemize}
+  \item \textbf{Diagonal} ($i=j$): coefficient of $x_i$ is
+        $\lambda\Sigma_{ii} - \mu_i + \lambda_\text{pen}(1-2K)$.
+  \item \textbf{Off-diagonal} ($i<j$, one occurrence): coefficient of $x_ix_j$ is
+        $2\lambda\Sigma_{ij} + 2\lambda_\text{pen}$.
+\end{itemize}
+Convention note: because the full product $x^TQx = \sum_{i,j}Q_{ij}x_ix_j$ counts
+each unordered pair twice, the symmetric matrix entry $Q_{ij}$ ($i\neq j$) in
+equation~\eqref{eq:Q} carries \emph{half} of the $i<j$ coefficient above — the
+risk part and the penalty part alike — giving
+$Q_{ij}=\lambda\Sigma_{ij}+\lambda_\text{pen}$.
+With this scaling,
+\[
+    x^TQx \;=\; C(x) \;+\; \lambda_\text{pen}\!\left(\sum_i x_i - K\right)^{\!2}
+    \;-\; \lambda_\text{pen}K^2 .
+\]
+On a feasible portfolio the penalty vanishes, so $x^TQx = C(x) - \lambda_\text{pen}K^2$:
+a constant shift, identical for every feasible $x$, which does not affect the ranking.
+Every infeasible portfolio pays a strictly positive penalty — that is what enforces
+the budget constraint.
+\end{warningbox}
 
 \begin{equation}
     \min_{x\in\{0,1\}^n}\; x^T Q\, x,
@@ -292,16 +337,20 @@ the negative diagonal terms reflect the return incentive.
 \subsection{Classical Brute-Force Baseline}
 
 For $n=4$, $K=2$ we can enumerate all $\binom{4}{2}=6$ portfolios
-exactly. Table~\ref{tab:bf} shows the cost $x^T Qx$ and the
-corresponding financial interpretation.
+exactly. Table~\ref{tab:bf} shows the financial cost
+$C(x)=\lambda x^T\Sigma x - \boldsymbol\mu^T x$ for each feasible
+portfolio. (All feasible portfolios satisfy the budget constraint, so the
+penalty term is zero and $C(x)$ equals the QUBO cost up to the constant
+$\lambda_\text{pen}K^2=12$; only differences matter for ranking.)
 
 \begin{table}[H]
 \centering
-\caption{Brute-force enumeration of all 2-asset portfolios ($\lambda=1$).}
+\caption{Brute-force enumeration of all 2-asset portfolios ($\lambda=1$).
+Portfolio vector $x=[x_0,x_1,x_2,x_3]$ shown in AAPL/MSFT/JPM/XOM order.}
 \label{tab:bf}
 \begin{tabular}{clcc}
     \toprule
-    Bitstring $x$ & Assets selected & Cost $x^TQx$ & Rank \\
+    Portfolio vector $x$ & Assets selected & Financial cost $C(x)$ & Rank \\
     \midrule
     $\cblu{1100}$ & \cblu{AAPL + MSFT} & $\cblu{-0.335}$ & \cblu{1 (optimal)} \\
     $1001$ & AAPL + XOM        & $-0.313$ & 2 \\
@@ -337,7 +386,10 @@ too volatile.
 
 \subsection{QUBO $\to$ Ising Hamiltonian}
 
-Substituting $x_i = (1 - Z_i)/2$ into equation~\eqref{eq:qubo}:
+Substituting $x_i = (1 - Z_i)/2$ into equation~\eqref{eq:qubo}.
+Note that the eigenvalue of $Z_i$ on state $|q_i\rangle$ is $+1$ if $q_i=0$ and
+$-1$ if $q_i=1$, so $x_i=(1-Z_i)/2$ maps $x_i=0\leftrightarrow Z_i=+1$ and
+$x_i=1\leftrightarrow Z_i=-1$ consistently.
 
 \begin{align}
     x^T Q\, x &= \sum_{i,j} Q_{ij} x_i x_j
@@ -348,6 +400,11 @@ Substituting $x_i = (1 - Z_i)/2$ into equation~\eqref{eq:qubo}:
     \label{eq:ising-map}
 \end{align}
 
+To collect terms, use: (a) $Z_i^2 = I$ (constant, absorbed into ``const'');
+(b) the $-Z_i$ and $-Z_j$ pieces with symmetric $Q$ give $-\frac{1}{2}\sum_j Q_{ij}$
+as coefficient of $Z_i$; (c) cross terms $Z_iZ_j$ with $i\neq j$ give coefficient
+$Q_{ij}/2$ after accounting for the $1/4$ prefactor and the factor 2 from
+$\sum_{i\neq j} = 2\sum_{i<j}$ (since $Q$ is symmetric).
 Collecting terms, the cost Hamiltonian is:
 
 \begin{equation}
@@ -358,41 +415,83 @@ Collecting terms, the cost Hamiltonian is:
     \label{eq:H-portfolio}
 \end{equation}
 
+A sum of $Z$ and $ZZ$ terms that plays the role of an energy is called an
+\textbf{Ising Hamiltonian} (after a physics model of magnets). The cheapest
+portfolio is its lowest-energy basis state, the \textbf{ground state}:
+minimising cost and finding the ground state are the same task. Because the
+substitution drops a constant, energies of $H_\text{portfolio}$ are the QUBO
+costs shifted by a fixed amount (here $9.2294$): the best cost $-12.3354$
+corresponds to the ground-state energy $-3.1060$.
+
 \begin{bridgebox}
 The structure of $H_\text{portfolio}$ is a sum of $Z_iZ_j$ and $Z_i$
-Pauli operators — \emph{exactly} the same form as the MaxCut Hamiltonian
-in Lab 4. The QAOA circuit implementation is therefore identical:
+Pauli operators. MaxCut in Lab 4 has only $Z_iZ_j$ terms, all with the
+same coefficient; the circuit is built from the same blocks:
 \begin{itemize}
-    \item $e^{-i\gamma Z_i Z_j}$: CNOT\,--\,$R_z(2\gamma)$\,--\,CNOT
-    \item $e^{-i\gamma Z_i}$: $R_z(2\gamma)$ directly
+    \item $e^{-i\gamma J_{ij} Z_i Z_j}$: CNOT\,--\,$R_z(2\gamma J_{ij})$\,--\,CNOT
+    \item $e^{-i\gamma h_i Z_i}$: $R_z(2\gamma h_i)$ directly
     \item $e^{-i\beta H_B}$: $R_x(2\beta)$ on all qubits
 \end{itemize}
-Only the coefficients in front of the Pauli strings change.
+Here the coefficients $J_{ij} = Q_{ij}/2$ and $h_i$ come from the financial
+data, and the single-$Z$ terms are new.
 \end{bridgebox}
 
 \subsection{Explicit Hamiltonian Terms ($n=4$, $\lambda=1$)}
 
 Applying equation~\eqref{eq:H-portfolio} to our $Q$ matrix yields
-the following non-trivial Pauli terms (omitting the constant):
+the following Pauli terms and constant (the same numbers the companion
+notebook prints):
 
 \begin{center}
 \begin{tabular}{lrl}
     \toprule
     Pauli term & Coefficient & Origin \\
     \midrule
-    $Z_0 Z_1$ & $+3.0882$ & AAPL--MSFT covariance + penalty \\
-    $Z_0 Z_2$ & $+3.0470$ & AAPL--JPM covariance + penalty \\
-    $Z_0 Z_3$ & $+3.0305$ & AAPL--XOM covariance + penalty \\
-    $Z_1 Z_2$ & $+3.0408$ & MSFT--JPM covariance + penalty \\
-    $Z_1 Z_3$ & $+3.0255$ & MSFT--XOM covariance + penalty \\
-    $Z_2 Z_3$ & $+3.0441$ & JPM--XOM covariance + penalty \\
-    $Z_0$     & $+0.1568$ & AAPL diagonal term \\
-    $Z_1$     & $+0.0929$ & MSFT diagonal term \\
-    $Z_2$     & $-0.0474$ & JPM diagonal term \\
-    $Z_3$     & $+0.1238$ & XOM diagonal term \\
+    $Z_0 Z_1$ & $+1.5294$ & $Q_{01}/2$ (AAPL--MSFT covariance + penalty) \\
+    $Z_0 Z_2$ & $+1.5156$ & $Q_{02}/2$ (AAPL--JPM covariance + penalty) \\
+    $Z_0 Z_3$ & $+1.5102$ & $Q_{03}/2$ (AAPL--XOM covariance + penalty) \\
+    $Z_1 Z_2$ & $+1.5136$ & $Q_{12}/2$ (MSFT--JPM covariance + penalty) \\
+    $Z_1 Z_3$ & $+1.5085$ & $Q_{13}/2$ (MSFT--XOM covariance + penalty) \\
+    $Z_2 Z_3$ & $+1.5147$ & $Q_{23}/2$ (JPM--XOM covariance + penalty) \\
+    $Z_0$     & $+0.0728$ & $-\tfrac12\sum_j Q_{0j}$ (AAPL) \\
+    $Z_1$     & $+0.0471$ & $-\tfrac12\sum_j Q_{1j}$ (MSFT) \\
+    $Z_2$     & $+0.0022$ & $-\tfrac12\sum_j Q_{2j}$ (JPM) \\
+    $Z_3$     & $+0.0154$ & $-\tfrac12\sum_j Q_{3j}$ (XOM) \\
+    \midrule
+    Constant  & $-9.2294$ & dropped: $x^TQx = H_\text{portfolio} - 9.2294$ \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\noindent Ground-state energy: $-3.1060 = -12.3354 + 9.2294$ (AAPL + MSFT).
+
+\begin{defbox}[QAOA in one box]
+\textbf{QAOA} --- Quantum Approximate Optimization Algorithm (developed in
+full in Lab 4; everything needed here is below).
+\begin{enumerate}
+    \item \textbf{Start:} a Hadamard gate on every qubit gives all $2^4 = 16$
+          bit strings the same probability, $1/16$.
+    \item \textbf{Cost layer} $e^{-i\gamma H_\text{portfolio}}$: gives every bit
+          string a phase proportional to its cost; $\gamma$ is an angle we
+          choose. A phase alone changes no measurement probability. Each
+          $Z_iZ_j$ term is built as CNOT--$R_z$--CNOT: the first CNOT writes
+          ``do bits $i$ and $j$ differ?'' onto qubit $j$, the $R_z$ applies a
+          phase that depends on that answer, and the second CNOT undoes the
+          first. Each single $Z_i$ term is one $R_z$ on qubit $i$.
+    \item \textbf{Mixer layer}: an $R_x(2\beta)$ rotation on every qubit makes
+          bit strings that differ by one flip interfere, and this turns phase
+          differences into probability differences.
+    \item \textbf{Repeat} cost + mixer $p$ times (here $p = 1$ or $2$):
+          $2p$ angles in total.
+    \item \textbf{Tune:} run the circuit many times, average the cost of the
+          outcomes (this average is written $\expect{H}$ and called the
+          \emph{expectation value}), and let an ordinary classical optimizer
+          (COBYLA, a standard derivative-free routine) change the angles to
+          lower that average. Nothing in this step is quantum.
+\end{enumerate}
+The hope is that cheap bit strings end up with high probability. Whether
+that happens here is what Part D reports.
+\end{defbox}
 
 \subsection{QAOA Circuit Structure ($p=1$)}
 
@@ -405,11 +504,10 @@ The $p=1$ QAOA circuit alternates one cost unitary and one mixer:
     H^{\otimes 4}\ket{0000}.
 \end{equation}
 
-The cost unitary decomposes into one $R_z$ gate per $Z_i$ term and
-one CNOT\,--\,$R_z$\,--\,CNOT block per $Z_iZ_j$ term. For $n=4$:
-4 single-qubit + $4 \times 2 = 8$ two-qubit blocks (for $\binom{4}{2}=6$ edges)
-= \textbf{4 $R_z$ + 6 CNOT pairs} per cost layer. Total circuit depth
-for $p=1$: $\mathcal{O}(n^2)$ gates.
+Per cost layer: one CNOT--$R_z$--CNOT block for each of the
+$\binom{4}{2} = 6$ $Z_iZ_j$ terms (12 CNOTs, 6 $R_z$), plus one $R_z$ for
+each of the 4 $Z_i$ terms; the mixer adds one $R_x$ per qubit. The
+two-qubit part grows as $\binom{n}{2} = \mathcal{O}(n^2)$.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Part D: Result Interpretation}
@@ -419,8 +517,10 @@ for $p=1$: $\mathcal{O}(n^2)$ gates.
 
 After QAOA optimisation, we sample the circuit $M$ times and obtain a
 histogram over $2^n = 16$ bitstrings. The \emph{technical} interpretation:
-the state $\ket{1100}$ (AAPL=1, MSFT=1, JPM=0, XOM=0, in Qiskit
-little-endian) should have the highest probability.
+the cheapest portfolio, AAPL + MSFT, is the state $\ket{1100}$ (lab order
+$\ket{q_0q_1q_2q_3}$, convention A1; Qiskit prints \texttt{0011}). Ideally it
+would carry the highest probability; the next subsection shows that here it
+does not.
 
 \begin{finbox}[Technical $\to$ Business Translation]
 \begin{center}
@@ -436,25 +536,36 @@ little-endian) should have the highest probability.
     \bottomrule
 \end{tabular}
 \end{center}
-Infeasible states have high energy due to the penalty term —
-they should appear with near-zero probability after optimisation.
+Infeasible states have high energy due to the penalty term: at $p=1$
+they still carry about 26\% of the probability, at $p=2$ almost none.
 \end{finbox}
 
 \subsection{Approximation Quality and Business Risk}
 
-QAOA with $p=1$ does not always find the exact optimum. Define the
-\emph{success probability} $P^* = P(\ket{1100})$: the probability
-the circuit returns the exact optimal portfolio. For $n=4$, $p=1$:
-$P^* \approx 40$--$60\%$. For production use, we would:
+Define the \emph{success probability} $P^* = P(\ket{1100})$: the
+probability the circuit returns the exact optimal portfolio. With the angles
+optimised in a noiseless simulation (single-$Z$ terms included):
+\begin{itemize}
+    \item $p=1$: about 74\% of the probability sits on the six feasible
+          portfolios, each $\approx 12\%$, so $P^* \approx 12\%$; about 26\%
+          is still infeasible.
+    \item $p=2$: essentially 100\% is feasible, spread almost evenly
+          ($\approx 16.7\%$ each, $P^* \approx 16.5\%$).
+\end{itemize}
+QAOA enforces the budget constraint, but it does not pick the winner: the six
+feasible costs differ by at most $0.21$ and the best two by only $0.023$, far
+below what one or two layers can resolve. The quantum step supplies a
+\emph{shortlist}; the exact cost ranks it. For production use, we would:
 
 \begin{enumerate}
     \item Sample the circuit $M$ times (e.g.\ $M=1000$).
-    \item Take the most frequent \emph{feasible} bitstring as the answer.
-    \item Compare its cost against the top-$k$ classical candidates.
+    \item Keep the \emph{feasible} bitstrings that appear (the shortlist).
+    \item Rank them by their exact cost $C(x)$, not by how often they were
+          measured.
 \end{enumerate}
 
-Increasing $p$ improves $P^*$ but also increases circuit depth and
-susceptibility to hardware noise.
+Increasing $p$ raises the feasible fraction but also increases circuit
+depth and susceptibility to hardware noise.
 
 \subsection{Sensitivity Analysis: Risk Aversion $\lambda$}
 
@@ -476,24 +587,36 @@ The optimal QAOA parameters $(\gamma^*,\beta^*)$ also shift.
 
 \textit{Platform: IBM Quantum Composer ---
 \url{https://quantum.ibm.com/composer}}
+% CHECK-FACT D4: platform URL and UI views not verified
 
 \begin{studentbox}
-\textbf{Visualise the Portfolio Hamiltonian Structure:}
+\textbf{Build one full QAOA layer ($p=1$) by hand.}
+The six $Z_iZ_j$ coefficients are equal to within 1.4\% ($1.5085$--$1.5294$,
+see the Hamiltonian table in Part C), so one angle serves them all. The four
+$Z_i$ terms are at most 5\% of a $ZZ$ term and are omitted here: this is a
+\textbf{declared simplification}, and it changes the feasible fraction by less
+than 0.5 percentage points.
 \begin{enumerate}
-    \item Build a 4-qubit circuit with $H$ on all qubits.
-    \item Add the first $ZZ$ term of $H_\text{portfolio}$
-          (AAPL--MSFT, coefficient $+3.09$):
-          CNOT$(q_0, q_1)$ --- $R_z(2\gamma \cdot 3.09)$ on $q_1$
-          --- CNOT$(q_0, q_1)$, with $\gamma = 0.5$.
-    \item Add the $Z_0$ single-qubit term ($+0.157$):
-          $R_z(2\gamma \cdot 0.157)$ on $q_0$.
-    \item Apply $R_x(2\beta)$ on all four qubits with $\beta = 0.8$.
-    \item Measure and observe the Q-Sphere. The states corresponding
-          to feasible 2-asset portfolios (exactly two 1s) should
-          dominate.
+    \item Put $H$ on $q_0, \dots, q_3$.
+    \item For each of the 6 pairs $(q_i, q_j)$, $i < j$, add
+          CNOT$(q_i, q_j)$ --- $R_z(0.50)$ on $q_j$ --- CNOT$(q_i, q_j)$.
+          These 18 gates are the cost layer with $\gamma \approx 0.16$.
+    \item Add $R_x(-0.56)$ on every qubit. This is the mixer with
+          $\beta \approx -0.28$. If the Composer accepts only positive
+          angles, use $5.72$.
+    \item Open the probabilities view. The six bit strings with exactly two
+          1s now carry $\approx 74\%$ in total ($\approx 12\%$ each).
 \end{enumerate}
-\textbf{Observation:} Even one QAOA layer begins to suppress infeasible
-states. Compare the Q-Sphere with and without the $R_z$ terms.
+Compare with two variants:
+\begin{itemize}
+    \item \textbf{No cost layer} (only $H$, then $R_x$): $37.5\% = 6/16$.
+          The mixer alone does nothing useful.
+    \item \textbf{$R_x(+0.56)$} instead of $R_x(-0.56)$: $\approx 18\%$. The
+          same gates with the opposite sign push probability \emph{away}
+          from the feasible portfolios.
+\end{itemize}
+\textbf{Observation:} the angles are the whole algorithm, and that is why a
+classical optimizer has to tune them.
 \end{studentbox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -509,9 +632,9 @@ are provided:
           the optimum.
     \item \textbf{QAOA Optimisation:} Run QAOA with $p \in \{1,2\}$,
           compare the measured distribution against brute-force.
-    \item \textbf{Business Analysis:} Plot the efficient frontier,
-          extract the top-3 most probable portfolios from the QAOA
-          sample, and compute their actual risk-return profiles.
+    \item \textbf{Business Analysis:} Plot the efficient frontier, rank
+          the feasible portfolios in the QAOA sample by exact cost, and
+          compute the risk-return profiles of the top three.
 \end{enumerate}
 
 \begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
@@ -523,14 +646,15 @@ def build_portfolio_hamiltonian(Q: np.ndarray) -> SparsePauliOp:
     terms = []
     for i in range(n):
         for j in range(i+1, n):
+            # zz_str, z_str: Pauli-label helpers, see notebook
             coeff = Q[i,j] / 2           # ZiZj coefficient
             terms.append((zz_str(i,j,n), coeff))
         z_coeff = -sum(Q[i,:]) / 2       # Zi coefficient
         terms.append((z_str(i,n), z_coeff))
     return SparsePauliOp.from_list(terms).simplify()
 
-# QAOA circuit: identical to Lab 4's build_qaoa_circuit
-# Only H_C = H_portfolio changes; circuit structure is the same
+# QAOA circuit: H layer, then per layer one CNOT-Rz-CNOT per ZZ term,
+# one Rz per Z term, Rx mixer (see notebook)
 \end{lstlisting}
 \end{tcolorbox}
 
@@ -542,17 +666,19 @@ def build_portfolio_hamiltonian(Q: np.ndarray) -> SparsePauliOp:
 
 \begin{table}[H]
 \centering
-\caption{QAOA circuit scaling for portfolio optimization.}
+\caption{Portfolio counts and QAOA circuit size ($n$ assets, $K$ selected;
+one qubit per asset).}
 \label{tab:scaling}
-\begin{tabular}{cccccc}
+\begin{tabular}{ccccc}
     \toprule
-    $n$ & $\binom{n}{K}$ & QAOA qubits & ZZ terms & Classical gates (p=1) \\
+    $n$ & $K$ & Portfolios $\binom{n}{K}$ & ZZ terms $\binom{n}{2}$ & CNOTs per cost layer \\
     \midrule
-    4  & 6          & 4   & 6   & 16  \\
-    6  & 15         & 6   & 15  & 36  \\
-    10 & 252        & 10  & 45  & 100 \\
-    20 & 184,756    & 20  & 190 & 400 \\
-    50 & $\sim 10^{12}$ & 50  & 1,225 & 2,500 \\
+    4  & 2  & 6                         & 6     & 12    \\
+    6  & 3  & 20                        & 15    & 30    \\
+    10 & 5  & 252                       & 45    & 90    \\
+    20 & 10 & 184{,}756                 & 190   & 380   \\
+    50 & 10 & $\approx 1.0 \times 10^{10}$ & 1{,}225 & 2{,}450 \\
+    50 & 25 & $\approx 1.3 \times 10^{14}$ & 1{,}225 & 2{,}450 \\
     \bottomrule
 \end{tabular}
 \end{table}
@@ -560,9 +686,11 @@ def build_portfolio_hamiltonian(Q: np.ndarray) -> SparsePauliOp:
 The QAOA circuit grows as $\mathcal{O}(n^2)$ gates (from the $\binom{n}{2}$
 ZZ interaction terms), while the classical search space grows as
 $\binom{n}{K} \sim n^K / K!$. For $n=20$, $K=5$: classical brute-force
-checks $\sim\!10^5$ portfolios (fast classically); for $n=50$, $K=10$:
-$\sim\!10^{12}$ (intractable). The QAOA circuit for $n=50$ requires
-only $1225$ two-qubit gates per layer — within reach of near-term hardware.
+checks $\binom{20}{5} = 15{,}504 \approx 1.6 \times 10^4$ portfolios (fast
+classically); for $n=50$, $K=10$: $\approx 1.0 \times 10^{10}$ (impractical
+to enumerate). The QAOA circuit for $n=50$ needs $\binom{50}{2} = 1225$
+CNOT--$R_z$--CNOT blocks, i.e.\ $2450$ CNOTs per layer: small in gate count,
+but see the noise estimate below.
 
 \subsection{Limitations and Open Questions}
 
@@ -570,9 +698,9 @@ only $1225$ two-qubit gates per layer — within reach of near-term hardware.
     \item \textbf{Barren plateaus:} For $n \gtrsim 50$, the QAOA landscape
           may be exponentially flat, requiring problem-informed initial
           parameters.
-    \item \textbf{Hardware noise:} The $\sim\!1225$ CX gates at $n=50$
-          with $\sim\!0.5\%$ error each give an overall fidelity of
-          $0.995^{1225} \approx 0.002$ — noise dominates.
+    \item \textbf{Hardware noise:} The $2450$ CX gates of one layer at
+          $n=50$, with $\sim\!0.5\%$ error each, give an overall fidelity of
+          $0.995^{2450} \approx 5 \times 10^{-6}$ — noise dominates.
     \item \textbf{Quantum advantage:} Not yet demonstrated for portfolio
           optimization. Active research area (JPMorgan, Goldman Sachs,
           IBM Research).
@@ -612,27 +740,26 @@ origin of the $Z_iZ_j$ terms?
 
 \vspace{0.3cm}
 \textbf{Q3.\ Result Interpretation}\\
-A QAOA circuit for the 4-asset portfolio returns the histogram:
-$P(\ket{1100})=0.45$, $P(\ket{1001})=0.22$, $P(\ket{0011})=0.15$,
-all others $< 0.05$. What is the recommended decision, and why is the
-second-most-probable state a useful output?
+At $p = 2$ the QAOA circuit for the 4-asset problem returns each of the
+six feasible bit strings with probability $\approx 16$--$17\%$ and almost
+nothing else. What should the analyst recommend?
 \begin{itemize}
-    \item[A)] Always select $\ket{1100}$; all other states are errors.
-    \item[B)] Select $\ket{1100}$ as primary; $\ket{1001}$ is a useful
-              second-best feasible portfolio that can serve as a
-              diversification alternative.
-    \item[C)] Re-run the circuit until one state reaches $>99\%$ probability.
+    \item[A)] The most frequent bit string in the sample.
+    \item[B)] Among the feasible bit strings, the one with the lowest exact
+              cost $C(x)$ --- AAPL + MSFT --- with the next-lowest
+              (AAPL + XOM) as the alternative.
+    \item[C)] Re-run with more shots until one bit string exceeds 99\%.
 \end{itemize}
 
 \vspace{0.3cm}
 \textbf{Q4.\ Scaling}\\
 For $n=50$ assets and $K=10$, the classical brute-force requires
-$\binom{50}{10} \approx 10^{10}$ cost evaluations. How many two-qubit
-gates does the QAOA circuit for $n=50$ require per layer $p$?
+$\binom{50}{10} \approx 10^{10}$ cost evaluations. How many CNOT gates
+does one QAOA layer need for $n = 50$?
 \begin{itemize}
     \item[A)] $n = 50$
     \item[B)] $n^2 = 2500$
-    \item[C)] $\binom{n}{2} = 1225$ (one CNOT pair per ZZ interaction term)
+    \item[C)] $2\binom{n}{2} = 2450$ (one CNOT pair per $Z_iZ_j$ term)
 \end{itemize}
 
 \vspace{1cm}
@@ -642,15 +769,13 @@ gates does the QAOA circuit for $n=50$ require per layer $p$?
 Q1: B (the Ising Hamiltonian is $\sum_i h_i Z_i + \sum_{ij} J_{ij} Z_iZ_j$;
     the penalty converts the constraint into this Pauli-operator form);
 Q2: B (the $Q_{ij}$ for $i\neq j$ contains $\lambda\Sigma_{ij}$ from
-    the risk term plus $2\lambda_\text{pen}$ from the penalty, both
+    the risk term plus $\lambda_\text{pen}$ from the penalty, both
     contributing to the $Z_iZ_j$ coefficient after the substitution
     $x_i=(1-Z_i)/2$);
-Q3: B (in real applications the QAOA output is a probability distribution
-    over solutions; the second-most-probable feasible state is a legitimate
-    portfolio recommendation, not noise — it represents the second-best
-    risk-return trade-off found by the algorithm);
-Q4: C ($\binom{50}{2} = 1225$ ZZ terms each requiring one CNOT pair,
-    giving $2\times 1225 = 2450$ CNOT gates per layer, plus 50 $R_z$
-    gates; total $\mathcal{O}(n^2)$).}
+Q3: B (shot counts differ here only by sampling noise; QAOA supplied the
+    feasible shortlist, and the exact cost ranks it);
+Q4: C ($\binom{50}{2} = 1225$ $Z_iZ_j$ terms, each built as
+    CNOT--$R_z$--CNOT, give $2\times 1225 = 2450$ CNOTs per layer, plus
+    $1225 + 50$ single-qubit $R_z$ and $50$ $R_x$; total $\mathcal{O}(n^2)$).}
 
 \end{document}

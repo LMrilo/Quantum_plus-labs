@@ -48,6 +48,8 @@
             padding:22px; margin:18px 0; border-radius:6px; }
         .fin-box     { background:#e8f5e9; border-left:5px solid #388e3c;
             padding:18px; border-radius:6px; margin-bottom:18px; }
+        .def-box     { background:#e8f5e9; border-left:5px solid #388e3c;
+            padding:18px; border-radius:6px; margin-bottom:18px; }
         .bridge-box  { background:linear-gradient(135deg,#f3e5f5,#ede7f6);
             border-left:5px solid var(--clr-purple);
             padding:24px; border-radius:8px; margin:24px 0;
@@ -128,11 +130,13 @@
             <i class="fa-solid fa-chart-line"></i> Quantum Portfolio Optimization
         </h1>
         <p class="lead mt-2 text-white-50">
-            Finance &amp; Industry Applications — QUBO, QAOA, and Real Asset Data
+            Finance &amp; Industry Applications — QUBO (Quadratic Unconstrained Binary Optimization),
+            QAOA (Quantum Approximate Optimization Algorithm), and Real Asset Data
         </p>
         <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
             <span class="hero-badge"><i class="fa-regular fa-clock"></i> 75 min</span>
-            <span class="hero-badge"><i class="fa-solid fa-book"></i> Prerequisites: Lab 4</span>
+            <span class="hero-badge"><i class="fa-solid fa-book"></i> Prerequisites: Labs 1–2 (Lab 4 helpful, not required)</span>
+            <span class="hero-badge"><i class="fa-solid fa-graduation-cap"></i> No finance background needed</span>
             <span class="hero-badge"><i class="fa-solid fa-briefcase"></i> AAPL · MSFT · JPM · XOM</span>
             <span class="hero-badge"><i class="fa-solid fa-link"></i> QUBO → QAOA</span>
         </div>
@@ -144,12 +148,17 @@
     <!-- Intro -->
     <div class="row mb-4"><div class="col-lg-10 mx-auto text-center">
         <p class="fs-5 text-secondary">
-            You built QAOA for MaxCut in Lab 4. This lab applies the
-            <strong>same algorithm</strong> to a real financial problem:
-            selecting the optimal 2-asset portfolio from
-            {AAPL, MSFT, JPM, XOM}. The quantum circuit changes only in its
-            Hamiltonian — every technique (parameter-shift, COBYLA, QUBO
-            mapping) is a direct carry-over.
+            This lab applies a quantum optimization algorithm to a real
+            financial problem: selecting the best 2-asset portfolio from
+            {AAPL, MSFT, JPM, XOM}. Everything it needs beyond Labs 1–2 is
+            explained on this page. If you did Lab 4, you have met the same
+            algorithm on a small graph problem, and the optional boxes point
+            out the connections. The route has three steps: write the
+            investment choice as a cost over 0/1 decisions (a
+            <strong>QUBO</strong>, Part A), rewrite that cost as an operator on
+            qubits (an <strong>Ising Hamiltonian</strong>, see "From bits to
+            qubits" before Part C), and let a short quantum circuit
+            (<strong>QAOA</strong>) search for the cheapest bit string (Part C).
         </p>
     </div></div>
 
@@ -159,12 +168,14 @@
                 <i class="fa-solid fa-scale-balanced text-warning"></i>
                 &nbsp;The Scaling Argument
             </h5>
-            <p class="mb-0">For $n=4$, $K=2$: only 6 portfolios — trivially
-            classical. For $n=50$, $K=10$: $\sim\!10^{10}$ portfolios —
-            classical brute-force infeasible. QAOA scales as
-            $\mathcal{O}(n^2)$ gates per layer; classical optimizers hit
-            an exponential wall. This lab builds the foundations for that
-            future advantage.</p>
+            <p class="mb-0">For $n = 4$, $K = 2$ there are only 6 portfolios,
+            and a laptop checks them all instantly. For $n = 50$, $K = 10$
+            there are $\binom{50}{10} \approx 10^{10}$: checking every one
+            becomes impractical, and real desks use classical heuristics
+            instead. QAOA's circuit grows only as $\mathcal{O}(n^2)$ gates per
+            layer, which is why it is studied for this problem. Whether it can
+            beat the best classical heuristics is an open research question.
+            This lab shows what it does and does not deliver today.</p>
         </div>
     </div></div>
 
@@ -173,10 +184,42 @@
         <i class="fa-solid fa-table-cells section-icon"></i>
         Part A: Interactive QUBO Builder
     </h2>
+
+    <div class="def-box">
+        <strong>Symbols and finance terms used on this page</strong>
+        <ul class="mt-2 mb-0">
+            <li><strong>The four assets</strong>: AAPL (Apple), MSFT (Microsoft), JPM (JPMorgan Chase),
+            XOM (ExxonMobil). All figures are annualised, estimated from 2020–2024 prices.</li>
+            <li><strong>$x_i \in \{0,1\}$ (decision)</strong>: $x_i = 1$ means asset $i$ is in the portfolio.
+            A portfolio is a 4-bit string $x$. <em>Declared simplification:</em> each chosen asset receives
+            the same amount of money; choosing weights (the full Markowitz problem) is not modelled.</li>
+            <li><strong>$K$ (budget)</strong>: how many assets we must pick. Here $K = 2$, so exactly two
+            $x_i$ equal 1: $\binom{4}{2} = 6$ possible portfolios.</li>
+            <li><strong>$\mu_i$ (expected return)</strong>: the average yearly gain of asset $i$
+            (AAPL: $\mu = 0.34$, i.e. 34% a year). $\mathrm{diag}(\mu)$ is the matrix with the $\mu_i$ on its
+            diagonal and zeros elsewhere.</li>
+            <li><strong>$\Sigma$ (covariance matrix)</strong>: $\Sigma_{ii} = \sigma_i^2$ is the variance of asset $i$;
+            its square root $\sigma_i$ (the volatility; AAPL: 29%) is what this page calls <em>risk</em>.
+            $\Sigma_{ij}$ ($i \neq j$) measures how assets $i$ and $j$ move together: large and positive means they
+            tend to rise and fall together, so holding both diversifies little.</li>
+            <li><strong>$\lambda$ (risk aversion)</strong>: how much one unit of variance costs compared with one unit
+            of return. Slider left (small $\lambda$): growth-seeking investor; slider right: cautious investor.</li>
+            <li><strong>$\lambda_\mathrm{pen}$ and $P$ (budget penalty)</strong>: $P$ has $1 - 2K = -3$ on the diagonal
+            and $1$ everywhere else, so $x^TPx = (\sum_i x_i - K)^2 - K^2$. Every portfolio with exactly $K$ assets
+            receives the same constant $-\lambda_\mathrm{pen}K^2 = -12$; any other count receives more.</li>
+            <li><strong>$Q$ and the cost $x^TQx$</strong>: one number per portfolio,
+            $x^TQx$ $= \lambda\,x^T\Sigma x - \mu^T x + \text{penalty}$; lower is better. Writing the whole problem
+            as one such matrix over 0/1 variables is called a <strong>QUBO</strong>
+            (Quadratic Unconstrained Binary Optimization).</li>
+        </ul>
+    </div>
+
     <p>Adjust the risk-aversion parameter $\lambda$ and observe how the
     QUBO matrix $Q$ changes and which portfolio becomes optimal.
-    Matrix diagonal (self-risk minus return): green. Off-diagonal (cross-risk
-    plus penalty): neutral.</p>
+    Diagonal (own risk − return + budget penalty): green if negative.
+    Off-diagonal (joint risk + budget penalty): neutral.</p>
+
+    <p class="small mb-3"><strong>How to read the numbers.</strong> Each diagonal entry has three pieces: $Q_{ii} = \lambda\Sigma_{ii} - \mu_i + \lambda_\mathrm{pen}(1-2K)$. At $\lambda = 1$, AAPL gives $0.0841 - 0.340 - 9$ $= -9.2559$: the $-9$ is the budget penalty, and the small remainder $-0.2559$ is the finance. Likewise every two-asset portfolio's cost is its finance cost $\lambda\,x^T\Sigma x - \mu^T x$ plus the same constant $-\lambda_\mathrm{pen}K^2 = -12$; AAPL+MSFT's $-12.3354$ is $-0.3354 - 12$. The constant never changes the ranking. Only the last digits matter, and they are close: at $\lambda = 1$ all six portfolios lie within $0.21$ of each other.</p>
 
     <div class="task-box">
         <div class="task-header">
@@ -231,6 +274,15 @@
     Adjust $\lambda$ to see how the optimal choice shifts between
     growth-oriented and defensive portfolios.</p>
 
+    <p><strong>Efficient frontier.</strong> A portfolio is <em>efficient</em> if
+    no other portfolio offers a higher expected return for the same or lower
+    risk. The efficient ones, drawn in the risk–return plane, form the
+    <em>efficient frontier</em>; every other point is <em>dominated</em>. Here
+    four of the six pairs are efficient (MSFT+JPM, AAPL+JPM, AAPL+XOM,
+    AAPL+MSFT). MSFT+XOM and JPM+XOM are dominated. Moving $\lambda$ walks the
+    optimum along this frontier. The dashed line joins the efficient
+    portfolios.</p>
+
     <div class="task-box">
         <div class="task-header">
             Risk–Return Plane — All 6 Feasible Portfolios
@@ -249,22 +301,25 @@
                            min="5" max="50" value="10">
                     <div id="frontier-legend" class="small"></div>
                     <div class="info-box-interactive mt-3" id="frontier-info" style="font-size:.85rem;">
-                        Hover over a point to see portfolio details.
+                        Move the $\lambda$ slider: the ringed point (★) is the cheapest
+                        portfolio at that risk aversion; the list above ranks all six.
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <p><strong>From bits to qubits.</strong> A qubit measured in the computational basis gives 0 or 1, exactly one decision bit $x_i$. The Pauli operator $Z_i$ has value $+1$ on $|0\rangle$ and $-1$ on $|1\rangle$, so $x_i = (1 - Z_i)/2$ is 0 or 1 in the same cases. Substituting this into the cost gives an operator $H_C$ whose value on the basis state $|x\rangle$ is the portfolio cost, up to a constant. Pairs of assets become $Z_iZ_j$ terms with coefficient $Q_{ij}/2$, and each asset alone becomes a $Z_i$ term with coefficient $h_i = -\tfrac12\sum_j Q_{ij}$. A sum of $Z$ and $ZZ$ terms that plays the role of an energy is called an <strong>Ising Hamiltonian</strong> (after a physics model of magnets). The cheapest portfolio is its lowest-energy basis state, the <strong>ground state</strong>: minimising cost and finding the ground state are the same task. Because the substitution drops a constant, energies of $H_C$ are the QUBO costs shifted by a fixed amount (here $9.2294$): the best cost $-12.3354$ corresponds to the ground-state energy $-3.1060$.</p>
+
     <!-- ═══════════════════════ PART C: QAOA RESULT ══════════════════════════ -->
     <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
         <i class="fa-solid fa-wave-square section-icon"></i>
         Part C: QAOA Result Simulator
     </h2>
-    <p>Step through the QAOA algorithm for the portfolio Hamiltonian.
-    The histogram shows how probability concentrates from a uniform
-    distribution (Step 1) to the optimal portfolio $|0011\rangle$
-    (AAPL + MSFT, in Qiskit little-endian: q$_0$=AAPL=1, q$_1$=MSFT=1) after optimisation (Step 4).</p>
+
+    <div class="def-box"><strong>QAOA in one box</strong> — Quantum Approximate Optimization Algorithm (developed in full in Lab 4; everything needed here is below)<ol class="mt-2 mb-1"><li><strong>Start:</strong> a Hadamard gate on every qubit gives all $2^4 = 16$ bit strings the same probability, $1/16$.</li><li><strong>Cost layer</strong> $e^{-i\gamma H_C}$: gives every bit string a phase proportional to its cost; $\gamma$ is an angle we choose. A phase alone changes no measurement probability. Each $Z_iZ_j$ term is built as CNOT–$R_z$–CNOT: the first CNOT writes "do bits $i$ and $j$ differ?" onto qubit $j$, the $R_z$ applies a phase that depends on that answer, and the second CNOT undoes the first. Each single $Z_i$ term is one $R_z$ on qubit $i$.</li><li><strong>Mixer layer</strong>: an $R_x(2\beta)$ rotation on every qubit makes bit strings that differ by one flip interfere, and this turns phase differences into probability differences.</li><li><strong>Repeat</strong> cost + mixer $p$ times (here $p = 1$ or $2$): $2p$ angles in total.</li><li><strong>Tune:</strong> run the circuit many times, average the cost of the outcomes (this average is written $\langle H\rangle$ and called the <em>expectation value</em>), and let an ordinary classical optimizer (COBYLA, a standard derivative-free routine) change the angles to lower that average. Nothing in this step is quantum.</li></ol>The hope is that cheap bit strings end up with high probability. Whether that happens here is what this Part tests.</div>
+
+    <p>What does QAOA actually do with this cost? Step through it. The bars are the probabilities of the 16 bit strings. Watch two numbers: how much probability lands on the six <strong>feasible</strong> portfolios (blue), and whether the cheapest one (green) pulls ahead of the other five.</p>
 
     <div class="task-box">
         <div class="task-header">
@@ -277,7 +332,7 @@
                         <button class="btn btn-primary qaoa-btn" data-step="0"
                                 onclick="setQAOAStep(0)">1. Init</button>
                         <button class="btn btn-outline-primary qaoa-btn" data-step="1"
-                                onclick="setQAOAStep(1)">2. After Oracle (p=1)</button>
+                                onclick="setQAOAStep(1)">2. After cost layer (p=1)</button>
                         <button class="btn btn-outline-primary qaoa-btn" data-step="2"
                                 onclick="setQAOAStep(2)">3. After QAOA (p=1)</button>
                         <button class="btn btn-outline-primary qaoa-btn" data-step="3"
@@ -288,10 +343,9 @@
                          border:1px solid #eee;">
                         <div class="qaoa-bar-area" id="qaoa-bars"></div>
                         <div class="text-center mt-2" style="font-size:.7rem;color:#888;">
-                            Bitstring $|q_3 q_2 q_1 q_0\rangle$, $x_0$=AAPL, $x_1$=MSFT,
-                            $x_2$=JPM, $x_3$=XOM
+                            Bit string $|q_0 q_1 q_2 q_3\rangle$ (lab order, big-endian, convention A1): $q_0$ = AAPL, $q_1$ = MSFT, $q_2$ = JPM, $q_3$ = XOM
                             &ensp;
-                            <span style="color:#2e7d32">■</span> Optimal $|0011\rangle$ (AAPL+MSFT)
+                            <span style="color:#2e7d32">■</span> Optimal $|1100\rangle$ (AAPL+MSFT)
                             &ensp;
                             <span style="color:#1565c0">■</span> Feasible ($K=2$)
                             &ensp;
@@ -312,7 +366,7 @@
     <div class="bridge-box">
         <h5 class="mb-3">
             <i class="fa-solid fa-arrows-rotate" style="color:var(--clr-purple)"></i>
-            &nbsp; From Lab 4 (MaxCut) to Lab 4 Finance (Portfolio) — What Changed
+            &nbsp; Optional: same circuit as Lab 4's MaxCut
         </h5>
         <div class="row g-3">
             <div class="col-md-6">
@@ -330,12 +384,7 @@
                 </div>
             </div>
         </div>
-        <p class="mt-3 mb-0">
-            The QAOA circuit structure — initial $H^{\otimes n}$, cost unitary
-            (CNOT–$R_z$–CNOT per ZZ term), mixer ($R_x$ per qubit) —
-            is <strong>completely unchanged</strong>. Only the rotation angles
-            (proportional to $Q_{ij}$) differ.
-        </p>
+        <p class="mt-3 mb-0">The circuit has the same three stages as in Lab 4: a Hadamard layer ($\mathrm{H}$ on every qubit), a cost layer, and a mixer ($R_x$ on every qubit). The cost layer now has one CNOT–$R_z$–CNOT block per $Z_iZ_j$ term, with angles proportional to $Q_{ij}$, <strong>plus</strong> one $R_z(2\gamma h_i)$ on each qubit for the single-$Z$ terms that carry the return information. You do not need Lab 4 to follow this page; this box is for readers who did it.</p>
     </div>
 
     <!-- ═══════════════════════ PYTHON ════════════════════════════════════════ -->
@@ -353,9 +402,9 @@
             </a>
         </div>
         <div class="task-body">
+            <p>The script prints the cost $x^TQx$ of the six portfolios; each equals the finance cost minus the constant 12 (see Part A).</p>
 <pre><code>import numpy as np, math, itertools
 from qiskit.quantum_info import SparsePauliOp
-from qiskit_aer.primitives import Estimator, Sampler
 
 # ── Real asset data (AAPL, MSFT, JPM, XOM — annualised 2020-2024) ──────────
 MU    = np.array([0.340, 0.270, 0.150, 0.220])
@@ -414,9 +463,9 @@ const LAM_PEN = 3.0;
 const K       = 2;
 const N       = 4;
 
-// All C(4,2)=6 feasible portfolios (K=2)
+// All C(4,2)=6 feasible portfolios (K=2); x = [AAPL, MSFT, JPM, XOM]
 const PORTFOLIOS = [
-    [1,1,0,0], // AAPL+MSFT  → bitstring q3q2q1q0 = 0011 → int 3... 
+    [1,1,0,0], // AAPL+MSFT
     [1,0,1,0], // AAPL+JPM
     [1,0,0,1], // AAPL+XOM
     [0,1,1,0], // MSFT+JPM
@@ -425,24 +474,34 @@ const PORTFOLIOS = [
 ];
 const PORT_NAMES = ['AAPL+MSFT','AAPL+JPM','AAPL+XOM','MSFT+JPM','MSFT+XOM','JPM+XOM'];
 
-// Bitstring index for each portfolio (q0=AAPL, q1=MSFT, q2=JPM, q3=XOM)
-// integer = q0 + 2*q1 + 4*q2 + 8*q3
+// Integer index of each portfolio: q0=AAPL, q1=MSFT, q2=JPM, q3=XOM,
+// integer = q0 + 2*q1 + 4*q2 + 8*q3 (bit q of the integer = qubit q).
+// Every ket the page prints goes through labKet() (lab order |q0 q1 q2 q3>, A1).
 const PORT_IDX = PORTFOLIOS.map(x => x[0] + 2*x[1] + 4*x[2] + 8*x[3]);
-// AAPL+MSFT → [1,1,0,0] → 1+2=3
-// AAPL+JPM  → [1,0,1,0] → 1+4=5
-// AAPL+XOM  → [1,0,0,1] → 1+8=9
-// MSFT+JPM  → [0,1,1,0] → 2+4=6
-// MSFT+XOM  → [0,1,0,1] → 2+8=10
-// JPM+XOM   → [0,0,1,1] → 4+8=12
 
-// Also compute portfolio risk (variance) and return
+// Lab-order label |q0 q1 q2 q3> of integer index i: labKet(3) = '1100' (AAPL+MSFT)
+function labKet(i) {
+    return [0,1,2,3].map(q => (i >> q) & 1).join('');
+}
+
+// Return and risk of the equal-weight portfolio (declared simplification):
+// each chosen asset gets weight 1/K, so risk = sqrt(x^T Sigma x)/K.
 function portfolioStats(x) {
     let ret = 0, variance = 0;
     for(let i=0;i<N;i++) { ret += x[i]*MU[i]; }
     for(let i=0;i<N;i++) for(let j=0;j<N;j++) {
         variance += x[i]*x[j]*SIGMA[i][j];
     }
-    return { ret: ret/K, variance: variance, risk: Math.sqrt(variance) };
+    return { ret: ret/K, variance: variance/(K*K), risk: Math.sqrt(variance)/K };
+}
+
+// Efficient frontier: the portfolios no other portfolio dominates (at least
+// as much return for at most as much risk, strictly better on one of the two).
+function frontierPortfolios() {
+    const pts = PORTFOLIOS.map((x, i) => ({ name: PORT_NAMES[i], ...portfolioStats(x) }));
+    return pts.filter(p => !pts.some(q => q !== p &&
+            q.ret >= p.ret && q.risk <= p.risk && (q.ret > p.ret || q.risk < p.risk)))
+        .map(p => p.name);
 }
 
 /* ── Build QUBO ────────────────────────────────────────────────────────── */
@@ -605,8 +664,9 @@ function drawFrontier(lam) {
     const sorted = [...stats].sort((a,b)=>a.cost-b.cost);
     const optIdx = sorted[0].idx;
 
-    // Draw connecting lines (faint efficient frontier suggestion)
-    const byRisk = [...stats].sort((a,b)=>a.risk-b.risk);
+    // Dashed line: the efficient frontier (non-dominated portfolios, by risk)
+    const onFrontier = new Set(frontierPortfolios());
+    const byRisk = stats.filter(s => onFrontier.has(s.name)).sort((a,b)=>a.risk-b.risk);
     ctx.strokeStyle='rgba(180,180,180,0.4)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
     ctx.beginPath();
     byRisk.forEach((s,i)=>{
@@ -645,10 +705,12 @@ function drawFrontier(lam) {
         if(v>=riskMin&&v<=riskMax)
             ctx.fillText((v*100).toFixed(0)+'%', toX(v)-8, H-PAD.b+14);
     });
+    ctx.textAlign='right';   // right-aligned against the plot, clear of the axis title
     [0.10,0.15,0.20,0.25,0.30].forEach(v=>{
         if(v>=retMin&&v<=retMax)
-            ctx.fillText((v*100).toFixed(0)+'%', 4, toY(v)+4);
+            ctx.fillText((v*100).toFixed(0)+'%', PAD.l-4, toY(v)+4);
     });
+    ctx.textAlign='left';
 }
 
 function renderFrontier(lam) {
@@ -681,119 +743,90 @@ document.getElementById('frontier-slider').addEventListener('input', function(){
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PART C: QAOA RESULT SIMULATOR
  *
- *  Pre-computed distributions reflecting:
- *    Step 0: Uniform (after H^⊗4) — all 16 states equal 1/16
- *    Step 1: After cost oracle — amplitude phases shifted, marginal ~uniform
- *    Step 2: After QAOA p=1 optimised — peaks at feasible states,
- *            strongest at |0011⟩=3 (AAPL+MSFT in little-endian)
- *    Step 3: After QAOA p=2 — more concentrated on optimal
+ *  Step 1 (index 0): Hadamard layer — all 16 bit strings at 1/16.
+ *  Step 2 (index 1): after the cost layer — phases only, still 1/16 each.
+ *  Step 3 (index 2): QAOA p = 1 at QAOA_ANGLES[1].
+ *  Step 4 (index 3): QAOA p = 2 at QAOA_ANGLES[2].
  *
- *  Feasible states (exactly 2 ones in 4 bits):
- *    |0011⟩ = 3  → AAPL+MSFT  ← optimal
- *    |0101⟩ = 5  → AAPL+JPM
- *    |1001⟩ = 9  → AAPL+XOM
- *    |0110⟩ = 6  → MSFT+JPM
- *    |1010⟩ = 10 → MSFT+XOM
- *    |1100⟩ = 12 → JPM+XOM
+ *  QAOA_PROBS is the exact statevector of the notebook's circuit (H layer; per
+ *  layer one CNOT–Rz(2γJ_ij)–CNOT per Z_iZ_j term, one Rz(2γh_i) per Z_i term,
+ *  Rx(2β) mixer) at QAOA_ANGLES, rounded to 4 decimals. Generated offline by
+ *  gen_stepper_probs.py; regenerate it rather than editing the numbers.
  *
- *  Note: bit order in the integer: q0=bit0 (LSB), q3=bit3 (MSB)
- *  x=[AAPL,MSFT,JPM,XOM]=[1,1,0,0] → 1 + 2 + 0 + 0 = 3 = 0b0011
+ *  Arrays are indexed by the integer q0 + 2*q1 + 4*q2 + 8*q3; the bars are drawn
+ *  in lab order |q0 q1 q2 q3> (labKet). Feasible = exactly two 1s:
+ *    labKet(3)  = 1100 AAPL+MSFT (optimum)   labKet(5)  = 1010 AAPL+JPM
+ *    labKet(9)  = 1001 AAPL+XOM              labKet(6)  = 0110 MSFT+JPM
+ *    labKet(10) = 0101 MSFT+XOM              labKet(12) = 0011 JPM+XOM
  * ═══════════════════════════════════════════════════════════════════════════ */
+const QAOA_ANGLES = {
+    1: {gamma: [0.1622], beta: [2.8591]},
+    2: {gamma: [0.1522, 0.4681], beta: [2.8657, 1.4083]},
+};
+const QAOA_PROBS = {   // index = q0 + 2*q1 + 4*q2 + 8*q3
+    1: [0.0072, 0.0303, 0.0300, 0.1238, 0.0294, 0.1236, 0.1230, 0.0319, 0.0292, 0.1238, 0.1233, 0.0323, 0.1216, 0.0321, 0.0319, 0.0067],   // feasible 0.739, <H> -2.1146
+    2: [0.0000, 0.0000, 0.0001, 0.1645, 0.0001, 0.1666, 0.1674, 0.0002, 0.0000, 0.1663, 0.1670, 0.0001, 0.1675, 0.0000, 0.0000, 0.0000],   // feasible 0.999, <H> -3.0280
+};
 const FEASIBLE   = new Set([3, 5, 9, 6, 10, 12]);
-const OPTIMAL_ST = 3;   // |0011⟩ = AAPL+MSFT
+const OPTIMAL_ST = 3;   // labKet(3) = '1100' = AAPL+MSFT
 
 function getQAOAProbs(step) {
-    const probs = new Array(16).fill(0);
-    if(step === 0) {
-        probs.fill(1/16);
-    } else if(step === 1) {
-        // After oracle: marginal still ~uniform (information in entanglement)
-        probs.fill(1/16);
-    } else if(step === 2) {
-        // After QAOA p=1: feasible states boosted, optimal strongest
-        // Approximate values inspired by numerical simulation
-        probs[3]  = 0.44;  // AAPL+MSFT ← optimal
-        probs[9]  = 0.13;  // AAPL+XOM
-        probs[5]  = 0.10;  // AAPL+JPM
-        probs[10] = 0.09;  // MSFT+XOM
-        probs[6]  = 0.08;  // MSFT+JPM
-        probs[12] = 0.05;  // JPM+XOM
-        // Residual infeasible (penalty leakage)
-        [0,1,2,4,7,8,11,13,14,15].forEach(i => probs[i] = 0.005);
-        // Normalise
-        const s = probs.reduce((a,b)=>a+b,0);
-        for(let i=0;i<16;i++) probs[i] /= s;
-    } else {
-        // After QAOA p=2: more concentrated
-        probs[3]  = 0.64;
-        probs[9]  = 0.12;
-        probs[5]  = 0.09;
-        probs[10] = 0.06;
-        probs[6]  = 0.04;
-        probs[12] = 0.02;
-        [0,1,2,4,7,8,11,13,14,15].forEach(i => probs[i] = 0.002);
-        const s = probs.reduce((a,b)=>a+b,0);
-        for(let i=0;i<16;i++) probs[i] /= s;
-    }
-    return probs;
+    if(step === 0 || step === 1) return new Array(16).fill(1/16);   // phases only after the cost layer
+    return QAOA_PROBS[step - 1].slice();                             // step 2 → p=1, step 3 → p=2
 }
 
 const QAOA_INFO = [
-    `<strong>1. Initialisation (H$^{\\otimes 4}$)</strong> —
-     All 16 bitstrings are equally probable at $1/16 = 6.25\\%$.
+    `<strong>1. Initialisation (Hadamard layer: $\\mathrm{H}$ on every qubit)</strong> —
+     All 16 bit strings are equally probable at $1/16 = 6.25\\%$.
      <span class="d-block mt-1" style="font-size:.87rem;color:#444">
      <strong>Why start here?</strong>
-     The uniform superposition is the quantum analogue of a classical solver
-     that considers all candidates simultaneously. Without it the circuit
-     starts in $|0000\\rangle$ — no assets selected — and has no way to
-     explore other portfolios. The $H$ gate on each qubit is the only way
-     to put all $2^4=16$ bitstrings into equal superposition with a
-     circuit of depth 1.</span>`,
+     Measuring now would return each of the 16 bit strings with probability
+     1/16: the circuit has not yet used any information about the cost.
+     Without the Hadamard layer the circuit starts in $|0000\\rangle$ — no
+     assets selected — and has no way to explore other portfolios.</span>`,
 
-    `<strong>2. After Cost Oracle ($e^{-i\\gamma H_C}$)</strong> —
-     Measurement probabilities are still uniform: the oracle
+    `<strong>2. After the cost layer ($e^{-i\\gamma H_C}$)</strong> —
+     Measurement probabilities are still uniform: the cost layer
      <em>only rotates phases</em>, it does not change amplitudes yet.
      <span class="d-block mt-1" style="font-size:.87rem;color:#444">
-     <strong>Why does the cost oracle use phases?</strong>
+     <strong>Why does the cost layer use phases?</strong>
      Quantum mechanics encodes information in both amplitude and phase.
-     The oracle applies a rotation proportional to the QUBO cost of each
-     bitstring: cheap portfolios (AAPL+MSFT) get a small phase rotation;
+     The cost layer applies a rotation proportional to the QUBO cost of each
+     bit string: cheap portfolios (AAPL+MSFT) get a small phase rotation;
      expensive ones (JPM+XOM) get a large one. At this stage <em>all
      portfolios are still equally measurable</em> — the phase differences
      are invisible to measurement. They become visible only after the mixer
      converts them into amplitude differences.</span>`,
 
-    `<strong>3. After QAOA (p = 1)</strong> —
-     The mixer $e^{-i\\beta H_B}$ converts phase differences into amplitude
-     differences via interference. $|0011\\rangle$ (AAPL+MSFT) reaches
-     $\\approx 44\\%$; infeasible states are suppressed to near zero.
+    `<strong>3. After QAOA (p = 1)</strong> — The mixer turns the phase
+     differences into probability differences. About 74% of the probability
+     now sits on the six feasible portfolios (each ≈ 12–13%); about 26% is
+     still on bit strings with the wrong number of assets. The cheapest
+     portfolio is not visibly ahead.
      <span class="d-block mt-1" style="font-size:.87rem;color:#444">
-     <strong>Why does $R_x(2\\beta)$ help?</strong>
-     The mixer $H_B = \\sum_i X_i$ is the quantum analogue of diffusion:
-     it couples every state to its single-bit-flip neighbours.
-     Combined with the phase structure from the oracle, this creates
-     constructive interference toward low-cost states and destructive
-     interference toward high-cost ones — exactly the Grover-like
-     amplification mechanism. The angle $\\beta \\approx \\pi/4$ is
-     optimal for $p=1$ because it maximises the first-order interference
-     term.</span>`,
+     <strong>Why does $R_x(2\\beta)$ help?</strong> The mixer rotates every
+     qubit a little, so each bit string passes some amplitude to the strings
+     that differ from it by one flip. Those amplitudes arrive carrying the
+     phases the cost layer gave them, and they add up or cancel depending on
+     those phases. With well-chosen angles the cancelling is strongest on bit
+     strings with the wrong number of assets, which the penalty made
+     expensive. The best angles for this problem are found numerically
+     ($|\\beta| \\approx 0.28$ rad here); there is no universal value.</span>`,
 
-    `<strong>4. After QAOA (p = 2)</strong> —
-     A second Oracle–Mixer block refines the distribution.
-     $|0011\\rangle$ reaches $\\approx 64\\%$; the second-best portfolio
-     (AAPL+XOM, $|1001\\rangle$) stays at $\\approx 12\\%$.
+    `<strong>4. After QAOA (p = 2)</strong> — Essentially 100% of the
+     probability is on the feasible portfolios, spread almost evenly
+     (≈ 16.7% each).
+     <span class="d-block mt-1"><strong>Counterintuitive result:</strong> QAOA enforces the "exactly two assets" rule almost
+     perfectly, but it does not pick the winner. The six feasible costs
+     differ by at most 0.21 and the best two by only 0.023, far below what
+     two layers can resolve. In practice the quantum step supplies the
+     shortlist, and the exact cost from Part A ranks it (see notebook
+     Exercise 2).</span>
      <span class="d-block mt-1" style="font-size:.87rem;color:#444">
-     <strong>Why does a second layer help but with diminishing returns?</strong>
-     Each Oracle–Mixer pair applies another rotation in the
-     2D subspace spanned by the optimal and sub-optimal states.
-     The first layer makes a large rotation toward the optimum;
-     the second makes a smaller correction. Beyond $p=2$ the gains
-     are tiny for this 4-asset problem, but the circuit depth doubles —
-     making noise more damaging on real hardware.
-     <strong>Business implication:</strong> in practice you sample
-     the circuit $\\geq 500$ times and take the most frequent
-     <em>feasible</em> bitstring as your recommendation, rather than
-     waiting for 100% certainty.</span>`
+     <strong>Business implication:</strong> sample the circuit a few hundred
+     times, keep the <em>feasible</em> bit strings that appear (the
+     shortlist), and rank them by their exact cost from Part A — not by how
+     often they were measured.</span>`
 ];
 
 // Portfolio map for display
@@ -814,7 +847,8 @@ function setQAOAStep(step) {
     const container = document.getElementById('qaoa-bars');
     container.innerHTML = '';
 
-    for(let i=0;i<16;i++){
+    for(let L=0;L<16;L++){                        // bars in lab order 0000…1111
+        const i      = [0,1,2,3].reduce((a,q) => a | (((L >> (3-q)) & 1) << q), 0);
         const h      = maxP>0 ? (probs[i]/maxP)*BAR_H : 0;
         const isOpt  = i===OPTIMAL_ST;
         const isFeas = FEASIBLE.has(i);
@@ -824,7 +858,7 @@ function setQAOAStep(step) {
         bar.style.height=h+'px'; bar.style.background=color;
         if(isOpt) bar.style.boxShadow='0 0 8px rgba(46,125,50,.5)';
         const lbl = document.createElement('div'); lbl.className='qaoa-lbl';
-        lbl.textContent = i.toString(2).padStart(4,'0');
+        lbl.textContent = labKet(i);
         const pct = document.createElement('div'); pct.className='qaoa-pct';
         pct.textContent = (probs[i]*100).toFixed(0)+'%';
         wrap.append(bar,lbl,pct); container.appendChild(wrap);
@@ -847,11 +881,11 @@ function buildPortfolioLegend() {
     legDiv.innerHTML = items.map((p,rank)=>`
         <div class="d-flex align-items-start gap-2 mb-2">
             <div style="width:12px;height:12px;border-radius:2px;margin-top:3px;
-                background:${rank===0?'#2e7d32':rank===1?'#1565c0':'#78909c'};
+                background:${rank===0?'#2e7d32':'#1565c0'};
                 flex-shrink:0"></div>
             <div style="font-size:.8rem;">
                 <strong>${rank+1}. ${p.name}</strong>
-                (|${p.idx.toString(2).padStart(4,'0')}⟩)<br>
+                (|${labKet(p.idx)}⟩)<br>
                 <span class="text-muted">
                     ret ${(p.stats.ret*100).toFixed(1)}%,
                     risk ${(p.stats.risk*100).toFixed(1)}%
