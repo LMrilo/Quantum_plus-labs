@@ -123,9 +123,25 @@ You should see two bars:
 \end{itemize}
 \end{studentbox}
 
+\noindent\textbf{Correlation is not yet entanglement.} Two coins put in a box, both heads or both
+tails, 50/50, give the same 00/11 histogram. What no pair of separate qubit states can do is
+produce $|\Phi^+\rangle$. Try $(a|0\rangle + b|1\rangle)\otimes(c|0\rangle + d|1\rangle) =
+ac|00\rangle + ad|01\rangle + bc|10\rangle + bd|11\rangle$. To match $|\Phi^+\rangle$ we need
+$ad = 0$ and $bc = 0$ (no 01, no 10), but also $ac \neq 0$ and $bd \neq 0$ (00 and 11 present).
+If $ad = 0$, then $a = 0$ or $d = 0$, and either one makes $ac$ or $bd$ zero: a contradiction, so
+the state cannot be factored. The difference is measurable: apply H to \emph{both} qubits just
+before measuring. $|\Phi^+\rangle$ still gives only 00 and 11, because
+$(H\otimes H)|\Phi^+\rangle = |\Phi^+\rangle$, while the box of coins would give all four
+outcomes, 25\% each. Try it in the Composer.
+
 \begin{composerbox}
 \textbf{Q-Sphere Visualization}\\
-Look at the Q-Sphere. You will see two dots connected or symmetric. Unlike two separate qubits in superposition (which would show 4 dots: 00, 01, 10, 11), an entangled state only shows the correlated outcomes (00 and 11).
+Look at the Q-Sphere: two dots, $|00\rangle$ and $|11\rangle$, same size, same colour. The dots
+tell you which outcomes are possible, and with which sign. They do \textbf{not} tell you on their
+own whether the state is entangled: try H on $q_1$ only, and you also get two dots, yet each qubit
+then has a state of its own. What makes $|\Phi^+\rangle$ special is \emph{which} pair survives: the
+two qubits always agree. As the paragraph \emph{Correlation is not yet entanglement} above shows,
+no choice of separate single-qubit states can produce that.
 \end{composerbox}
 
 \begin{deepdivebox}

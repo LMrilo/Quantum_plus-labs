@@ -311,6 +311,16 @@
                             </ol>
                             <strong>Why is this entangled?</strong> If you measure $q_0$ and get 0, the state collapses
                             to $|00\rangle$ — you <em>know</em> $q_1 = 0$ without measuring it. They are correlated.
+                            <br><br><strong>Correlation is not yet entanglement.</strong> Two coins put in a box,
+                            both heads or both tails, 50/50, give the same 00/11 histogram. What no pair of separate
+                            qubit states can do is produce $|\Phi^+\rangle$. Try
+                            $(a|0\rangle + b|1\rangle)\otimes(c|0\rangle + d|1\rangle) = ac|00\rangle + ad|01\rangle + bc|10\rangle + bd|11\rangle$.
+                            To match $|\Phi^+\rangle$ we need $ad = 0$ and $bc = 0$ (no 01, no 10), but also
+                            $ac \neq 0$ and $bd \neq 0$ (00 and 11 present). If $ad = 0$, then $a = 0$ or $d = 0$, and
+                            either one makes $ac$ or $bd$ zero: a contradiction, so the state cannot be factored.
+                            The difference is measurable: apply H to <em>both</em> qubits just before measuring.
+                            $|\Phi^+\rangle$ still gives only 00 and 11, because $(H\otimes H)|\Phi^+\rangle = |\Phi^+\rangle$,
+                            while the box of coins would give all four outcomes, 25% each. Try it in the Composer.
                         </div>
 
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
@@ -338,10 +348,13 @@
 
                         <div class="qsphere-box" style="margin-top:12px">
                             <strong><i class="fa-solid fa-circle-nodes"></i> Q-Sphere Visualization:</strong>
-                            <br>Look at the Q-Sphere. You will see two dots connected or symmetric.
-                            <br>Unlike two separate qubits in superposition (which would show 4 dots: 00, 01, 10, 11),
-                            an entangled state only shows the correlated outcomes (00 and 11). This visual "sparseness"
-                            is a signature of entanglement.
+                            <br>Look at the Q-Sphere: two dots, $|00\rangle$ and $|11\rangle$, same size, same color.
+                            The dots tell you which outcomes are possible, and with which sign. They do
+                            <strong>not</strong> tell you on their own whether the state is entangled: try H on $q_1$
+                            only, and you also get two dots, yet each qubit then has a state of its own. What makes
+                            $|\Phi^+\rangle$ special is <em>which</em> pair survives: the two qubits always agree. As the
+                            <em>Why is this entangled?</em> box above shows, no choice of separate single-qubit states
+                            can produce that.
                         </div>
                     </div>
 
