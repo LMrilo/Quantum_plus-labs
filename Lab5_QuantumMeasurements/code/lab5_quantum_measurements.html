@@ -184,7 +184,14 @@
         <!--  CONNECTIONS TO PREVIOUS LABS                                       -->
         <!-- ══════════════════════════════════════════════════════════════════ -->
         <div class="col-lg-9 mx-auto mb-5">
-            <h5 class="mb-3"><i class="fa-solid fa-link text-success me-2"></i>Connections to Previous Labs</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-link text-success me-2"></i>If You Took Labs 1–2 (Optional)</h5>
+            <p class="text-secondary">
+                This lab needs only the <em>Fundamental Concepts of Quantum Technologies</em> course. For
+                background, the theory pills <strong>QC03 — The qubit and the Bloch sphere</strong> (qubits,
+                amplitudes, probabilities) and <strong>QC04 — Single-qubit gates</strong> (the $X$, $Z$ and $H$
+                gates) cover what the page uses. If you took the Qiskit labs, the boxes below connect them to this
+                one; nothing in the activities depends on them.
+            </p>
             <div class="connection-box">
                 <span class="lab-link">Lab 1</span>
                 <strong>The Bloch sphere is not new.</strong>
@@ -257,6 +264,13 @@
                     For a qubit in state $|\psi\rangle$ measured in basis $\{|m\rangle\}$,
                     the probability of outcome $m$ follows the Born rule:
                     $$P(m | \psi) = |\langle m | \psi \rangle|^2$$
+                    A <em>basis</em> is the pair of perfectly distinguishable states a measurement question can
+                    answer, such as $\{|0\rangle, |1\rangle\}$.
+                    Here $\langle m | \psi \rangle$ is the <em>amplitude</em> of $|m\rangle$ in $|\psi\rangle$. If
+                    $|\psi\rangle = a|0\rangle + b|1\rangle$ and $|m\rangle = c|0\rangle + d|1\rangle$, then
+                    $\langle m | \psi \rangle = c^{*}a + d^{*}b$, where $c^{*}$ is the complex conjugate of $c$ (change
+                    $i$ into $-i$). Example: for $|m\rangle = |{+}\rangle = (|0\rangle + |1\rangle)/\sqrt2$,
+                    $\langle {+} | \psi \rangle = (a + b)/\sqrt2$.
                     The post-measurement state depends on which procedure is used to perform
                     the measurement (see below).
                 </p>
@@ -269,10 +283,16 @@
                     $$|\psi\rangle = \cos\!\left(\frac{\theta}{2}\right)|0\rangle
                     + e^{i\varphi}\sin\!\left(\frac{\theta}{2}\right)|1\rangle,
                     \qquad \theta \in [0,\pi],\; \varphi \in [0, 2\pi)$$
+                    The two amplitudes are $\cos(\theta/2)$ and $e^{i\varphi}\sin(\theta/2)$, so a measurement in the
+                    $Z$-basis gives $P(0) = \cos^2(\theta/2)$ and $P(1) = \sin^2(\theta/2)$: the polar angle $\theta$
+                    alone fixes them. The factor $e^{i\varphi}$ is a <em>relative phase</em>: invisible to a
+                    $Z$-measurement, visible in the $X$- and $Y$-bases (Activity 2). The half angle $\theta/2$ is what
+                    makes opposite points of the sphere ($\theta = 0$ and $\theta = \pi$) perfectly distinguishable
+                    states. (The theory pill QC03 — The qubit and the Bloch sphere introduces this picture.)
                     The six cardinal states are:
                     $|0\rangle$ (North), $|1\rangle$ (South),
-                    $|{+}\rangle$ ($+X$), $|{-}\rangle$ ($-X$),
-                    $|{+i}\rangle$ ($+Y$), $|{-i}\rangle$ ($-Y$).
+                    $|{\pm}\rangle = (|0\rangle \pm |1\rangle)/\sqrt2$ ($\pm X$),
+                    $|{\pm i}\rangle = (|0\rangle \pm i|1\rangle)/\sqrt2$ ($\pm Y$).
                 </p>
             </div>
 
@@ -285,9 +305,12 @@
                     Measuring in the $Z$-basis gives outcomes $|0\rangle$ or $|1\rangle$.
                     Measuring in the $X$-basis gives $|{+}\rangle$ or $|{-}\rangle$.
                     Measuring in the $Y$-basis gives $|{+i}\rangle$ or $|{-i}\rangle$.
-                    Since $[X, Z] = XZ - ZX = -2iY \neq 0$, $X$ and $Z$
-                    are <strong>incompatible observables</strong> — they share no common eigenbasis,
-                    so sequential measurements in these bases destroy prior information.
+                    ($X$ and $Z$ are the gates of the theory pill QC04 — Single-qubit gates; here they label the three
+                    measurement questions.) The states that give a <em>certain</em> answer to a question are called its
+                    <em>eigenstates</em>. No state gives a certain answer to both the $Z$ and the $X$ question: they
+                    are <strong>incompatible</strong>, so sequential measurements in these bases destroy prior
+                    information. (Optional, for readers who know matrix products:
+                    $[X, Z] = XZ - ZX = -2iY \neq 0$.)
                 </p>
             </div>
 
@@ -305,19 +328,23 @@
                 </p>
                 <p class="mb-2">
                     <strong>Procedure 2 — Rotate, then Z-measure.</strong>
-                    Apply a unitary $U_B$ that rotates basis $B$ to the computational basis,
-                    then perform a Z-measurement. Outcomes are 0 or 1, and the post-measurement
+                    Apply a reversible gate (a <em>unitary</em>) $U_B$ that turns the two states of basis $B$ into
+                    $|0\rangle$ and $|1\rangle$ (the <em>computational</em> basis), then perform a Z-measurement. Outcomes are 0 or 1, and the post-measurement
                     state is $|0\rangle$ or $|1\rangle$ — a Z-eigenstate, NOT a $B$-eigenstate.
                 </p>
                 <p class="mb-2">
                     The canonical rotations are:
                     $$U_X = H, \qquad U_Y = H \cdot S^\dagger, \qquad U_Z = I$$
+                    Here $H$ is the Hadamard gate of the theory pill QC04 — Single-qubit gates
+                    ($H|{+}\rangle = |0\rangle$, $H|{-}\rangle = |1\rangle$); $S^\dagger$ multiplies the amplitude of
+                    $|1\rangle$ by $-i$, which turns $|{\pm i}\rangle$ into $|{\pm}\rangle$; $I$ does nothing.
                 </p>
                 <p class="mb-0">
                     The two procedures give the <strong>same outcome probabilities</strong>
                     (Born rule), but the post-measurement states differ.
-                    Real quantum hardware executes Procedure 2; idealized textbook
-                    derivations often use Procedure 1.
+                    Gate-based quantum processors (such as IBM's) can only execute Procedure 2. Some physical
+                    devices measure directly in their own basis and so realize Procedure 1: a polarizer
+                    (Activity 3), a Stern–Gerlach magnet (Activity 4), and the simulator on this page.
                 </p>
             </div>
 
@@ -458,7 +485,7 @@
                     <strong>Goal:</strong>
                     Build visual intuition for qubit states by placing them on the Bloch sphere and understanding
                     the spherical coordinate parametrization $(\theta, \varphi)$.
-                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ Lab 1:</span> You already moved this vector with X, H, and Z gates. Here you'll see exactly where each state sits on the sphere, and why.</small>
+                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ If you took Lab 1:</span> You already moved this vector with X, H, and Z gates. Here you'll see exactly where each state sits on the sphere, and why.</small>
                 </div>
                 <div class="theory-box">
                     <strong>Theory:</strong> The six cardinal states and their Bloch coordinates:
@@ -497,7 +524,7 @@
                     <strong>Goal:</strong>
                     Measure the same state in the $Z$, $X$, and $Y$ bases and observe how the measurement
                     basis entirely determines the outcome probability distribution.
-                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ Lab 1 — Ex. 3:</span> The Z gate made the dot go red but probabilities stayed 50/50. That phase was invisible because you measured in the Z-basis. This activity shows how changing the basis reveals it.</small>
+                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ If you took Lab 1 — Ex. 3:</span> The Z gate made the dot go red but probabilities stayed 50/50. That phase was invisible because you measured in the Z-basis. This activity shows how changing the basis reveals it.</small>
                 </div>
                 <div class="theory-box">
                     <strong>Theory — Born Rule in Practice:</strong>
@@ -510,7 +537,7 @@
                 <ol>
                     <li>Click <strong>|+⟩</strong> in Quick States. The probability bars show 50% / 50% in the Z-basis — verify this.</li>
                     <li>Switch to the <strong>X-basis</strong>. The bars now show 100% / 0%. Click <strong>Measure!</strong> several times — always the same outcome. Why?</li>
-                    <li>Switch to the <strong>Y-basis</strong>. Bars return to 50% / 50%. Click Measure! — random again.</li>
+                    <li>Switch to the <strong>Y-basis</strong>. Bars return to 50% / 50%. Click Measure! once and note the outcome. Click it again: the same outcome repeats, because the first measurement already left the qubit in that $Y$ state. To see the 50/50 randomness, click <strong>|+⟩</strong> again before <em>every</em> measurement (this is called re-preparing the state).</li>
                     <li>Now try <strong>|−⟩</strong>: same $\theta$, different $\varphi$. In Z-basis: still 50/50. In X-basis: the <em>other</em> eigenstate becomes certain. In Y-basis: 50/50 again.</li>
                     <li>For each trial, record: <em>state → basis → probability bars → observed outcome</em>. Watch how the vector snaps to the collapsed position after each measurement.</li>
                 </ol>
@@ -539,10 +566,16 @@
                     <br>Horizontal polarization $\leftrightarrow |0\rangle$,&nbsp;
                     Vertical polarization $\leftrightarrow |1\rangle$.
                     <br>Diagonal ($45°$) polarization $\leftrightarrow |{+}\rangle = \frac{|0\rangle+|1\rangle}{\sqrt{2}}$.
-                    <br>A polarizer oriented at angle $\alpha$ (relative to the horizontal axis) measures in the basis
-                    $\{|\alpha\rangle, |\alpha+90°\rangle\}$.
+                    <br>Linear polarization at angle $\alpha$ (from the horizontal) is
+                    $|\alpha\rangle = \cos\alpha\,|0\rangle + \sin\alpha\,|1\rangle$. On the Bloch sphere it sits at
+                    $\theta = 2\alpha$, $\varphi = 0$: turning the polarization by $90°$ (horizontal to vertical) moves the
+                    point by $180°$ (north to south pole).
+                    <br>A polarizer oriented at angle $\alpha$ measures in the basis
+                    $\{|\alpha\rangle, |\alpha+90°\rangle\}$ by <em>Procedure 1</em>: a photon that passes is left
+                    polarized at $\alpha$; one that does not pass is absorbed.
                     A photon with initial polarization angle $\alpha_0$ passes with probability $P(\text{pass}) = \cos^2(\alpha - \alpha_0)$
-                    — this is Malus's Law, which is the classical limit of the Born rule.
+                    — this is Malus's law. For a beam of light it gives the transmitted intensity; for a single photon it
+                    is the Born rule: each photon either passes or is absorbed.
                 </div>
                 <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (Quantum Flytrap Virtual Lab):</h6>
                 <ol>
@@ -585,18 +618,23 @@
                     Each Stern-Gerlach apparatus implements <em>Procedure 1</em>: the post-measurement state is
                     the corresponding spin-eigenstate of the chosen axis.
                 </div>
-                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (PhET Stern-Gerlach):</h6>
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (the simulator on this page):</h6>
+                <p class="small text-secondary mb-2">A spin behaves exactly like the qubit on the Bloch simulator
+                    above: a $Z$-oriented apparatus is a measurement in the $Z$-basis, an $X$-oriented one a
+                    measurement in the $X$-basis, and clicking <strong>|0⟩</strong> sends a fresh atom from the
+                    spin-up output of a first $Z$ apparatus. If your browser can still run it, the PhET
+                    Stern-Gerlach simulation (link below; a legacy Flash simulation) shows the same experiment with
+                    beams.</p>
                 <ol>
-                    <li>Open the PhET Stern-Gerlach simulation (link below).</li>
-                    <li>Send atoms through a <strong>Z-oriented</strong> apparatus. Observe the beam splitting into two.</li>
-                    <li>Select only the spin-up output ($|\uparrow_z\rangle = |0\rangle$). Send it through a <strong>second Z apparatus</strong>. Observe: 100% spin-up. The state is known.</li>
-                    <li>Now send the spin-up beam through an <strong>X-oriented</strong> apparatus instead. Observe: 50/50 split. Why? Because $|0\rangle = \frac{1}{\sqrt{2}}(|{+}\rangle + |{-}\rangle)$.</li>
-                    <li>Select only $|{+}\rangle$ from the X apparatus, then send through a third <strong>Z apparatus</strong>. Observe: 50/50 again — the X measurement erased the Z information.</li>
+                    <li>Click <strong>|0⟩</strong> and measure in the <strong>Z-basis</strong>, several times (click |0⟩ before each): always spin-up. A second $Z$ apparatus confirms the first.</li>
+                    <li>Click <strong>|0⟩</strong> and measure in the <strong>X-basis</strong> instead, ten times (click |0⟩ before each): about half $|{+}\rangle$, half $|{-}\rangle$. Why? Because $|0\rangle = \frac{1}{\sqrt{2}}(|{+}\rangle + |{-}\rangle)$.</li>
+                    <li>Now take an atom that came out $|{+}\rangle$ and measure it in the <strong>Z-basis</strong> (a third apparatus). Repeat the whole sequence a few times (click |0⟩, measure in X until the outcome is $|{+}\rangle$, then measure in Z): $|0\rangle$ and $|1\rangle$ come out about 50/50 — the $X$ measurement erased the $Z$ information.</li>
                 </ol>
                 <div class="deepdive-box">
                     <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
-                    How does this sequential Stern-Gerlach experiment demonstrate that $S_x$ and $S_z$ do not commute?
-                    What would you expect if $S_x$ and $S_z$ commuted?
+                    How does this sequential Stern-Gerlach experiment show that the spin-$z$ and spin-$x$ questions are
+                    incompatible? What would you expect if a spin could have a definite $z$ value and a definite $x$
+                    value at the same time?
                 </div>
             </div>
         </div>
@@ -613,58 +651,47 @@
                     Demonstrate that measuring in $Z$, then $X$, then $Z$ again produces random outcomes
                     in the final $Z$ measurement, even if the first $Z$ gave a definite result.
                     This builds concrete intuition for why $X$ and $Z$ are incompatible observables.
-                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ Lab 1 — Ex. 5:</span> H–Z–H gave 100% $|1\rangle$ because the two H gates turned the phase into a measurable bit flip. Here you'll see that inserting a measurement between the H gates destroys that interference.</small>
+                    <br><small class="text-muted"><span style="font-weight:600;color:#16a34a">↳ If you took Lab 1 — Ex. 5:</span> H–Z–H gave 100% $|1\rangle$ because the two H gates turned the phase into a measurable bit flip. Here you'll see that a measurement in the middle destroys that kind of certainty.</small>
                 </div>
 
                 <div class="theory-box">
-                    <strong>Theory — Non-Commutativity:</strong>
-                    $$[X, Z] = X Z - Z X
-                    = \begin{pmatrix}0&1\\1&0\end{pmatrix}\begin{pmatrix}1&0\\0&-1\end{pmatrix}
-                    - \begin{pmatrix}1&0\\0&-1\end{pmatrix}\begin{pmatrix}0&1\\1&0\end{pmatrix}
-                    = \begin{pmatrix}0&-2\\2&0\end{pmatrix} = -2iY \neq 0$$
-                    This means $X$ and $Z$ cannot be simultaneously diagonalized — they have no common eigenstates.
+                    <strong>Theory — Incompatible questions:</strong>
+                    The $Z$ question ("$|0\rangle$ or $|1\rangle$?") and the $X$ question ("$|{+}\rangle$ or $|{-}\rangle$?")
+                    have no common eigenstate: $|0\rangle = (|{+}\rangle + |{-}\rangle)/\sqrt2$ and
+                    $|{+}\rangle = (|0\rangle + |1\rangle)/\sqrt2$, so a state that answers one question for certain answers
+                    the other with 50/50. (Optional, for readers who know matrix products:
+                    $XZ - ZX = \begin{pmatrix}0&-2\\2&0\end{pmatrix} = -2iY \neq 0$.)
                 </div>
 
                 <div class="procedure-box">
                     <strong><i class="fa-solid fa-info-circle me-1"></i>Important — Which Procedure?</strong>
                     <p class="mt-2 mb-1">
-                        IBM Quantum Composer (and real hardware in general) only measures in the
-                        $Z$-basis. To "measure in $X$" we apply the rotation $U_X = H$ first, then
-                        Z-measure. This is <strong>Procedure 2</strong>.
+                        The simulator on this page measures by <strong>Procedure 1</strong>: after the $X$-measurement the
+                        qubit is left in $|{+}\rangle$ or $|{-}\rangle$. A gate-based processor would measure $X$ by
+                        <strong>Procedure 2</strong> — apply $U_X = H$, then Z-measure — and leave $|0\rangle$ or
+                        $|1\rangle$ instead.
                     </p>
                     <p class="mb-0">
-                        <strong>Critical:</strong> after applying $H$ + Z-measurement to a state, the
-                        post-measurement state is $|0\rangle$ or $|1\rangle$ (a Z-eigenstate),
-                        <em>not</em> $|{+}\rangle$ or $|{-}\rangle$. The probabilities match those of
-                        Procedure 1, but the post-state differs. Keep this in mind when analyzing
-                        sequential measurements.
+                        The final $Z$ statistics are the same either way (50/50 across many runs); what differs is the
+                        state in between. Quiz question 3 below asks about the Procedure 2 version.
                     </p>
                 </div>
 
-                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (IBM Quantum Composer):</h6>
+                <h6><i class="fa-solid fa-list-ol me-1"></i>Instructions (the simulator on this page):</h6>
                 <ol>
-                    <li>Open IBM Quantum Composer (link below). Start with $|0\rangle$.</li>
-                    <li><strong>First Z-measurement:</strong> Add a measurement gate. Run. Note the outcome is always $0$. Post-state: $|0\rangle$.</li>
-                    <li><strong>X-measurement (Procedure 2):</strong> Reset and start fresh from $|0\rangle$. Apply $H$, then measure. The outcome is 50/50. The post-state is $|0\rangle$ or $|1\rangle$ — a Z-eigenstate, NOT $|{+}\rangle$ or $|{-}\rangle$.</li>
-                    <li><strong>Second Z-measurement:</strong> After step 3 the qubit is in $|0\rangle$ or $|1\rangle$. A direct Z-measurement now is deterministic per individual run (matches the post-state from step 3). Across many runs, the marginal is 50/50.</li>
-                    <li><strong>Compare to Z→Z→Z:</strong> Start fresh. Measure $Z$ twice in sequence. Outcome is always the same (no destruction).</li>
+                    <li>Click <strong>|0⟩</strong>, select the <strong>Z-basis</strong> and click <strong>Measure!</strong>: always $|0\rangle$. Post-state: $|0\rangle$.</li>
+                    <li><strong>X-measurement:</strong> switch to the <strong>X-basis</strong> (the bars show 50% / 50%) and click Measure!. The vector jumps to $|{+}\rangle$ or $|{-}\rangle$ on the equator.</li>
+                    <li><strong>Second Z-measurement:</strong> switch back to the <strong>Z-basis</strong> (the bars show 50% / 50% again) and click Measure!: $|0\rangle$ or $|1\rangle$. The $X$-measurement erased the $Z$ information.</li>
+                    <li>Repeat steps 1–3 ten times (click <strong>|0⟩</strong> each time) and count how often the last outcome is $|0\rangle$: about half the time.</li>
+                    <li><strong>Compare to Z→Z→Z:</strong> click <strong>|0⟩</strong> and measure in the Z-basis three times in a row. The outcome is always $|0\rangle$: a repeated question does not disturb the answer.</li>
                 </ol>
-
-                <div class="warning-box">
-                    <strong><i class="fa-solid fa-triangle-exclamation me-1"></i>Reading IBM Composer Results — Endianness Note:</strong>
-                    <br>This lab uses <strong>big-endian</strong> ordering throughout: in $|q_0 q_1 \dots q_{n-1}\rangle$,
-                    qubit $0$ is the leftmost bit. <strong>Qiskit (which IBM Composer uses internally) uses little-endian</strong>:
-                    qubit $0$ is the rightmost bit in the displayed bitstring.
-                    <br>For single-qubit experiments this distinction is invisible. But when extending to multi-qubit circuits
-                    (e.g., Lab 2 entanglement, Lab 6 portfolio), reverse the bitstring read from IBM Composer to match this lab's convention:
-                    Qiskit $|10\rangle \leftrightarrow$ lab $|01\rangle$.
-                </div>
 
                 <div class="deepdive-box">
                     <strong><i class="fa-solid fa-magnifying-glass me-1"></i>Reflection:</strong>
                     The probabilities of the final Z measurement are 50/50 (across many runs) because the X-step
-                    randomized the qubit between two Z-eigenstates. Can the subsequent Z measurement ever recover
-                    the original Z information? Why not? What property of $X$ and $Z$ makes this fundamental?
+                    left the qubit in $|{+}\rangle$ or $|{-}\rangle$, each of which gives $0$ or $1$ with probability 1/2.
+                    Can the final Z measurement ever recover the original Z information? Why not? What property of the
+                    two questions makes this fundamental?
                 </div>
             </div>
         </div>
@@ -688,8 +715,7 @@
                     measurement in Z/X/Y bases, and state collapse visualization.
                 </div>
                 <div class="mt-1">
-                    <span class="sim-tag me-1">Activity 1</span>
-                    <span class="sim-tag me-1">Activity 2</span>
+                    <span class="sim-tag me-1">Optional (Activities 1–2 use the simulator on this page)</span>
                 </div>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
@@ -703,7 +729,7 @@
                     University of Colorado Boulder. Simulate electrons through sequential Stern-Gerlach
                     apparatuses oriented along arbitrary axes. Observe beam splitting and spin-state collapse.
                 </div>
-                <div class="mt-1"><span class="sim-tag me-1">Activity 4</span></div>
+                <div class="mt-1"><span class="sim-tag me-1">Activity 4 — optional (legacy Flash)</span></div>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
         </a>
@@ -729,7 +755,7 @@
                     Drag-and-drop quantum circuit builder. Use for single-qubit circuits with sequential
                     measurements to demonstrate non-commutativity and state collapse statistics.
                 </div>
-                <div class="mt-1"><span class="sim-tag me-1">Activity 5</span></div>
+                <div class="mt-1"><span class="sim-tag me-1">Optional, if you took Lab 1: the Activity 5 sequence as a circuit (Procedure 2)</span></div>
             </div>
             <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
         </a>
@@ -772,6 +798,8 @@
                         <p class="small text-secondary mb-2">
                             The Jupyter notebook companion for this lab provides analytical tools:
                             Bloch sphere visualization, Born rule computation, and sequential measurement statistics.
+                            No Qiskit or programming experience is assumed: the notebook opens with a one-screen
+                            reading guide.
                         </p>
                         <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab5/lab5_quantum_measurements.ipynb"
                            class="btn btn-sm colab-btn">
@@ -845,8 +873,8 @@
                 <h5 class="card-title text-primary">3. Non-Commutativity</h5>
                 <p>
                     You prepare $|0\rangle$, measure $Z$ (get $0$, post-state $|0\rangle$), then measure $X$
-                    via Procedure 2 (apply $H$ then Z-meas), then measure $Z$ a final time. What are the
-                    probabilities for the final Z measurement, marginalized over the random middle outcome?
+                    via Procedure 2 (apply $H$, then measure in the Z-basis), then measure $Z$ a final time. What are the
+                    probabilities for the final Z measurement, over many runs (the middle outcome is random)?
                 </p>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="q3" id="q3a" value="wrong">
@@ -1119,7 +1147,7 @@
                 feedback.innerHTML = "<strong>Correct!</strong> <i class='fa-solid fa-check'></i>";
                 if (questionName === 'q1') feedback.innerHTML += " $P(1) = |\\langle 1|\\psi\\rangle|^2 = (1/2)^2 = 1/4$.";
                 if (questionName === 'q2') feedback.innerHTML += " A Z-basis measurement always leaves the qubit in $|0\\rangle$ or $|1\\rangle$ — this is Procedure 2 applied to X-basis (via H), and the post-state is a Z-eigenstate, not an X-eigenstate.";
-                if (questionName === 'q3') feedback.innerHTML += " The X measurement (via H + Z-meas) randomized the qubit between $|0\\rangle$ and $|1\\rangle$, so the marginal of the final Z is 50/50. This is the essence of non-commutativity.";
+                if (questionName === 'q3') feedback.innerHTML += " The X measurement (H, then a Z-basis measurement) left the qubit in $|0\\rangle$ or $|1\\rangle$ at random, so over many runs the final Z gives 0 and 1 half the time each. This is what incompatible questions do.";
                 feedback.className = "feedback correct d-block";
             } else {
                 feedback.innerHTML = "<strong>Incorrect.</strong> <i class='fa-solid fa-xmark'></i>";
@@ -1128,6 +1156,7 @@
                 if (questionName === 'q3') feedback.innerHTML += " Think about what state the X measurement (via Procedure 2) leaves the qubit in, then consider what a final Z measurement gives.";
                 feedback.className = "feedback wrong d-block";
             }
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([feedback]);
         }
     </script>
 </body>
