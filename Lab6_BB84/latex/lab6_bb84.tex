@@ -54,6 +54,7 @@
 \newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title={Reflection Questions}}
 \newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title={Connections to Previous Labs}}
 \newtcolorbox{procedurebox}{colback=red!4!white,colframe=red!70!black,title={Procedure 1 vs Procedure 2}}
+\newtcolorbox{factsbox}{colback=green!5!white,colframe=green!60!black,title={What This Lab Uses from Measurement Theory}}
 
 % Bra-ket shorthands (guarded: never clash with package-provided macros)
 \providecommand{\ket}[1]{|#1\rangle}
@@ -72,8 +73,8 @@
 
 \section{Introduction and Objectives}
 
-In Lab 5 you learned that measuring a qubit in the \emph{wrong} basis gives a random
-outcome and \textbf{irreversibly disturbs the state}. That looked like a limitation.
+You know from the \textit{Fundamental Concepts of Quantum Technologies} course that
+measuring a qubit in the \emph{wrong} basis gives a random outcome and \textbf{irreversibly disturbs the state}. That looked like a limitation.
 In 1984, Bennett and Brassard turned it into a feature: if an eavesdropper cannot
 measure without disturbing, then \textbf{disturbance is evidence of eavesdropping} ---
 and two parties can build a shared secret key whose security rests on physics, not on
@@ -88,26 +89,35 @@ quantum circuits in the companion Qiskit notebook.
 \vspace{0.3cm}
 \noindent\textbf{Prerequisites:}
 \begin{itemize}
-    \item Lab 5: \textit{Quantum Measurements} --- the Born rule, measurement
-          Procedures 1 and 2, and the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$
-          on the Bloch sphere.
+    \item \textit{Fundamental Concepts of Quantum Technologies} (lecture series) --- the
+          Born rule and the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$ on the Bloch sphere.
     \item \textit{Quantum Communication} (lecture series).
     \item Familiarity with Dirac notation: $\ket{\psi}$, $\bra{\phi}$, $\braket{\phi}{\psi}$.
+    \item Lab 5 helpful, not required: \textit{Quantum Measurements} practises the three
+          facts in the box below on a simulator.
 \end{itemize}
 
-\begin{connectionbox}
-\textbf{The Lab 5 bridge.} Everything in BB84 is applied Lab 5:
-\begin{itemize}
-    \item The four signal states are exactly the states $\ket{0}, \ket{1}, \ket{+},
-          \ket{-}$ you placed on the Bloch sphere --- the poles and two equator points.
-    \item The measurement statistics are the Born rule you derived, evaluated at those
-          four states in the $Z$- and $X$-bases (Part B).
-    \item The distinction between \textbf{Procedure 1} (direct basis projection) and
-          \textbf{Procedure 2} (rotate with the canonical rotation $U_X = H$, then
-          $Z$-measure) --- which may have seemed academic --- becomes \emph{operationally
-          decisive} when the eavesdropper must resend a quantum state (Part D).
-\end{itemize}
-\end{connectionbox}
+\begin{factsbox}
+Three facts from the \textit{Fundamental Concepts of Quantum Technologies} course carry
+the whole lab (Lab~5 lets you practise them on a simulator, but you do not need it):
+\begin{enumerate}
+    \item \textbf{A measurement asks one question with two possible answers.}
+          ``Measuring in the $Z$-basis'' asks ``$\ket{0}$ or $\ket{1}$?''; ``measuring in
+          the $X$-basis'' asks ``$\ket{+}$ or $\ket{-}$?''. The Born rule (Part B) gives
+          the probability of each answer.
+    \item \textbf{Measurement changes the state.} Right after a direct measurement the
+          qubit is left in the state that matches the answer it gave --- the
+          \emph{post-measurement state}. What it was before is lost.
+    \item \textbf{Two ways to ask the $X$ question.} Ideally, you ask it directly:
+          \textbf{Procedure 1}, which leaves $\ket{+}$ or $\ket{-}$. Gate-based quantum
+          processors can only ask the $Z$ question, so they first apply the
+          \emph{Hadamard gate} $H$, which turns $\ket{+}$ into $\ket{0}$ and $\ket{-}$
+          into $\ket{1}$ (and vice versa; applying $H$ twice changes nothing), then ask
+          $Z$: \textbf{Procedure 2}, which leaves $\ket{0}$ or $\ket{1}$. Both procedures
+          give the \emph{same probabilities}. They leave \emph{different
+          post-measurement states}, and Part D shows when that matters.
+\end{enumerate}
+\end{factsbox}
 
 \noindent\textbf{Mode:} Interactive Simulator + Qiskit \quad\textbf{Credits:} 1 ECTS
 \quad\textbf{Estimated time:} $\approx$ 10 h
@@ -147,7 +157,7 @@ bit 1 to the $-1$ eigenstate.
     \label{eq:encoding}
 \end{equation}
 
-\noindent with $\ket{\pm} = (\ket{0} \pm \ket{1})/\sqrt{2}$. On the Lab 5 Bloch
+\noindent with $\ket{\pm} = (\ket{0} \pm \ket{1})/\sqrt{2}$. On the Bloch
 sphere these are the poles ($\theta = 0, \pi$) and two equator points
 ($\theta = \pi/2$, $\varphi = 0, \pi$). In the photon-polarization picture they
 correspond to horizontal ($\ket{0}$), vertical ($\ket{1}$), and the two diagonal
@@ -170,13 +180,13 @@ modulus $1/2$.
 \begin{theorybox}
 \textbf{Why this is the security foundation.} A measurement in the wrong basis
 yields a uniformly random outcome --- it extracts \emph{zero} information about the
-encoded bit and (Lab 5!) destroys the original state in the process. Everything
+encoded bit and (fact 2 in the box of the Introduction) destroys the original state in the process. Everything
 that follows is this one fact, exploited systematically.
 \end{theorybox}
 
 \section{Part B: Measurement Statistics --- the Born Table}
 
-Applying the Born rule from Lab 5,
+Applying the Born rule (fact 1 in the box of the Introduction),
 \begin{equation}
     P(m \,|\, \psi; B) = |\braket{m}{\psi}|^2,
     \label{eq:born}
@@ -207,7 +217,8 @@ the bit; mismatched basis $\Rightarrow$ coin-flip outcome, bit erased
 \emph{probabilities}, and these are identical whether the $X$-basis measurement is
 done by \textbf{Procedure 1} (direct projection onto $\{\ket{+}, \ket{-}\}$) or by
 \textbf{Procedure 2} (apply the canonical rotation $U_X = H$, then $Z$-measure ---
-what real hardware does). Lab 5 established this equivalence. Bob keeps only a
+what gate-based quantum processors, such as IBM's, do). This is fact 3 in the box of
+the Introduction. Bob keeps only a
 classical bit, so \emph{for Bob} the choice of procedure is invisible: with
 Procedure 2 the $Z$-outcome $c \in \{0,1\}$ maps to key bit $b = c$ because
 $H\ket{+} = \ket{0}$ and $H\ket{-} = \ket{1}$.
@@ -230,7 +241,7 @@ For each round $i = 1, \dots, n$:
           it through the quantum channel.
     \item \textbf{Bob} draws his own uniform random basis $\beta_i \in \{Z, X\}$ ---
           independently, since he cannot know $\alpha_i$ --- and measures, recording
-          bit $b_i$. (On hardware: Procedure 2 with $U_X = H$.)
+          bit $b_i$. (On a gate-based processor: Procedure 2 with $U_X = H$.)
     \item \textbf{Basis reconciliation:} over an authenticated public channel, Alice
           and Bob announce their \emph{bases} --- never the bits. They keep the
           \textbf{sifted set} $S = \{i : \alpha_i = \beta_i\}$ and discard everything
@@ -324,8 +335,19 @@ her post-measurement state \emph{is} the $\gamma$-basis eigenstate
 $\ket{e_\gamma}$ --- resending it gives the 25\% above. If she measures by
 \textbf{Procedure 2} (apply $U_\gamma$, $Z$-measure), her post-measurement state is
 the computational state $\ket{e}$, and to run the same attack she must
-\textbf{re-encode} it by applying $U_\gamma^\dagger$ before resending. Done
-correctly, the two implementations are indistinguishable --- same states to Bob,
+\textbf{re-encode} it by applying $U_\gamma^\dagger$ before resending.
+
+\medskip
+Here $U_\gamma$ is the rotation Eve applied before her $Z$-measurement: $U_X = H$ for
+an $X$-measurement, and $U_Z = I$ (the identity, ``do nothing'') for a $Z$-measurement.
+$U_\gamma^\dagger$ (read ``$U$ dagger'') is the rotation that \emph{undoes} $U_\gamma$.
+For the $X$-basis that is $H$ itself, because applying $H$ twice returns every state
+unchanged; for the $Z$-basis there is nothing to undo. So ``re-encoding'' simply means:
+\emph{if Eve measured in $X$, she applies $H$ once more before sending}, turning her
+$\ket{0}$ or $\ket{1}$ back into $\ket{+}$ or $\ket{-}$.
+
+\medskip
+Done correctly, the two implementations are indistinguishable --- same states to Bob,
 same $Q = 25\%$.
 
 \medskip
@@ -349,8 +371,15 @@ as-is. Work it through with Table~\ref{tab:born}:
 Every outcome \emph{probability} in her measurement was identical between the two
 procedures --- yet the attack statistics changed, because the
 \emph{post-measurement states} differ and the resent state is a post-measurement
-state. This is the Lab 5 distinction made operational. The simulator's ``naive
-resend'' mode lets you watch the QBER converge to 37.5\% instead of 25\%.
+state. This is the Procedure 1 / Procedure 2 distinction made operational. The
+simulator's ``naive resend'' mode lets you watch the QBER converge to 37.5\% instead
+of 25\%.
+
+\medskip
+In photonic QKD the detector absorbs the photon, so Eve must always prepare a fresh
+one; the naive resend then corresponds to preparing the $Z$-basis state that matches her
+detector reading ($\ket{0}$ or $\ket{1}$) instead of the $\gamma$-basis state --- same
+arithmetic, same 37.5\%.
 \end{procedurebox}
 
 \section{Part E: Catching Eve --- Detection Probability}
@@ -412,7 +441,8 @@ the basis choices, Eve's interference, and the sifted key forming.
 \textbf{Batch Statistics} mode runs thousands of rounds and plots the measured
 statistics against every formula derived above. All runs are seeded: the same seed
 always reproduces the same run. The companion Qiskit notebook rebuilds the same
-protocol with real quantum circuits:\\[4pt]
+protocol with real quantum circuits. No Qiskit or programming experience is assumed:
+the notebook opens with a one-screen reading guide.\\[4pt]
 \url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab6/lab6_bb84.ipynb}
 \end{simulatorbox}
 
@@ -501,7 +531,7 @@ def measure_in_basis(qc: QuantumCircuit, basis: str) -> QuantumCircuit:
 \end{lstlisting}
 
 \noindent The $X$-basis measurement is Procedure 2 with the canonical rotation
-$U_X = H$ --- hardware has no other option. The notebook closes with an optional
+$U_X = H$ --- gate-based processors have no other option. The notebook closes with an optional
 run on real IBM hardware, where you will meet a nonzero QBER \emph{without} any
 Eve, and confront the question real QKD systems face: how do you tell noise from
 eavesdropping?
@@ -557,8 +587,8 @@ then $Z$-measure) and gets outcome 0. Which state does she hold afterwards?
     \item Shor, P. W. \& Preskill, J., ``Simple proof of security of the BB84
           quantum key distribution protocol,'' \textit{Phys.\ Rev.\ Lett.}\
           \textbf{85}, 441 (2000). --- The $\approx 11\%$ threshold cited in Part E.
-    \item Lab 5: \textit{Quantum Measurements} (this series) --- Born rule,
-          Procedures 1 and 2, the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$.
+    \item Lab 5: \textit{Quantum Measurements} (this series, optional) --- more
+          practice with the Born rule and Procedures 1 and 2 on a simulator.
     \item Companion Jupyter notebook:
           \texttt{quantum-labs-2026/lab6/lab6\_bb84.ipynb} (Colab link in Part F).
 \end{itemize}

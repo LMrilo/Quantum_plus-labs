@@ -138,7 +138,7 @@
             The BB84 Protocol — Measurement as a Security Primitive
         </p>
         <div>
-            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Lab 5 (Quantum Measurements) &amp; Quantum Communication course</span>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Fundamental Concepts of Quantum Technologies &amp; Quantum Communication courses (Lab 5 helpful, not required)</span>
             <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
             <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 10 h lab work</span>
             <span class="hero-badge"><i class="fa-solid fa-globe me-1"></i>Mode: Interactive Simulator + Qiskit</span>
@@ -149,13 +149,14 @@
 <div class="container mt-5 pb-4">
 
     <!-- ══════════════════════════════════════════════════════════════════ -->
-    <!--  RATIONALE — THE LAB 5 BRIDGE                                        -->
+    <!--  RATIONALE — WHAT THIS LAB USES FROM MEASUREMENT THEORY             -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <div class="row mb-5">
         <div class="col-lg-9 mx-auto">
             <h2 class="section-title"><i class="fa-solid fa-microscope text-warning me-2"></i>Rationale</h2>
             <p class="fs-5 text-secondary lh-lg">
-                In Lab 5 you learned that measuring a qubit in the <em>wrong</em> basis gives a
+                You know from the Fundamental Concepts of Quantum Technologies course that measuring
+                a qubit in the <em>wrong</em> basis gives a
                 random outcome and <strong>irreversibly disturbs the state</strong>. That looked like
                 a limitation. In 1984, Bennett and Brassard turned it into a feature: if an
                 eavesdropper cannot measure without disturbing, then <strong>disturbance is
@@ -163,13 +164,25 @@
                 whose security rests on physics, not on computational hardness.
             </p>
             <div class="connection-box">
-                <span class="lab-link">LAB 5 BRIDGE</span>
-                Everything in BB84 is applied Lab 5. The four signal states are exactly the states
-                $|0\rangle, |1\rangle, |{+}\rangle, |{-}\rangle$ you placed on the Bloch sphere; the
-                measurement statistics are the Born rule you derived; and the distinction between
-                <strong>Procedure&nbsp;1</strong> (direct basis projection) and <strong>Procedure&nbsp;2</strong>
-                (rotate with $H$, then Z-measure) — which seemed academic — becomes <em>operationally
-                decisive</em> when the eavesdropper must resend a quantum state (Part&nbsp;4).
+                <span class="lab-link">WHAT THIS LAB USES FROM MEASUREMENT THEORY</span>
+                Three facts from the Fundamental Concepts of Quantum Technologies course carry the whole lab
+                (Lab&nbsp;5 lets you practise them on a simulator, but you do not need it):
+                <ol class="mb-0 mt-2">
+                    <li><strong>A measurement asks one question with two possible answers.</strong> "Measuring in
+                        the Z-basis" asks "$|0\rangle$ or $|1\rangle$?"; "measuring in the X-basis" asks
+                        "$|{+}\rangle$ or $|{-}\rangle$?". The Born rule (Part&nbsp;2) gives the probability of each answer.</li>
+                    <li><strong>Measurement changes the state.</strong> Right after a direct measurement the qubit is
+                        left in the state that matches the answer it gave — the <em>post-measurement state</em>. What
+                        it was before is lost.</li>
+                    <li><strong>Two ways to ask the X question.</strong> Ideally, you ask it directly:
+                        <strong>Procedure&nbsp;1</strong>, which leaves $|{+}\rangle$ or $|{-}\rangle$. Gate-based
+                        quantum processors can only ask the Z question, so they first apply the
+                        <em>Hadamard gate</em> $H$, which turns $|{+}\rangle$ into $|0\rangle$ and $|{-}\rangle$ into
+                        $|1\rangle$ (and vice versa; applying $H$ twice changes nothing), then ask Z:
+                        <strong>Procedure&nbsp;2</strong>, which leaves $|0\rangle$ or $|1\rangle$. Both procedures give
+                        the <em>same probabilities</em>. They leave <em>different post-measurement states</em>, and
+                        Part&nbsp;4 shows when that matters.</li>
+                </ol>
             </div>
         </div>
     </div>
@@ -220,7 +233,7 @@
                     $|\psi(1,X)\rangle = |{-}\rangle$ (diagonal ⤡)
                 </div>
                 <div class="text-center mt-2 text-muted" style="font-size:.88rem;">
-                    with $|{\pm}\rangle = (|0\rangle \pm |1\rangle)/\sqrt{2}$ — on the Lab 5 Bloch sphere:
+                    with $|{\pm}\rangle = (|0\rangle \pm |1\rangle)/\sqrt{2}$ — on the Bloch sphere:
                     the poles ($\theta = 0, \pi$) and two equator points ($\theta = \pi/2$, $\varphi = 0, \pi$).
                 </div>
             </div>
@@ -233,7 +246,7 @@
             <div class="theory-box">
                 <strong><i class="fa-solid fa-shield-halved me-1"></i>Why this is the security foundation:</strong>
                 a measurement in the wrong basis yields a uniformly random outcome — it extracts
-                <em>zero</em> information about the encoded bit and (Lab 5!) destroys the original
+                <em>zero</em> information about the encoded bit and (fact 2 in the box at the top) destroys the original
                 state in the process. Everything that follows is this one fact, exploited systematically.
             </div>
         </div>
@@ -247,7 +260,7 @@
             <h2 class="section-title"><i class="fa-solid fa-table-cells text-warning me-2"></i>
                 Part 2: Measurement Statistics — the Born Table</h2>
 
-            <p>Applying the Born rule $P(m \,|\, \psi; B) = |\langle m | \psi \rangle|^2$ from Lab 5
+            <p>Applying the Born rule $P(m \,|\, \psi; B) = |\langle m | \psi \rangle|^2$ (fact 1 in the box at the top)
             to the four BB84 states in both bases gives the complete statistics of the protocol:</p>
 
             <div class="table-responsive mb-3">
@@ -283,8 +296,8 @@
                 The table above lists <em>probabilities</em>, and these are identical whether the X-basis
                 measurement is done by <strong>Procedure 1</strong> (direct projection onto
                 $\{|{+}\rangle, |{-}\rangle\}$) or by <strong>Procedure 2</strong> (apply the canonical
-                rotation $U_X = H$, then Z-measure — what real hardware does). Lab 5 established this
-                equivalence. Bob only keeps a classical bit, so <em>for Bob</em> the choice of procedure
+                rotation $U_X = H$, then Z-measure — what gate-based quantum processors, such as IBM's, do). This is fact 3
+                in the box at the top. Bob only keeps a classical bit, so <em>for Bob</em> the choice of procedure
                 is invisible: with Procedure 2 the Z-outcome $c \in \{0,1\}$ maps to bit $b = c$ because
                 $H|{+}\rangle = |0\rangle$ and $H|{-}\rangle = |1\rangle$.
                 <br><br>
@@ -311,7 +324,7 @@
                     the quantum channel.</li>
                 <li class="mb-2"><strong>Bob</strong> draws his own uniform random basis
                     $\beta_i \in \{Z, X\}$ — independently, since he cannot know $\alpha_i$ — and measures,
-                    recording bit $b_i$. (On hardware: Procedure 2 with $U_X = H$.)</li>
+                    recording bit $b_i$. (On a gate-based processor: Procedure 2 with $U_X = H$.)</li>
                 <li class="mb-2"><strong>Basis reconciliation:</strong> over an authenticated public channel,
                     Alice and Bob announce their <em>bases</em> — never the bits. They keep the
                     <strong>sifted set</strong> $S = \{i : \alpha_i = \beta_i\}$ and discard everything else.</li>
@@ -408,7 +421,16 @@
                 eigenstate $|e_\gamma\rangle$ — resending it gives the 25% above. If she measures by
                 <strong>Procedure 2</strong> (apply $U_\gamma$, Z-measure), her post-measurement state is the
                 computational state $|e\rangle$, and to run the same attack she must <strong>re-encode</strong>
-                it by applying $U_\gamma^\dagger$ before resending. Done correctly, the two implementations
+                it by applying $U_\gamma^\dagger$ before resending.
+                <br><br>
+                Here $U_\gamma$ is the rotation Eve applied before her Z-measurement: $U_X = H$ for an X-measurement,
+                and $U_Z = I$ (the identity, "do nothing") for a Z-measurement. $U_\gamma^\dagger$ (read "U dagger") is
+                the rotation that <em>undoes</em> $U_\gamma$. For the X-basis that is $H$ itself, because applying $H$ twice
+                returns every state unchanged; for the Z-basis there is nothing to undo. So "re-encoding" simply means:
+                <em>if Eve measured in X, she applies $H$ once more before sending</em>, turning her $|0\rangle$ or
+                $|1\rangle$ back into $|{+}\rangle$ or $|{-}\rangle$.
+                <br><br>
+                Done correctly, the two implementations
                 are indistinguishable — same states to Bob, same $Q = 25\%$.
                 <br><br>
                 <strong>But suppose she forgets the re-encoding</strong> and naively resends $|e\rangle$
@@ -424,9 +446,13 @@
                     = \tfrac38 = 37.5\% \;\neq\; 25\% .$$
                 Every outcome <em>probability</em> in her measurement was identical between the two
                 procedures — yet the attack statistics changed, because the <em>post-measurement states</em>
-                differ and the resent state is a post-measurement state. This is the Lab 5 distinction made
+                differ and the resent state is a post-measurement state. This is the Procedure 1 / Procedure 2 distinction made
                 operational. The simulator's "naive resend" mode lets you watch the QBER converge to 37.5%
                 instead of 25%.
+                <br><br>
+                In photonic QKD the detector absorbs the photon, so Eve must always prepare a fresh one; the naive
+                resend then corresponds to preparing the Z-basis state that matches her detector reading ($|0\rangle$
+                or $|1\rangle$) instead of the $\gamma$-basis state — same arithmetic, same 37.5%.
             </div>
         </div>
     </div>
@@ -827,12 +853,13 @@
         <div class="task-body">
             <p>The companion notebook rebuilds everything in this page with real quantum circuits:
             state preparation for the four BB84 states, X-basis measurement as
-            <strong>Procedure 2</strong> ($H$ then Z-measure — hardware has no other option), the full
+            <strong>Procedure 2</strong> ($H$ then Z-measure — gate-based processors have no other option), the full
             $n$-round protocol with sifting, an intercept-resend Eve implemented as
             measure-and-re-prepare, QBER statistics against the 25% theory line, and the detection
             probability against $1 - (3/4)^k$. It closes with an optional run on real IBM hardware —
             where you will meet a nonzero QBER <em>without</em> any Eve, and confront the question
-            real QKD systems face: how do you tell noise from eavesdropping?</p>
+            real QKD systems face: how do you tell noise from eavesdropping? No Qiskit or programming
+            experience is assumed: the notebook opens with a one-screen reading guide.</p>
             <p class="text-muted mb-0" style="font-size:.88rem;">
                 <i class="fa-solid fa-circle-info me-1"></i>All notebook experiments are seeded and
                 reproducible; expected statistics and tolerances are stated inline.</p>
