@@ -146,7 +146,7 @@
             Single Photons, Interference, and Entangled Light — the Hardware of Quantum Technology
         </p>
         <div>
-            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Fundamental Concepts of Quantum Technologies &amp; Labs 5–6</span>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisite: Fundamental Concepts of Quantum Technologies course (Labs 5–6 helpful, not required)</span>
             <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
             <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 10 h lab work</span>
             <span class="hero-badge"><i class="fa-solid fa-globe me-1"></i>Mode: Interactive Optical Bench + Qiskit</span>
@@ -163,25 +163,44 @@
         <div class="col-lg-9 mx-auto">
             <h2 class="section-title"><i class="fa-solid fa-microscope text-warning me-2"></i>Rationale</h2>
             <p class="fs-5 text-secondary lh-lg">
-                Labs 5 and 6 gave you the mathematics of qubits and a protocol built on it. This lab
-                shows you the <strong>hardware those abstractions run on</strong>. A single photon
-                <em>is</em> a qubit — twice over: its <strong>path</strong> through an interferometer
-                is one two-level system, its <strong>polarization</strong> is another. Every device on
-                the optical bench — beam splitter, phase shifter, polarizer — is one of the operators
-                you already know, executed by glass and crystal. And every strange number this lab
-                produces (a coincidence counter pinned at zero, two 50/50 elements composing to
+                This lab shows you the <strong>hardware that quantum information runs on</strong>. A
+                single photon <em>is</em> a qubit — twice over: its <strong>path</strong> through an
+                interferometer is one two-level system, its <strong>polarization</strong> is another.
+                Every device on the optical bench — beam splitter, phase shifter, polarizer — acts on
+                these qubits as a 2×2 matrix (the theory pill QC04 — Single-qubit gates shows how a
+                matrix acts on a qubit), executed by glass and crystal. And every strange number this
+                lab produces (a coincidence counter pinned at zero, two 50/50 elements composing to
                 certainty, a filter that <em>revives</em> blocked light, twin photons that always agree)
-                is a Born-rule computation you have already done abstractly.
+                is a Born-rule computation you will do here, step by step. (If you took Labs 5 and 6,
+                you have met the same mathematics in the abstract.)
             </p>
             <div class="connection-box">
-                <span class="lab-link">LAB 5–6 BRIDGE</span>
-                The path states $|A\rangle, |B\rangle$ and the polarization states $|H\rangle, |V\rangle$
-                are both the Lab 5 computational basis; the diagonal polarizations at ±45° are exactly the
-                Lab 5 X-basis states $|{+}\rangle, |{-}\rangle$. The four BB84 signal states of Lab 6 are
-                <em>physically</em> $|H\rangle, |V\rangle, |{+}\rangle, |{-}\rangle$ — Part C of this lab
-                is the transmitter and receiver hardware of a real QKD link, and Part B's which-path
-                result is Lab 6's "Eve leaves fingerprints" theorem restated as an identity about
-                interference.
+                <span class="lab-link">WHAT THIS LAB USES FROM MEASUREMENT THEORY</span>
+                The qubit, its amplitudes and the Born rule come from the Fundamental Concepts of Quantum
+                Technologies course. For background, the theory pills <strong>QC03 — The qubit and the
+                Bloch sphere</strong> and <strong>QC10 — Current technology: light</strong> (photons as
+                qubits, beam splitters, phase shifters) cover them. Three facts about measurement carry the
+                whole lab (Labs 5 and 6 let you practise them on a simulator, but you do not need them):
+                <ol class="mb-0 mt-2">
+                    <li><strong>A measurement asks one question with two possible answers.</strong> For the
+                        photon's path the question is "arm A or arm B?"; for its polarization it can be
+                        "horizontal $|H\rangle$ or vertical $|V\rangle$?" or "diagonal $|{+}\rangle$ or
+                        anti-diagonal $|{-}\rangle$?" (Part C writes these states out). The Born rule gives
+                        the probability of each answer.</li>
+                    <li><strong>Measurement changes the state.</strong> Right after a direct measurement the
+                        system is left in the state that matches the answer it gave — the
+                        <em>post-measurement state</em>. What it was before is lost. A detector absorbs the
+                        photon, so the story ends there; a polarizer lets it continue, and Part C is built on
+                        that.</li>
+                    <li><strong>Two ways to ask a question.</strong> <strong>Procedure&nbsp;1</strong>, direct
+                        projection: the device answers the question itself and leaves the system in the
+                        matching state (a detector in each output port, or a polarizer).
+                        <strong>Procedure&nbsp;2</strong>, rotate then read: the device first turns the state so
+                        that the question becomes the standard one ("$|H\rangle$ or $|V\rangle$?"), then asks
+                        that. Both procedures give the <em>same probabilities</em>; they leave
+                        <em>different post-measurement states</em>. In optics they are two different pieces
+                        of glass (Part C).</li>
+                </ol>
             </div>
         </div>
     </div>
@@ -251,10 +270,12 @@
             click to each detector — so what does "splits 50/50" mean for <em>one photon</em>?</p>
 
             <p>Quantum mechanics answers with a state, not a story. Write the two output paths as the
-            basis states $|A\rangle$ (transmitted) and $|B\rangle$ (reflected) — the same two-level
-            system as any Lab 5 qubit. A lossless beam splitter must act as a <strong>unitary</strong>
-            on this qubit (unitarity here <em>is</em> energy conservation — the photon must exit
-            somewhere), and the symmetric 50/50 choice is:</p>
+            basis states $|A\rangle$ (transmitted) and $|B\rangle$ (reflected) — a two-level system like
+            any qubit: the <em>dual-rail</em> encoding of QC10 — Current technology: light. A lossless beam
+            splitter must act as a <strong>unitary</strong> on this qubit: a matrix that keeps the total
+            probability equal to 1 for every input and keeps perfectly distinguishable inputs perfectly
+            distinguishable (the photon must exit somewhere, and a photon entering at A must stay
+            distinguishable from one entering at B). The symmetric 50/50 choice is:</p>
 
             <div class="text-center mb-3">
                 $$B = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & i \\ i & 1 \end{pmatrix}
@@ -265,15 +286,24 @@
             <div class="theory-box">
                 <strong><i class="fa-solid fa-circle-info me-1"></i>Why the $i$?</strong> A naive
                 "50/50 without phase", $\frac{1}{\sqrt 2}\bigl(\begin{smallmatrix}1&1\\1&1\end{smallmatrix}\bigr)$,
-                is a singular matrix — it is <em>not a possible physical device</em>, because it would
-                merge two distinguishable inputs into one output and lose a photon in the process. The
-                phase $i$ on reflection is the minimal repair that restores unitarity. This phase
-                convention ($i$ on reflection, used consistently) is fixed for the entire lab — every
-                formula below depends on it, and the simulator uses exactly this matrix.
+                is <em>not a possible physical device</em>: it sends $|A\rangle$ and $|B\rangle$ to the same
+                output state, and on the input $(|A\rangle - |B\rangle)/\sqrt2$ it gives zero, so the photon
+                would simply vanish. The phase $i$ on reflection is the symmetric way to restore unitarity.
+                This phase convention ($i$ on reflection, used consistently) is fixed for the entire lab —
+                every formula below depends on it, and the simulator uses exactly this matrix.
+                <br><br>
+                <strong>Declared difference from QC10.</strong> The theory pill QC10 — Current technology:
+                light writes the 50/50 beam splitter as the Hadamard matrix
+                $H = \frac{1}{\sqrt 2}\bigl(\begin{smallmatrix}1&1\\1&-1\end{smallmatrix}\bigr)$, which
+                places the phases differently (one minus sign instead of a factor $i$ on each reflection).
+                Both describe a real 50/50 splitter: they differ only by fixed phase shifts on arm B just
+                before and just after the splitter. A single splitter gives 1/2, 1/2 either way; in the
+                two-splitter interferometer of Part B the fringe is the same cosine, but the output that is
+                bright at $\varphi = 0$ moves from port B to port A. This lab uses $B$ throughout.
             </div>
 
             <p>Detection at the two output ports is a path-basis measurement — <strong>Procedure 1</strong>
-            from Lab 5, executed destructively (the photon is absorbed by the detector that clicks). The
+            (fact 3 in the box at the top), executed destructively (the photon is absorbed by the detector that clicks). The
             Born rule gives the two outcome probabilities:</p>
 
             <div class="text-center mb-3">
@@ -292,7 +322,7 @@
                 <strong><i class="fa-solid fa-calculator me-1"></i>Formula → number → bench.</strong>
                 $P = \tfrac12, \tfrac12$ and $P_{\text{coinc}} = 0$. In <strong>Preset A</strong>: after
                 10&nbsp;000 photons the tallies land within statistical noise of
-                <strong>5&nbsp;000 / 5&nbsp;000</strong> (the theory overlay shows the exact 50% line),
+                <strong>5&nbsp;000 / 5&nbsp;000</strong> (the detector cards show the theory value 0.5000),
                 while the coincidence counter reads <strong>0 — exactly, after every single photon</strong>.
                 Fire another 10&nbsp;000 and check that the zero is not luck.
             </div>
@@ -361,7 +391,7 @@
             opens two paths, mirrors bring them back together, a <strong>phase shifter</strong>
             $\Phi(\varphi) = \mathrm{diag}(1, e^{i\varphi})$ on arm B models any path-length difference,
             and beam splitter BS2 recombines. (The mirrors add the same phase to both arms — a global
-            phase, dropped.) Step the input $|A\rangle$ through the device:</p>
+            phase: a factor common to every amplitude, invisible in every probability, so we drop it.) Step the input $|A\rangle$ through the device:</p>
 
             <div class="text-center mb-3">
                 $$|A\rangle
@@ -378,9 +408,11 @@
                 $$P(D1) = \cos^2\!\frac{\varphi}{2}, \qquad P(D2) = \sin^2\!\frac{\varphi}{2}$$
             </div>
 
-            <p>At $\varphi = 0$: $P(D1) = 1$ — the 100/0 you just observed. Algebraically this is the
-            composition identity $B^2 = iX$: two symmetric beam splitters are a perfect path swap (up to
-            an overall phase). At $\varphi = \pi$ the same instrument, retuned, sends every photon to D2
+            <p>At $\varphi = 0$: $P(D1) = 1$ — the 100/0 you just observed. Algebraically: multiply the
+            matrix by itself and you get $B^2 = iX$, where $X$ is the NOT gate of QC04 — Single-qubit gates
+            (it swaps the two basis states). So two symmetric beam splitters send $|A\rangle \to i|B\rangle$
+            and $|B\rangle \to i|A\rangle$: a perfect path swap. The common factor $i$ is an <em>overall
+            phase</em>: it multiplies every amplitude equally, so it cancels in every probability. At $\varphi = \pi$ the same instrument, retuned, sends every photon to D2
             instead. Between the extremes the split interpolates as a perfect cosine — fringe visibility
             $\mathcal{V} = (P_{\max} - P_{\min})/(P_{\max} + P_{\min}) = 1$.</p>
 
@@ -429,10 +461,11 @@
             </div>
 
             <p>Model the marking honestly. Between the beam splitters, couple the path qubit to a marker
-            qubit: path A tags the marker into state $|M_A\rangle$, path B into $|M_B\rangle$. We write
-            the two-qubit state as $|\text{path}\,\text{marker}\rangle$ with the <strong>path qubit
-            leftmost</strong> — big-endian ordering, qubit 0 is the leftmost symbol (the companion
-            notebook converts Qiskit's opposite bitstring order before displaying anything). After BS1
+            qubit: path A tags the marker into state $|M_A\rangle$, path B into $|M_B\rangle$. Two qubits
+            together are written as in QC05 — Multiple-qubit systems, as
+            $|\text{path}\,\text{marker}\rangle$ with the <strong>path first and the marker
+            second</strong>: $|A\rangle|M_A\rangle$ means "photon in arm A, marker in $|M_A\rangle$". (The
+            companion notebook explains how its software orders the same symbols.) After BS1
             and the marking:</p>
 
             <div class="text-center mb-3">
@@ -440,8 +473,17 @@
             </div>
 
             <p>Recombine at BS2 and compute $P(D1)$, summing over the marker (read or unread — the
-            arithmetic cannot tell). Everything collapses to one parameter, the overlap
-            $s = \langle M_A|M_B\rangle$:</p>
+            arithmetic cannot tell). Here is the step. BS2 sends each arm to both ports; keep only the
+            part of the state that ends at port B (detector D1). The $|A\rangle$ term gets there by
+            reflection (amplitude $i/\sqrt2$), the $|B\rangle$ term by transmission (amplitude
+            $1/\sqrt2$), so the D1 part of the state is
+            $$\tfrac{i}{2}\,|B\rangle\bigl(|M_A\rangle + e^{i\varphi}|M_B\rangle\bigr).$$
+            Its probability, with every marker outcome added up, is $|\tfrac{i}{2}|^2 = \tfrac14$ times the
+            squared length of the marker vector in brackets: $\tfrac14\bigl(1 + 1 + 2\,s\cos\varphi\bigr)$,
+            where the overlap
+            $s = \langle M_A|M_B\rangle$ is taken real. The two marker states enter <em>only</em> through
+            their overlap — that is why nobody needs to read them. Everything collapses to one
+            parameter:</p>
 
             <div class="text-center mb-3">
                 $$P(D1;\varphi, s) = \frac{1 + s\cos\varphi}{2}
@@ -453,7 +495,9 @@
             $s = 1$: no record, full fringes. $s = 0$: perfect record, no fringes —
             $P(D1) = \tfrac12$ at every phase, as if the photon really had flipped a coin at BS1. In
             between, the trade is exactly linear in the fringe term. A perfect marking ($s = 0$) is
-            physically a controlled-NOT: the path controls the marker, and reading the marker afterwards
+            physically a <em>controlled-NOT</em> (the CNOT gate of QC05 — Multiple-qubit systems): the
+            marker flips from $|0\rangle$ to $|1\rangle$ if and only if the photon is in arm B, and is
+            left alone otherwise. Reading the marker afterwards
             is a genuine path measurement (<strong>Procedure&nbsp;1</strong> on the marker qubit) —
             same statistics as putting a detector in the arm, but the photon survives to reach BS2.</p>
 
@@ -462,17 +506,19 @@
                 At $s = 0.5$: $\mathcal{V} = 0.5$, so the fringes run between
                 $P_{\max} = \tfrac{1+0.5}{2} = \mathbf{0.75}$ and $P_{\min} = \tfrac{1-0.5}{2} = \mathbf{0.25}$.
                 In <strong>Preset B2</strong>, set $s = 0.5$, fire at $\varphi = 0°$ (→ 75%) and at
-                $\varphi = 180°$ (→ 25%), and read the visibility card: it converges to 0.5 — the dial
-                you set, recovered from counting statistics alone.
+                $\varphi = 180°$ (→ 25%). Then press <em>Sweep φ</em> and read the <em>Visibility (from
+                sweep)</em> card: it lands near 0.5 — the dial you set, recovered from counting statistics
+                alone. (The card is computed from the sweep only, and moving φ or $s$ clears it, so sweep
+                last.)
             </div>
 
             <div class="connection-box">
-                <span class="lab-link">LAB 5–6 BRIDGE</span>
+                <span class="lab-link">IF YOU TOOK LABS 5–6 (OPTIONAL)</span>
                 Lab 5 said "measurement disturbs the state"; Lab 6 said "Eve's measurement leaves
                 fingerprints". Both are this one identity $\mathcal{V} = |\langle M_A|M_B\rangle|$: an
                 eavesdropper who gains path information ($s < 1$) <em>necessarily</em> degrades the
                 interference any honest party could observe. Information out ⟹ coherence lost, in exact
-                proportion. (The general form is Englert's duality relation
+                proportion. (Advanced, optional: the general form is Englert's duality relation
                 $\mathcal{V}^2 + \mathcal{D}^2 \le 1$ with distinguishability
                 $\mathcal{D} = \sqrt{1 - s^2}$ — our ideal marker saturates it.)
             </div>
@@ -491,8 +537,8 @@
                 <span class="runfirst-tag"><i class="fa-solid fa-play me-1"></i>RUN THIS FIRST</span>
                 Switch to <strong>Preset C</strong>: an unpolarized source and a rack of polarizing
                 filters. Start with two <strong>crossed</strong> polarizers — 0° and 90°. Fire
-                10&nbsp;000 photons: <strong>nothing gets through</strong>. Now tick
-                "<strong>insert 45° between them</strong>" and fire again: <strong>12.5%</strong> of the
+                10&nbsp;000 photons: <strong>nothing gets through</strong>. Now press
+                <strong>Insert 45° between them</strong> and fire again: <strong>12.5%</strong> of the
                 photons now pass all three filters. You added an absorber, and the light came back.
                 <div class="mt-2"><button class="btn btn-sm btn-outline-success"
                     onclick="jumpToPreset('C')"><i class="fa-solid fa-arrow-down me-1"></i>Open Preset C</button></div>
@@ -516,10 +562,15 @@
             <p>Polarization is the photon's second qubit: $|H\rangle$ (horizontal) and $|V\rangle$
             (vertical) form the computational basis, and the state at linear angle $\theta$ from the
             H-axis is $|\theta\rangle = \cos\theta\,|H\rangle + \sin\theta\,|V\rangle$. The diagonal
-            states at ±45° are exactly the Lab 5 X-basis pair $|{\pm}\rangle$.</p>
+            states at ±45° are $|{+}\rangle = |45°\rangle = (|H\rangle + |V\rangle)/\sqrt2$ and
+            $|{-}\rangle = |{-45°}\rangle = (|H\rangle - |V\rangle)/\sqrt2$ (put $\theta = \pm 45°$ into the
+            formula); this pair is the <em>X-basis</em>, or diagonal basis. (As in QC03 — The qubit and the
+            Bloch sphere, horizontal and vertical polarization play the roles of $|0\rangle$ and
+            $|1\rangle$.)</p>
 
             <p>An ideal polarizer at angle $\theta$ is the projector
-            $\Pi_\theta = |\theta\rangle\langle\theta|$, and this is the crucial fact: a polarizer is
+            $\Pi_\theta = |\theta\rangle\langle\theta|$ (read: "keep only the part of the state along
+            $|\theta\rangle$"; you only need the rule below), and this is the crucial fact: a polarizer is
             an inherently <strong>Procedure-1 device</strong>. Each photon either passes —
             <em>and is then in state $|\theta\rangle$</em> — or is absorbed. There is no fractional
             photon. For a photon in $|H\rangle$ meeting a polarizer at $\theta$, the Born rule gives
@@ -541,7 +592,7 @@
 
             <p>Classical Malus ($I = I_0\cos^2\theta$) reads identically — but the quantum version is
             <strong>per-photon and probabilistic</strong>: $\cos^2\theta$ is a Born probability, the
-            same $|\langle m|\psi\rangle|^2$ as every measurement since Lab 5, and each individual
+            same $|\langle m|\psi\rangle|^2$ as every measurement in this lab, and each individual
             photon entirely passes or is entirely absorbed.</p>
 
             <div class="def-box">
@@ -574,33 +625,38 @@
             <p>The middle filter does not "let more light through" — it <strong>rewrites the state</strong>.
             After the 45° polarizer the photon is in $|{+}\rangle$, which is no longer orthogonal to the
             final 90° filter. The projective post-state — the fact that measurement <em>changes</em> the
-            system, the disturbance you met in Lab 5 — is the entire explanation. The 45° polarizer is
+            system, fact 2 in the box at the top — is the entire explanation. The 45° polarizer is
             an X-basis measurement of the polarization qubit, executed by a plastic film.</p>
 
             <div class="procedure-box">
                 <strong><i class="fa-solid fa-code-branch me-1"></i>Procedure 1 vs Procedure 2 — two
-                physically different devices.</strong> Lab 5 distinguished two ways to measure in the
-                diagonal basis, and in optics they are <em>different hardware</em>:
+                physically different devices.</strong> The two ways to measure of fact 3 (box at the top),
+                applied to the diagonal basis, are <em>different hardware</em> in optics:
                 <ul class="mt-2 mb-2">
                     <li><strong>Procedure 1</strong> — a polarizer at 45°: probabilities
                         $|\langle\pm|\psi\rangle|^2$, passed photon left in $|{+}\rangle$ (the $|{-}\rangle$
                         outcome is an absorbed photon).</li>
-                    <li><strong>Procedure 2</strong> — a half-waveplate at 22.5° (which implements the
-                        canonical basis-change rotation $U_X = H$) followed by a polarizing beam splitter
-                        and two detectors: <em>identical probabilities</em>, but the photon exits in
-                        $|H\rangle$ or $|V\rangle$, not $|{\pm}\rangle$.</li>
+                    <li><strong>Procedure 2</strong> — a <em>half-waveplate</em> (a thin crystal plate that
+                        changes the polarization direction without absorbing any light) set at 22.5°, which
+                        sends $|{+}\rangle$ to $|H\rangle$ and $|{-}\rangle$ to $|V\rangle$, followed by a
+                        <em>polarizing beam splitter</em> (a cube that transmits $|H\rangle$ and reflects
+                        $|V\rangle$) and two detectors: <em>identical probabilities</em>, but the photon exits
+                        in $|H\rangle$ or $|V\rangle$, not $|{\pm}\rangle$. In circuit language this waveplate
+                        is the Hadamard gate of QC04 — Single-qubit gates, written $U_X = H$: a gate name, not
+                        the horizontal state $|H\rangle$.</li>
                 </ul>
                 Same statistics, different post-measurement states: the overlap between the two devices'
                 "+" outputs is $|\langle + | H\rangle|^2 = \tfrac12$, not 1. Downstream optics see
-                different photons. Lab 6's naive-resend attack — where Eve's forgotten re-encoding turned
-                a 25% error rate into 37.5% — was exactly this distinction carrying a security
-                consequence.
+                different photons. (If you took Lab 6: its naive-resend attack — where Eve's forgotten
+                re-encoding turned a 25% error rate into 37.5% — was exactly this distinction carrying a
+                security consequence.)
             </div>
 
             <div class="deepdive-box">
                 <strong><i class="fa-solid fa-industry me-1"></i>This hardware runs QKD networks
-                today.</strong> Polarization-encoded BB84 uses precisely these components: Lab 6's four
-                signal states <em>are</em> $|H\rangle, |V\rangle, |{+}\rangle, |{-}\rangle$; Alice's
+                today.</strong> Polarization-encoded BB84 (the quantum key
+                distribution protocol of Lab 6) uses precisely these components: its four signal
+                states <em>are</em> $|H\rangle, |V\rangle, |{+}\rangle, |{-}\rangle$; Alice's
                 transmitter is a polarization preparer, Bob's receiver is a basis-switched analyzer —
                 a rotation plus a polarizing beam splitter, Procedure 2 in glass. Metropolitan QKD fiber
                 networks (deployed in Europe and Asia, and the building block of the planned EuroQCI
@@ -935,12 +991,12 @@
             <p>The complementarity dial: visibility $\mathcal{V} = s$.</p>
             <ul>
                 <li>At $s = 0.5$, verify the fringe extremes 0.75 / 0.25 (fire at &phi; = 0&deg; and
-                    180&deg;) and read the visibility card &rarr; 0.5.</li>
+                    180&deg;), then press <em>Sweep &phi;</em> and read the visibility card &rarr; 0.5.</li>
                 <li>Press <em>Sweep &phi;</em> at $s = 1$, $s = 0.5$, $s = 0$ and compare the three
                     curves' amplitudes.</li>
                 <li>Nothing ever reads the marker in this simulation. State precisely what kills the
-                    interference — and connect it to why Eve in Lab 6 cannot listen without leaving
-                    a trace.</li>
+                    interference. <em>(Optional, if you took Lab 6: connect it to why an eavesdropper
+                    cannot listen without leaving a trace.)</em></li>
             </ul>
         </div>
     </div>
@@ -1032,11 +1088,12 @@
         <div class="task-body">
             <p>The companion notebook rebuilds this page's optics as quantum circuits: the beam splitter
             as a one-qubit gate on the dual-rail path qubit, the Mach–Zehnder as a three-gate circuit
-            swept over &phi; against $\cos^2(\varphi/2)$, which-path marking as a CNOT onto an ancilla
+            swept over &phi; against $\cos^2(\varphi/2)$, which-path marking as a CNOT onto a marker qubit
             with the visibility sweep $\mathcal{V} = s$, the polarization experiments with Procedure 1
             and Procedure 2 side by side, and (optional) the entangled-pair correlation curve against
             $\cos 2\Delta$. Since two-qubit registers appear, every displayed bitstring is converted to
-            this lab's leftmost-first ordering — the notebook shows exactly how.</p>
+            this lab's leftmost-first ordering — the notebook shows exactly how. No Qiskit or
+            programming experience is assumed: the notebook opens with a one-screen reading guide.</p>
             <p class="text-muted mb-0" style="font-size:.88rem;">
                 <i class="fa-solid fa-circle-info me-1"></i>All notebook experiments are seeded and
                 reproducible; expected statistics and tolerances are stated inline. A compact optional
@@ -1864,8 +1921,8 @@ function checkAnswer(q, correct) {
             'measurement has two mutually exclusive outcomes, and "both click" is not in the outcome set.';
         if (q === 'q2') fb.innerHTML += ' The two path amplitudes add before detection; at $\\varphi = 0$ ' +
             'they cancel entirely toward D2 — a coin-flip-per-splitter model predicts 50/50 and is refuted.';
-        if (q === 'q3') fb.innerHTML += ' Identical probabilities, different post-measurement states — ' +
-            'the Lab 6 naive-resend attack failed on exactly this distinction.';
+        if (q === 'q3') fb.innerHTML += ' Identical probabilities, different post-measurement states. ' +
+            '(If you took Lab 6: its naive-resend attack failed on exactly this distinction.)';
     } else {
         fb.className = 'feedback wrong';
         fb.innerHTML = '✗ Not quite — revisit ';
