@@ -139,10 +139,10 @@
             NQSTI online edition 2024. Adapted with full attribution; see the credits section below.
         </p>
         <div>
-            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisites: Labs 5–7</span>
+            <span class="hero-badge"><i class="fa-solid fa-book-open me-1"></i>Prerequisite: Fundamental Concepts of Quantum Technologies course (Labs 5–7 helpful, not required)</span>
             <span class="hero-tag"><i class="fa-solid fa-graduation-cap me-1"></i>1 ECTS</span>
             <span class="hero-badge"><i class="fa-regular fa-clock me-1"></i>≈ 8 h lab work</span>
-            <span class="hero-badge"><i class="fa-solid fa-dice me-1"></i>Mode: Playable Board Game + Qiskit</span>
+            <span class="hero-badge"><i class="fa-solid fa-dice me-1"></i>Mode: Playable Board Game + optional Qiskit notebook</span>
         </div>
     </div>
 </div>
@@ -178,6 +178,19 @@
                 quantum mechanics — it <em>is</em> a quantum system you operate by hand, the same physics
                 that runs Stern-Gerlach spin measurements and commercial quantum random-number generators.
             </p>
+            <div class="formula-box text-secondary lh-lg">
+                <strong>What this lab uses.</strong> Four ideas from the Fundamental Concepts of Quantum Technologies course carry this page: a
+                <em>qubit</em> is a two-level system whose two basis states are written as kets $|0\rangle$ and
+                $|1\rangle$; a <em>superposition</em> such as $\tfrac{1}{\sqrt2}(|0\rangle+|1\rangle)$ is a definite
+                state, not a hidden coin; the <em>Born rule</em> gives the probability of each measurement outcome as
+                the squared size of its amplitude; and the reversible operations on qubits (<em>unitaries</em>) are
+                exactly what the move cards do. For background, the theory pills
+                <strong>QC03 — The qubit and the Bloch sphere</strong> (qubits, amplitudes, probabilities),
+                <strong>QC04 — Single-qubit gates</strong> (the $X$, $Z$ and $H$ gates as matrices) and
+                <strong>QC05 — Multiple-qubit systems</strong> (two-qubit states, the CNOT gate, entanglement) cover
+                them. The two ways to measure a tile's orientation, Procedure&nbsp;1 and Procedure&nbsp;2, are
+                defined in Part&nbsp;5. Labs 5–7 are helpful, not required.
+            </div>
         </div>
     </div>
 
@@ -336,7 +349,10 @@
                 superposition is a real, manipulable thing.
             </div>
             <p class="text-secondary lh-lg">
-                The same logic exposes the phase. The card $Z$ flips orientation,
+                The same logic exposes the <strong>phase</strong>. The only difference between $|+\rangle$ and
+                $|-\rangle$ is the sign in front of $|1\rangle$; that sign is called a <em>relative phase</em>. A
+                color measurement squares the amplitudes, so the sign drops out — which is why both orientations
+                measure 50/50. The card $Z$ flips orientation,
                 $Z|\pm\rangle = |\mp\rangle$, yet changes <em>nothing</em> a color measurement can see (on a plain tile — under a pink square a card acts beneath it; see <a href="#deviations">deviation 6</a>) —
                 both orientations measure 50/50. Invisible? Only until an $H$ converts the hidden difference
                 into opposite certainties: $H|+\rangle = |0\rangle$ (white for sure) while
@@ -346,8 +362,8 @@
                 <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
                 <strong>The $Z$ card changes nothing you can see — until it changes everything.</strong>
                 Phase is not bookkeeping. The game tracks it with tile orientation, and one $H$ card cashes
-                it out as opposite certain colors. This is the same relative phase that Lab 7's
-                interferometer converted into which-detector certainty.
+                it out as opposite certain colors. (If you took Lab 7: this is the same relative phase that its
+                interferometer converted into which-detector certainty.)
             </div>
             <div class="triple-box">
                 <div><span class="t-step">Intuition.</span>The orientation is a second property, invisible
@@ -359,6 +375,22 @@
                     bianconera, then measure. The rulebook itself recommends this tactic — it is how you
                     build a guaranteed tris piece out of chance.</div>
             </div>
+            <h5 class="mt-4 mb-2">The single-cell cards at a glance</h5>
+            <p class="text-secondary lh-lg">$X$, $Z$ and $H$ are the gates of the theory pill QC04 — Single-qubit
+                gates ($X$ is its NOT gate); $Y$ is $X$ and $Z$ in one card. On the four tiles they act as follows:</p>
+            <div class="table-responsive"><table class="table table-sm glossary-table">
+                <thead><tr><th>Card</th><th>on W</th><th>on B</th><th>on R</th><th>on L</th><th>In words</th></tr></thead>
+                <tbody>
+                    <tr><td>$I$</td><td>W</td><td>B</td><td>R</td><td>L</td><td>does nothing (a pass)</td></tr>
+                    <tr><td>$X$</td><td>B</td><td>W</td><td>R</td><td>L</td><td>swaps the colors; a bianconera stays as it is</td></tr>
+                    <tr><td>$Z$</td><td>W</td><td>B</td><td>L</td><td>R</td><td>flips the orientation; nothing to flip on a monochrome tile</td></tr>
+                    <tr><td>$Y$</td><td>B</td><td>W</td><td>L</td><td>R</td><td>$X$ and $Z$ in one card</td></tr>
+                    <tr><td>$H$</td><td>R</td><td>L</td><td>W</td><td>B</td><td>turns color into orientation and back</td></tr>
+                    <tr><td>$U$</td><td colspan="4">adds a pink square (a second $U$ removes it) — Part 4</td><td>the hidden rotation</td></tr>
+                </tbody></table></div>
+            <p class="text-secondary" style="font-size:.9rem;">When a card only multiplies a tile by $-1$ (for
+                example $Z|B\rangle = -|B\rangle$), nothing measurable changes: the game reports an <em>invisible
+                move</em>.</p>
         </div>
     </div>
 
@@ -386,6 +418,24 @@
                     control orientation ↦ sign of the pair &nbsp;·&nbsp; target color ↦ same-color
                     ($\Phi$) or opposite-color ($\Psi$) type</div>
             </div>
+            <p class="text-secondary lh-lg"><strong>What the $C_X$ card does.</strong> It is the CNOT gate of the
+                theory pill QC05 — Multiple-qubit systems. On two monochrome tiles the rule is classical: if the
+                control is black, the target's color flips (the target gets an $X$); if the control is white,
+                nothing happens. A bianconera control is white and black at once, so the card does both at once.
+                Control $R$, target $W$ (control written first):</p>
+            <div class="formula-box text-center">
+                $|R\rangle|W\rangle = \tfrac{1}{\sqrt2}\big(|00\rangle + |10\rangle\big) \;\xrightarrow{\;C_X\;}\;
+                 \tfrac{1}{\sqrt2}\big(|00\rangle + |11\rangle\big) = |\Phi^+\rangle$
+            </div>
+            <p class="text-secondary lh-lg">Here $|00\rangle$ means both cells white, $|11\rangle$ both black, and
+                $|01\rangle$ first white and second black. The four possible results are the <strong>Bell
+                states</strong>, the standard entangled states of two qubits:
+                $|\Phi^\pm\rangle = \tfrac{1}{\sqrt2}(|00\rangle \pm |11\rangle)$ (same color) and
+                $|\Psi^\pm\rangle = \tfrac{1}{\sqrt2}(|01\rangle \pm |10\rangle)$ (opposite color). A left-oriented
+                control carries its minus sign into the pair ($\Phi^-$, $\Psi^-$); a black target makes the colors
+                opposite ($\Psi$). The sign is invisible to a color measurement — $\Phi^+$ and $\Phi^-$ both give
+                $WW$ or $BB$, half the time each — but, like a tile's orientation, it changes what later cards
+                do.</p>
             <p class="text-secondary lh-lg">
                 <strong>Reading order</strong> (used everywhere on this page and in the notebook): pair
                 outcomes like $WB$ are written <strong>big-endian</strong> — the lower-numbered cell is
@@ -403,10 +453,11 @@
             </p>
             <div class="shock-box">
                 <span class="shock-tag"><i class="fa-solid fa-bolt me-1"></i>COUNTERINTUITIVE — AND REAL</span>
-                <strong>Two cells that never touched agree forever.</strong> One $C_X$ card creates perfect
-                correlation with individually perfect randomness, at any board distance. This is the same
-                resource measured in Lab 7's entangled-photon correlations, and the resource behind quantum
-                key distribution (Lab 6): the correlation is a property of the joint state, stored in
+                <strong>Two cells that met once stay correlated.</strong> One $C_X$ card creates perfect
+                correlation with individually perfect randomness, at any board distance — until a card such as
+                $H$ on one triangle erases it. This is the same resource measured in Lab 7's entangled-photon
+                correlations and used by entanglement-based key distribution (BBM92, the entangled cousin of
+                the BB84 protocol of Lab 6): the correlation is a property of the joint state, stored in
                 neither place.
             </div>
             <div class="triple-box">
@@ -504,7 +555,7 @@
                 The <strong>sandbox</strong> below lifts the rulebook's single-cell solitaire into a lab
                 instrument. A color measurement asks the $|0\rangle/|1\rangle$ question. An
                 <em>orientation</em> measurement asks the $|+\rangle/|-\rangle$ question, and the game
-                offers it in two equivalent-but-different ways, named as in Lab 5:
+                offers it in two equivalent-but-different ways, named here once for the whole lab:
                 <strong>Procedure 1</strong> projects directly onto the orientation states — the
                 post-measurement state is an oriented bianconera tile. <strong>Procedure 2</strong> is the
                 rulebook's own construction: apply $H$ (the canonical rotation for this basis), measure
@@ -525,7 +576,7 @@
                     answers must randomize each other.</div>
                 <div><span class="t-step">Formula.</span>$|\langle 0 | + \rangle|^2 =
                     |\langle + | 0 \rangle|^2 = \tfrac12$ — the two bases are mutually unbiased
-                    (Lab 6's key-distribution pair, in tile form).</div>
+                    (if you took Lab 6: its key-distribution pair, in tile form).</div>
                 <div><span class="t-step">Number.</span>$0.500$ at every step of the chain, forever.</div>
                 <div class="mt-1"><span class="t-step">Play it.</span>Open the sandbox tab below and run
                     the guided chain; run both procedures on the same decorated tile and compare
@@ -599,8 +650,12 @@
                     <div class="col-lg-5">
                         <div class="qt-board" id="board-grid"></div>
                         <div class="text-center mt-2" style="font-size:.75rem;color:#64748b;">
-                            Markers under a tile read outward from the tile: red H (inner), pink U (outer).
-                            Pair colors mark which triangles belong together (at most three pairs).
+                            Triangles: ▲▲ = same-color pair ($\Phi$), ▲▼ = opposite-color pair ($\Psi$), a “−”
+                            inside = the minus sign; the outline color says which two triangles belong together
+                            (at most three pairs). A red H square appears when an $H$ card is played on one
+                            triangle: the pair cannot be redrawn as another pair, so the card stays under the tile
+                            (a second $H$ on it removes the square; an $H$ on the other triangle removes both).
+                            Markers read outward from the tile: red H (inner), pink U (outer).
                         </div>
                         <div class="d-flex justify-content-center gap-2 mt-2">
                             <span class="badge text-bg-light border">White <span id="score-white">–</span></span>
@@ -994,7 +1049,8 @@
             computed, not asserted, verdict on the two erratum rows. Sampled (seeded) runs sit beside the
             exact numbers throughout. Since entangled pairs are two-qubit registers, every displayed
             bitstring is converted to this lab's leftmost-first reading order — the notebook shows exactly
-            how.</p>
+            how. No Qiskit or programming experience is assumed: the notebook opens with a one-screen
+            reading guide.</p>
             <p class="text-muted mb-0" style="font-size:.88rem;">
                 <i class="fa-solid fa-circle-info me-1"></i>All notebook experiments are seeded and
                 reproducible; expected values are stated with full-precision literals and tolerances.</p>

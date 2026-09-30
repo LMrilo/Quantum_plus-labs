@@ -54,7 +54,7 @@
 \newtcolorbox{warningbox}{colback=yellow!10!white,colframe=orange!80!black,title={Important}}
 \newtcolorbox{simulatorbox}{colback=purple!5!white,colframe=purple!75!black,title={Simulator}}
 \newtcolorbox{reflectionbox}{colback=teal!5!white,colframe=teal!75!black,title={Quick Check}}
-\newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title={Connections to Previous Labs}}
+\newtcolorbox{connectionbox}{colback=green!5!white,colframe=green!60!black,title={Connections to Other Labs (optional)}}
 \newtcolorbox{procedurebox}{colback=red!4!white,colframe=red!70!black,title={Procedure 1 vs Procedure 2}}
 \newtcolorbox{questionbox}{colback=violet!4!white,colframe=violet!70!black,title={The Question}}
 \newtcolorbox{shockbox}{colback=shockorange!8!white,colframe=shockorange,title={Counterintuitive --- and Real}}
@@ -102,21 +102,24 @@ physics that runs Stern--Gerlach spin measurements and commercial quantum random
 generators.
 
 \vspace{0.3cm}
-\noindent\textbf{Prerequisites:}
+\noindent\textbf{Prerequisite:}
 \begin{itemize}
-    \item \textit{Fundamental Concepts of Quantum Technologies} (lecture series).
-    \item Lab 5: \textit{Quantum Measurements} --- the Born rule, measurement
-          Procedures 1 and 2, the states $\ket{0}, \ket{1}, \ket{+}, \ket{-}$ and the
-          four Bell states.
-    \item Lab 6: \textit{Quantum Key Distribution (BB84)} --- mutually unbiased bases
-          (this lab's colour and orientation are exactly that pair).
-    \item Lab 7: \textit{Quantum Optics} --- the invariance of $\ket{\Phi^+}$ when both
-          members of a pair are rotated together, which this lab reuses and sharpens.
+    \item \textit{Fundamental Concepts of Quantum Technologies} (lecture series): a
+          qubit, kets $\ket{0}, \ket{1}$, superposition, the Born rule, and reversible
+          operations (unitaries).
+    \item Background, when you need it, in the theory pills \textbf{QC03} ---
+          \textit{The qubit and the Bloch sphere}, \textbf{QC04} --- \textit{Single-qubit
+          gates} (the $X$, $Z$ and $H$ gates) and \textbf{QC05} --- \textit{Multiple-qubit
+          systems} (two-qubit states, the CNOT gate, entanglement).
+    \item Helpful, not required: Lab 5 (\textit{Quantum Measurements}), Lab 6
+          (\textit{Quantum Key Distribution (BB84)}) and Lab 7 (\textit{Quantum Optics}).
+          The measurement ideas this lab needs, including Procedures 1 and 2, are
+          defined in the guide itself.
     \item Familiarity with Dirac notation: $\ket{\psi}$, $\bra{\phi}$, $\braket{\phi}{\psi}$.
 \end{itemize}
 
 \begin{connectionbox}
-\textbf{The Lab 5--7 bridge.} The game's tiles are the Lab 5 states: white and black
+\textbf{If you took Labs 5--7.} The game's tiles are the Lab 5 states: white and black
 are the computational basis $\ket{0}, \ket{1}$, the two half-and-half tiles are
 $\ket{+}, \ket{-}$. Its colour and orientation questions are Lab 6's mutually unbiased
 pair, $Z$ versus $X$. Its entangled pairs are Lab 7's photon pairs with the analyzers
@@ -125,7 +128,7 @@ replaced by dice, and the double-pink-square analysis in the erratum section is 
 four Bell states.
 \end{connectionbox}
 
-\noindent\textbf{Mode:} Playable Board Game + Qiskit \quad\textbf{Credits:} 1 ECTS
+\noindent\textbf{Mode:} Playable Board Game + optional Qiskit notebook \quad\textbf{Credits:} 1 ECTS
 \quad\textbf{Estimated time:} $\approx$ 8 h
 
 \vspace{0.3cm}
@@ -347,7 +350,10 @@ and the orientation is the handle. The rulebook calls these tiles Schr\"odinger'
 kittens for exactly this reason: the superposition is a real, manipulable thing.
 \end{shockbox}
 
-The same logic exposes the phase. The card $Z$ flips orientation,
+The same logic exposes the \textbf{phase}. The only difference between $\ket{+}$
+and $\ket{-}$ is the sign in front of $\ket{1}$; that sign is called a \emph{relative
+phase}. A colour measurement squares the amplitudes, so the sign drops out --- which is
+why both orientations measure 50/50. The card $Z$ flips orientation,
 $Z\ket{\pm} = \ket{\mp}$, yet changes \emph{nothing} a colour measurement can see (on a plain tile --- under a pink square a card acts beneath it; see deviation~\ref{dev:pink}) ---
 both orientations measure 50/50. Invisible? Only until an $H$ converts the hidden
 difference into opposite certainties: $H\ket{+} = \ket{0}$ (white for sure) while
@@ -356,8 +362,8 @@ $H\ket{-} = \ket{1}$ (black for sure).
 \begin{shockbox}
 \textbf{The $Z$ card changes nothing you can see --- until it changes everything.}
 Phase is not bookkeeping. The game tracks it with tile orientation, and one $H$ card
-cashes it out as opposite certain colours. This is the same relative phase that Lab 7's
-interferometer converted into which-detector certainty.
+cashes it out as opposite certain colours. (If you took Lab 7: this is the same
+relative phase that its interferometer converted into which-detector certainty.)
 \end{shockbox}
 
 \begin{numberbox}
@@ -369,7 +375,8 @@ guaranteed tris piece out of chance.
 \begin{deepdivebox}
 \textbf{The single-tile card algebra.} The rulebook's operation map for single tiles is
 the Pauli/Hadamard action on the dictionary of equation~\eqref{eq:tiles}, taken modulo
-global phase: $X$ is the colour flip ($X\ket{0} = \ket{1}$; invisible on bianconere),
+global phase ($X$, $Z$ and $H$ are the gates of the theory pill QC04 ---
+\textit{Single-qubit gates}): $X$ is the colour flip ($X\ket{0} = \ket{1}$; invisible on bianconere),
 $Z$ is the orientation flip ($Z\ket{\pm} = \ket{\mp}$; invisible on monochrome tiles),
 $Y$ does both at once ($Y = iXZ$, phase discarded), and $H$ is the two bridges
 $W \leftrightarrow R$, $B \leftrightarrow L$. Every one of these cards is its own
@@ -402,8 +409,12 @@ Two triangles on opposite corners of the board always come up the same colour, e
 game, though each alone is a perfect coin toss. Where does the agreement live?
 \end{questionbox}
 
-The two-cell card $C_X$ (a controlled-NOT: the player declares which cell is control
-and which is target) is the game's only source of correlation. Played with a bianconera
+The two-cell card $C_X$ (a controlled-NOT, the CNOT gate of the theory pill QC05 ---
+\textit{Multiple-qubit systems}: the player declares which cell is control and which
+is target) is the game's only source of correlation. On two monochrome tiles its rule
+is classical: if the control is black, the target's colour flips; if the control is
+white, nothing happens. A bianconera control is white and black at once, so the card
+does both at once. Played with a bianconera
 as control and a monochrome tile as target, it \emph{entangles} them into one of the
 four Bell states, shown on the board as a pair of triangles:
 
@@ -426,7 +437,11 @@ with the control written first,
 
 \noindent and likewise $\ket{+}\ket{1} \to (\ket{01} + \ket{10})/\sqrt 2 = \ket{\Psi^+}$,
 $\ket{-}\ket{0} \to (\ket{00} - \ket{11})/\sqrt 2 = \ket{\Phi^-}$,
-$\ket{-}\ket{1} \to (\ket{01} - \ket{10})/\sqrt 2 = \ket{\Psi^-}$.
+$\ket{-}\ket{1} \to (\ket{01} - \ket{10})/\sqrt 2 = \ket{\Psi^-}$. These four results
+are the \textbf{Bell states}, the standard entangled states of two qubits:
+$\ket{\Phi^\pm}$ (same colour) and $\ket{\Psi^\pm}$ (opposite colour). The sign is
+invisible to a colour measurement --- $\Phi^+$ and $\Phi^-$ both give $WW$ or $BB$, half
+the time each --- but, like a tile's orientation, it changes what later cards do.
 
 \medskip
 \noindent\textbf{Reading order} (used everywhere in this guide, on the interactive page
@@ -445,11 +460,12 @@ chooses which output tile lands on which cell): every operation in the game is
 reversible; only the dice are not.
 
 \begin{shockbox}
-\textbf{Two cells that never touched agree forever.} One $C_X$ card creates perfect
-correlation with individually perfect randomness, at any board distance. This is the
-same resource measured in Lab 7's entangled-photon correlations, and the resource behind
-quantum key distribution (Lab 6): the correlation is a property of the joint state,
-stored in neither place.
+\textbf{Two cells that met once stay correlated.} One $C_X$ card creates perfect
+correlation with individually perfect randomness, at any board distance --- until a
+card such as $H$ on one triangle erases it. This is the same resource measured in Lab
+7's entangled-photon correlations and used by entanglement-based key distribution
+(BBM92, the entangled cousin of the BB84 protocol of Lab 6): the correlation is a
+property of the joint state, stored in neither place.
 \end{shockbox}
 
 \begin{numberbox}
@@ -593,8 +609,8 @@ Unlike $X$, $Y$, $Z$ and $H$, this rotation does not map the simple tile family 
 itself ($U\ket{0}$ is none of the four tiles) --- which is exactly why the pink square
 must \emph{stay on the board} as a marker instead of being absorbed into a relabelled
 tile, and why the +U presets are the advanced tier: one little square carries the game
-beyond the flip-and-mix world into genuinely new probabilities. In the language of Lab 5,
-$U$ is not a Clifford operation: it does not send Pauli operators to Pauli operators.
+beyond the flip-and-mix world into genuinely new probabilities. In technical terms (not
+needed below), $U$ is not a Clifford operation: it does not send Pauli operators to Pauli operators.
 
 \begin{numberbox}
 $P(W \mid U \text{ on } R) = \cos^2 15^\circ = \tfrac{2+\sqrt 3}{4}$. As a float64
@@ -735,7 +751,7 @@ asymmetry in quantum mechanics, playable with cardboard.
 The \textbf{sandbox} lifts the rulebook's single-cell solitaire into a lab instrument.
 A colour measurement asks the $\ket{0}/\ket{1}$ question. An \emph{orientation}
 measurement asks the $\ket{+}/\ket{-}$ question, and the game offers it in two
-equivalent-but-different ways, named as in Lab 5.
+equivalent-but-different ways, named here once for the whole lab.
 
 \begin{procedurebox}
 \textbf{Two ways to ask the orientation question.}
@@ -755,7 +771,8 @@ $U\ket{+} = R(-15^\circ)\ket{0}$ both procedures give $P(+) = \tfrac14$,
 $P(-) = \tfrac34$ (since $\cos 15^\circ - \sin 15^\circ = \sqrt{1 - \sin 30^\circ}$).
 The post-states differ: the overlap between Procedure 1's $\ket{+}$ tile and
 Procedure 2's $\ket{0}$ tile is $|\braket{+}{0}|^2 = \tfrac12$, not 1. Downstream
-cards see different tiles --- the Lab 5 and Lab 7 distinction, now on cardboard.
+cards see different tiles --- the same distinction that Labs 5 and 7 explore with
+qubits and photons (optional), now on cardboard.
 \end{procedurebox}
 
 Colour and orientation are \emph{incompatible}: measuring one completely randomizes the
@@ -765,7 +782,7 @@ no answer while the orientation is definite, and vice versa.
 
 \begin{numberbox}
 $|\braket{0}{+}|^2 = |\braket{+}{0}|^2 = \tfrac12$ --- the two bases are mutually
-unbiased (Lab 6's key-distribution pair, in tile form), so the chain reads $0.500$ at
+unbiased (if you took Lab 6: its key-distribution pair, in tile form), so the chain reads $0.500$ at
 every step, forever. In the sandbox: run the guided chain from $W$; then run both
 procedures on the same decorated tile and compare post-states. And for the scoring
 rule, three boards you can set up and verify: an all-white board scores 8--0 (every
@@ -962,7 +979,8 @@ the higher of two eight-sided dice; at most three entangled pairs coexist on the
 All activities below run on the game and sandbox of the lab's interactive page
 (\texttt{lab8\_qtris.html}); the preset to use is named in each activity. All runs
 are seeded --- the same seed always reproduces the same game. Activity 6 uses the
-companion Qiskit notebook:\\[4pt]
+companion Qiskit notebook (no Qiskit or programming experience is assumed: the notebook
+opens with a one-screen reading guide):\\[4pt]
 \url{https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab8/lab8_qtris.ipynb}
 \end{simulatorbox}
 
@@ -1141,10 +1159,13 @@ printed double-$U$ table right?
           technologies outreach and education,'' \textit{Optical Engineering}
           \textbf{61}(8), 081809 (2022). --- Where games like QTris sit in quantum
           education.
+    \item Theory pills QC03 --- \textit{The qubit and the Bloch sphere}, QC04 ---
+          \textit{Single-qubit gates}, QC05 --- \textit{Multiple-qubit systems}. --- The
+          background this guide points to.
     \item Lab 5: \textit{Quantum Measurements}, Lab 6: \textit{Quantum Key Distribution
-          (BB84)} and Lab 7: \textit{Quantum Optics} (this series). --- Born rule,
-          Procedures 1 and 2, mutual unbiasedness, and the pair-rotation invariance
-          reused in the erratum section.
+          (BB84)} and Lab 7: \textit{Quantum Optics} (this series, optional). --- More
+          practice with the Born rule, Procedures 1 and 2, mutual unbiasedness, and the
+          pair-rotation invariance reused in the erratum section.
     \item Companion Jupyter notebook:
           \texttt{quantum-labs-2026/lab8/lab8\_qtris.ipynb} (Colab link in Part 6).
 \end{itemize}
