@@ -187,23 +187,26 @@
 
   .amp-bars {
     display:flex;
-    align-items:flex-end;
+    align-items:flex-start;
     justify-content:center;
     gap: 6px;
-    height: 220px;
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
     position:relative;
   }
 
-  .mean-line {
+  /* zero line and mean line share the bars' signed scale (see renderBars) */
+  .zero-line, .mean-line {
     position:absolute;
     left:0; right:0;
-    height: 1px;
-    background: var(--accent3);
-    opacity: 0.6;
-    transition: bottom 0.7s cubic-bezier(0.4,0,0.2,1);
+    height:0;
+    pointer-events:none;
+    z-index:2;
   }
+
+  .zero-line { border-top: 1px solid var(--dim); }
+
+  .mean-line { border-top: 2px dashed var(--accent3); opacity: 0.9; }
 
   .bar-wrap {
     display:flex;
@@ -212,16 +215,19 @@
     flex:1;
     min-width:0;
     max-width:52px;
-    height:100%;
-    justify-content:flex-end;
     position:relative;
   }
 
-  .bar {
-    width: 100%;
-    min-height: 2px;
-    transition: height 0.7s cubic-bezier(0.4,0,0.2,1), background 0.5s;
+  .bar-plot {
     position:relative;
+    width:100%;
+    height:200px;
+  }
+
+  .bar {
+    position:absolute;
+    left:0; right:0;
+    min-height: 2px;
   }
 
   .bar.target {
@@ -322,6 +328,8 @@
 
   .info-box .highlight-text { color: var(--accent1); }
   .info-box .target-text { color: var(--target); }
+  .info-box a { color: var(--accent1); }
+  .intro-box { margin-bottom: 32px; }
 
   /* ITERATION COUNTER */
   .iteration-display {
@@ -356,6 +364,23 @@
     <div class="divider"></div>
   </header>
 
+  <div class="info-box intro-box" id="intro">
+    <span class="highlight-text">Optional, advanced.</span> A supplementary deep-dive on
+    <a href="../../Lab3.5/code/grover.html">Lab 3.5 (Grover's Algorithm)</a>. It assumes what Lab 3.5 assumes
+    (Labs 1–2: qubits and kets, the Hadamard gate H, amplitudes and measurement probabilities) and Lab 3.5 itself.
+    The algebra behind the picture is in the note
+    <a href="../amplitude_amplification.pdf">Amplitude Amplification: the Geometric Picture</a>.
+    <br><span class="highlight-text">Setup:</span> n = 3 qubits, N = 2<sup>n</sup> = 8 basis states |000⟩ … |111⟩.
+    The marked (target) state is <span class="target-text">|ω⟩ = |010⟩</span> (decimal 2).
+    Lab 3.5's interactive page marks |111⟩ and its PDF guide uses N = 4 with |11⟩: the geometry and the numbers
+    below do not depend on which single state is marked, only on N.
+    <br><span class="highlight-text">The two axes:</span> |s'⟩ is the equal superposition of the N − 1 = 7
+    non-target states, |s'⟩ = (1/√7) Σ<sub>x≠ω</sub> |x⟩. It has no |ω⟩ component, so |ω⟩ and |s'⟩ are
+    perpendicular, and every state of the algorithm is a combination a|ω⟩ + b|s'⟩: a point in the plane drawn
+    below. θ is the angle between |s⟩ and the |s'⟩ axis: sin θ = 1/√N.
+    <br><a href="../../index.html">← Course home</a>
+  </div>
+
   <div class="iteration-display" id="iter-num">k = 0</div>
   <div class="iteration-sub">Grover Iteration</div>
 
@@ -385,7 +410,8 @@
         <div class="amp-legend">
           <span><span class="legend-dot" style="background:var(--target)"></span>Target state |ω⟩</span>
           <span><span class="legend-dot" style="background:var(--accent1)"></span>Other states</span>
-          <span><span class="legend-dot" style="background:var(--accent3)"></span>Mean amplitude</span>
+          <span><span class="legend-dot" style="background:var(--accent3)"></span>Mean amplitude ⟨a⟩ (dashed, same scale)</span>
+          <span><span class="legend-dot" style="background:var(--dim)"></span>Grey line = 0: bars below it are negative</span>
         </div>
       </div>
     </div>
@@ -439,9 +465,11 @@
 
 <script>
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
-const N = 8;        // total states
-const targetIdx = 2; // index of target state (|ω⟩)
-const optK = Math.round(Math.PI / 4 * Math.sqrt(N)); // ~2 for N=8
+const N = 8;          // total states, N = 2^n
+const NQ = 3;         // number of qubits n
+const targetIdx = 2;  // target |ω⟩ = |010⟩ (decimal 2)
+const THETA = Math.asin(1 / Math.sqrt(N));       // angle between |s⟩ and the |s'⟩ axis
+const optK = Math.floor(Math.PI / (4 * THETA));  // first peak: k* = floor(π/(4θ)) = 2 for N = 8
 
 // Compute amplitudes for step k
 function computeAmplitudes(k) {
@@ -451,7 +479,7 @@ function computeAmplitudes(k) {
   // non-target: cos((2k+1)θ)/sqrt(N-1)  ...precise formula
   // target: sin((2k+1)θ)
   // where sin(θ) = 1/sqrt(N)
-  const theta = Math.asin(1 / Math.sqrt(N));
+  const theta = THETA;
   const phi = (2 * k + 1) * theta;
   const ampTarget = Math.sin(phi);
   const ampOther = Math.cos(phi) / Math.sqrt(N - 1);
@@ -488,18 +516,34 @@ function getState(step) {
 const canvas = document.getElementById('geo');
 const ctx = canvas.getContext('2d');
 
-// We represent the state in the 2D subspace spanned by |ω⟩ and |s'⟩
-// |s⟩ = sin(θ)|ω⟩ + cos(θ)|s'⟩
-// State vector rotates in this plane
+// Drawing happens in CSS pixels. geoSize() sets the backing store to CSS size × devicePixelRatio and
+// scales the context once, so the picture is sharp and unclipped on high-DPI screens.
+let GEO_W = 500, GEO_H = 320;
+
+function geoSize() {
+  const dpr = window.devicePixelRatio || 1;
+  GEO_W = canvas.clientWidth || 500;
+  GEO_H = 320;
+  canvas.width = Math.round(GEO_W * dpr);
+  canvas.height = Math.round(GEO_H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+// The plane spanned by |s'⟩ (horizontal axis) and |ω⟩ (vertical axis), as in the Amplitude
+// Amplification note: |s⟩ = cos θ |s'⟩ + sin θ |ω⟩. A state at angle φ from the |s'⟩ axis
+// is cos φ |s'⟩ + sin φ |ω⟩; after k full iterations φ = (2k+1)θ, after the next oracle φ = −(2k+1)θ.
+const SUB = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
+
+function geoLayout() {
+  const R = Math.min(GEO_W, GEO_H) * 0.36;
+  return { cx: GEO_W / 2 - 10, cy: GEO_H / 2 + 10, R };
+}
 
 function drawGeo(step) {
-  const { amps, k, afterOracle } = getState(step);
+  const { k, afterOracle } = getState(step);
+  const { cx, cy, R } = geoLayout();
 
-  const W = canvas.width, H = canvas.height;
-  const cx = W / 2 - 20, cy = H / 2 + 10;
-  const R = Math.min(W, H) * 0.36;
-
-  ctx.clearRect(0, 0, W, H);
+  ctx.clearRect(0, 0, GEO_W, GEO_H);
 
   // background circle
   ctx.beginPath();
@@ -508,27 +552,23 @@ function drawGeo(step) {
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Dashed unit circle grid lines
+  // Dashed axes
   ctx.setLineDash([4,4]);
   ctx.strokeStyle = '#0f1a30';
   ctx.beginPath(); ctx.moveTo(cx-R*1.1, cy); ctx.lineTo(cx+R*1.1, cy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx, cy-R*1.1); ctx.lineTo(cx, cy+R*1.1); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Axes labels
+  // Axes labels: |s'⟩ to the right, |ω⟩ at the top
   ctx.fillStyle = '#4a607a';
   ctx.font = '11px JetBrains Mono';
-  ctx.fillText('|ω⟩', cx + R + 8, cy + 4);
-  ctx.fillText('|s\'⟩', cx - 14, cy - R - 8);
+  ctx.fillText('|s\'⟩', cx + R * 1.1 + 4, cy + 4);
+  ctx.fillText('|ω⟩', cx - 12, cy - R * 1.1 - 6);
 
-  // θ angle (initial superposition angle)
-  const theta = Math.asin(1 / Math.sqrt(N));
+  const theta = THETA;
 
-  // |s⟩ initial vector (step 0)
-  // sin(θ) along |ω⟩ axis (x), cos(θ) along |s'⟩ (y)
-  const sx = Math.sin(theta), sy = Math.cos(theta);
-
-  // Draw |s⟩ reference
+  // |s⟩ reference at angle θ above the |s'⟩ axis
+  const sx = Math.cos(theta), sy = Math.sin(theta);
   ctx.setLineDash([5,4]);
   ctx.beginPath();
   ctx.moveTo(cx, cy);
@@ -539,36 +579,28 @@ function drawGeo(step) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#334466';
   ctx.font = '11px JetBrains Mono';
-  ctx.fillText('|s⟩', cx + sx * R + 6, cy - sy * R - 4);
+  ctx.fillText('|s⟩', cx + sx * R + 6, cy - sy * R + 12);
 
-  // Current state vector
-  // After k full Grover iterations: angle from |s'⟩ is (2k+1)θ
-  // (x = sin(phi), y = cos(phi) from |ω⟩/|s'⟩ plane)
-  let phi;
-  if (!afterOracle) {
-    phi = (2 * k + 1) * theta;
-  } else {
-    // After oracle: reflection about |s'⟩ axis → negate x component
-    phi = -(2 * k + 1) * theta;
-  }
+  // Current state at angle φ from the |s'⟩ axis (positive = toward |ω⟩)
+  const phi = afterOracle ? -(2 * k + 1) * theta : (2 * k + 1) * theta;
+  const vx = Math.cos(phi), vy = Math.sin(phi);
 
-  const vx = Math.sin(phi), vy = Math.cos(phi);
-
-  // Draw angle arc showing phi
+  // Angle arc from the |s'⟩ axis to the state, the short way round (canvas y points down)
   ctx.beginPath();
-  ctx.arc(cx, cy, R * 0.22, -Math.PI/2, -Math.PI/2 + Math.atan2(vx, vy) , false);
+  ctx.arc(cx, cy, R * 0.22, 0, -phi, phi > 0);
   ctx.strokeStyle = 'rgba(0,212,255,0.25)';
   ctx.lineWidth = 1;
   ctx.stroke();
 
   // Draw state vector
-  const grad = ctx.createLinearGradient(cx, cy, cx + vx * R, cy - vy * R);
+  const ex = cx + vx * R, ey = cy - vy * R;
+  const grad = ctx.createLinearGradient(cx, cy, ex, ey);
   grad.addColorStop(0, afterOracle ? 'rgba(255,107,53,0.2)' : 'rgba(0,212,255,0.2)');
   grad.addColorStop(1, afterOracle ? '#ff6b35' : '#00d4ff');
 
   ctx.beginPath();
   ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + vx * R, cy - vy * R);
+  ctx.lineTo(ex, ey);
   ctx.strokeStyle = grad;
   ctx.lineWidth = 2.5;
   ctx.stroke();
@@ -576,7 +608,6 @@ function drawGeo(step) {
   // Arrow head
   const angle = Math.atan2(-vy, vx);
   const arrowLen = 12;
-  const ex = cx + vx * R, ey = cy - vy * R;
   ctx.beginPath();
   ctx.moveTo(ex, ey);
   ctx.lineTo(ex - arrowLen * Math.cos(angle - 0.4), ey - arrowLen * Math.sin(angle - 0.4));
@@ -595,17 +626,17 @@ function drawGeo(step) {
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Label
+  // Label: |ψ_k⟩ after k iterations, O|ψ_k⟩ right after the next oracle
   ctx.fillStyle = afterOracle ? '#ff6b35' : '#00d4ff';
   ctx.font = 'bold 12px JetBrains Mono';
   const labelOff = 14;
   const lx = ex + labelOff * Math.cos(angle + 0.7);
   const ly = ey + labelOff * Math.sin(angle + 0.7);
-  ctx.fillText(afterOracle ? 'Oₖ|ψ⟩' : '|ψₖ⟩', lx - 15, ly);
+  ctx.fillText(afterOracle ? 'O|ψ' + SUB[k] + '⟩' : '|ψ' + SUB[k] + '⟩', lx - 15, ly);
 
   // Target axis dot
   ctx.beginPath();
-  ctx.arc(cx + R, cy, 4, 0, 2*Math.PI);
+  ctx.arc(cx, cy - R, 4, 0, 2*Math.PI);
   ctx.fillStyle = '#00ff9d';
   ctx.shadowColor = '#00ff9d';
   ctx.shadowBlur = 10;
@@ -616,40 +647,41 @@ function drawGeo(step) {
   const prob = Math.sin(phi) ** 2;
   ctx.fillStyle = '#c8d8f0';
   ctx.font = '11px JetBrains Mono';
-  ctx.fillText(`P(ω) = ${(prob * 100).toFixed(1)}%`, 10, 18);
-  ctx.fillText(`φ = ${(phi * 180 / Math.PI).toFixed(1)}°`, 10, 34);
+  ctx.fillText(`P(ω) = sin²φ = ${(prob * 100).toFixed(1)}%`, 10, 18);
+  ctx.fillText(`φ = ${(phi * 180 / Math.PI).toFixed(1)}° from |s'⟩`, 10, 34);
 }
 
 // ─── AMPLITUDE BARS ──────────────────────────────────────────────────────────
+// One signed scale for bars, zero line and mean line: amplitude 0 sits at the middle of each
+// plot, +1 is BAR_SCALE px above it and −1 is BAR_SCALE px below it.
+const PLOT_H = 200, ZERO_PX = PLOT_H / 2, BAR_SCALE = 90, PAD_TOP = 10;
+
 function renderBars(step) {
   const { amps } = getState(step);
   const container = document.getElementById('amp-bars');
 
   // Clear and rebuild
-  container.innerHTML = '<div class="mean-line" id="mean-line"></div>';
-
-  const MAX_DISPLAY_AMP = 1.1; // slightly over 1 for scale
-  const BAR_HEIGHT = 200;
+  container.innerHTML = '<div class="zero-line" id="zero-line"></div><div class="mean-line" id="mean-line"></div>';
 
   const mean = amps.reduce((a,b) => a+b, 0) / N;
-  const meanFrac = (mean + 0.5) / MAX_DISPLAY_AMP; // 0..1 from bottom
-
-  // Mean line
-  const ml = document.getElementById('mean-line');
-  ml.style.bottom = (meanFrac * BAR_HEIGHT) + 'px';
+  document.getElementById('zero-line').style.top = (PAD_TOP + PLOT_H - ZERO_PX) + 'px';
+  document.getElementById('mean-line').style.top = (PAD_TOP + PLOT_H - (ZERO_PX + mean * BAR_SCALE)) + 'px';
 
   for (let i = 0; i < N; i++) {
     const wrap = document.createElement('div');
     wrap.className = 'bar-wrap';
+
+    const plot = document.createElement('div');
+    plot.className = 'bar-plot';
 
     const bar = document.createElement('div');
     bar.className = 'bar ' + (i === targetIdx ? 'target' : 'other');
 
     const amp = amps[i];
     const isNeg = amp < 0;
-    const frac = Math.abs(amp) / MAX_DISPLAY_AMP;
-    const px = Math.max(frac * BAR_HEIGHT, 2);
+    const px = Math.max(Math.abs(amp) * BAR_SCALE, 2);
     bar.style.height = px + 'px';
+    bar.style.bottom = (isNeg ? ZERO_PX - px : ZERO_PX) + 'px';
 
     if (isNeg) {
       bar.style.background = 'linear-gradient(0deg, rgba(255,107,53,0.2), #ff6b35)';
@@ -658,15 +690,16 @@ function renderBars(step) {
 
     const lbl = document.createElement('div');
     lbl.className = 'bar-label';
-    lbl.textContent = `|${i}⟩`;
+    lbl.textContent = `|${i.toString(2).padStart(NQ, '0')}⟩`;
 
     const ampLbl = document.createElement('div');
     ampLbl.className = 'bar-label';
     ampLbl.style.color = isNeg ? '#ff6b35' : (i === targetIdx ? '#00ff9d' : '#4a607a');
     ampLbl.style.marginTop = '2px';
-    ampLbl.textContent = amp.toFixed(2);
+    ampLbl.textContent = (isNeg ? '' : '+') + amp.toFixed(2);
 
-    wrap.appendChild(bar);
+    plot.appendChild(bar);
+    wrap.appendChild(plot);
     wrap.appendChild(lbl);
     wrap.appendChild(ampLbl);
     container.appendChild(wrap);
@@ -675,11 +708,11 @@ function renderBars(step) {
 
 // ─── INFO BOXES ──────────────────────────────────────────────────────────────
 const INFO = [
-  `<span class="highlight-text">Initial State:</span> Hadamard gates create a uniform superposition over all N=8 states. Each amplitude equals 1/√N ≈ 0.354. The state vector |s⟩ lies at angle θ = arcsin(1/√N) from the |s'⟩ axis. <span class="target-text">Target |ω⟩ is indistinguishable from other states</span> — probability of finding it is just 1/N = 12.5%.`,
-  `<span class="highlight-text">After Oracle O (1st):</span> The oracle applies a phase flip to the target state: α|ω⟩ → −α|ω⟩. The <span class="target-text">amplitude of |ω⟩ becomes negative</span> (shown in orange). The probability distribution is unchanged — this is a phase encoding, invisible to measurement alone. Geometrically, the vector reflects across |s'⟩.`,
-  `<span class="highlight-text">After Diffusion D (1st):</span> The diffusion operator "inverts about the mean." Each amplitude aᵢ → 2⟨a⟩ − aᵢ. This <span class="target-text">boosts the target amplitude significantly</span> while suppressing others. P(ω) jumps from 12.5% → ~78%. The state vector rotates by 2θ toward |ω⟩.`,
-  `<span class="highlight-text">After Oracle O (2nd):</span> Oracle again phase-flips the (now large) target amplitude. The other amplitudes are small and negative after flip. Geometrically, reflect once more across |s'⟩. The vector is approaching |ω⟩ with each full Grover rotation of 2θ.`,
-  `<span class="highlight-text">After Diffusion D (2nd):</span> Second inversion-about-mean. <span class="target-text">P(ω) ≈ 94.5%</span> for N=8, k=2 ≈ π√N/4 ≈ 2.2 optimal iterations. One measurement now returns the target state with high probability. Further iterations would overshoot and reduce probability — Grover's algorithm must stop at the optimal k.`,
+  `<span class="highlight-text">Initial State:</span> Hadamard gates on the n = 3 qubits create the uniform superposition |s⟩ of all N = 8 basis states. Each amplitude equals 1/√N ≈ 0.354. In the plane, |s⟩ lies at angle θ = arcsin(1/√N) ≈ 20.7° above the |s'⟩ axis. <span class="target-text">Target |ω⟩ = |010⟩ is indistinguishable from other states</span> — probability of finding it is just 1/N = 12.5%.`,
+  `<span class="highlight-text">After Oracle O (1st):</span> The oracle applies a phase flip to the target state only: α|ω⟩ → −α|ω⟩. The <span class="target-text">amplitude of |ω⟩ becomes −0.354</span> (shown in orange, below the zero line); the other seven stay at +0.354. The probability distribution is unchanged — this is a phase encoding, invisible to measurement alone. Geometrically, the vector reflects across the |s'⟩ axis, to angle −θ.`,
+  `<span class="highlight-text">After Diffusion D (1st):</span> The diffusion operator "inverts about the mean": each amplitude aᵢ → 2⟨a⟩ − aᵢ, where ⟨a⟩ is the mean of the eight amplitudes (the dashed line; here ⟨a⟩ ≈ 0.265). This <span class="target-text">boosts the target amplitude to +0.884</span> while the others drop to +0.177. P(ω) jumps from 12.5% to 78.1%. The state vector is now at angle 3θ: one full Grover iteration (oracle, then diffusion) rotates it by 2θ toward |ω⟩.`,
+  `<span class="highlight-text">After Oracle O (2nd):</span> The oracle again flips the sign of the target only: its amplitude goes from +0.884 to −0.884, while the other seven amplitudes stay at +0.177. The probabilities are unchanged (P(ω) is still 78.1%). Geometrically, the vector reflects once more across |s'⟩, to angle −3θ.`,
+  `<span class="highlight-text">After Diffusion D (2nd):</span> Second inversion about the mean (⟨a⟩ ≈ 0.044 after the oracle): the target reaches +0.972 and the others −0.088. <span class="target-text">P(ω) ≈ 94.5%</span> after k = 2 iterations, the optimal number for N = 8: k* = ⌊π/(4θ)⌋ = ⌊2.17⌋ = 2, where ⌊x⌋ rounds x down (close to the rough estimate (π/4)√N ≈ 2.22). One measurement now returns the target state with high probability. A third iteration would overshoot: P(ω) falls to 33.0% at k = 3, so Grover's algorithm must stop at k*.`,
 ];
 
 // ─── STEP CONTROL ────────────────────────────────────────────────────────────
@@ -708,10 +741,10 @@ function setStep(s) {
 // ─── MATHJAX EQUATIONS ───────────────────────────────────────────────────────
 function renderEquations() {
   const eqs = {
-    eq1: `\\(|s\\rangle = H^{\\otimes n}|0\\rangle^n = \\dfrac{1}{\\sqrt{N}}\\sum_{x=0}^{N-1}|x\\rangle\\)`,
+    eq1: `\\(|s\\rangle = H^{\\otimes n}|0\\rangle^{\\otimes n} = \\dfrac{1}{\\sqrt{N}}\\sum_{x=0}^{N-1}|x\\rangle\\)`,
     eq2: `\\(\\mathcal{O}|x\\rangle = (-1)^{f(x)}|x\\rangle, \\quad f(x) = \\begin{cases}1 & x=\\omega \\\\ 0 & x\\neq\\omega\\end{cases}\\)`,
     eq3: `\\(D = 2|s\\rangle\\langle s| - I, \\quad a_i \\mapsto 2\\langle a\\rangle - a_i\\)`,
-    eq4: `\\(k^* = \\left\\lfloor\\dfrac{\\pi}{4}\\sqrt{N}\\right\\rfloor \\approx \\left\\lfloor\\dfrac{\\pi}{4}\\sqrt{${N}}\\right\\rfloor = ${optK}\\)`,
+    eq4: `\\(k^* = \\left\\lfloor\\dfrac{\\pi}{4\\theta}\\right\\rfloor \\approx \\dfrac{\\pi}{4}\\sqrt{N}; \\quad N=${N}:\\ k^* = \\left\\lfloor ${(Math.PI / (4 * THETA)).toFixed(2)} \\right\\rfloor = ${optK}\\)`,
     eq5: `\\(|\\psi_k\\rangle = \\sin\\!\\left((2k{+}1)\\theta\\right)|\\omega\\rangle + \\cos\\!\\left((2k{+}1)\\theta\\right)|s'\\rangle\\)`,
     eq6: `\\(P(\\omega,k) = \\sin^2\\!\\left((2k{+}1)\\theta\\right), \\quad \\theta = \\arcsin\\!\\left(\\dfrac{1}{\\sqrt{N}}\\right)\\)`,
   };
@@ -720,21 +753,19 @@ function renderEquations() {
     document.getElementById(id).innerHTML = tex;
   }
 
-  MathJax.typesetPromise();
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  // Resize canvas properly
-  const c = document.getElementById('geo');
-  c.width = c.offsetWidth * (window.devicePixelRatio || 1);
-  c.height = 320 * (window.devicePixelRatio || 1);
-  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
-  c.style.width = '100%';
-  c.style.height = '320px';
-
+  geoSize();
   setStep(0);
   renderEquations();
+});
+
+window.addEventListener('resize', () => {
+  geoSize();
+  drawGeo(currentStep);
 });
 </script>
 </body>
