@@ -1,0 +1,353 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\providecommand{\ket}[1]{\mathinner{|{#1}\rangle}}
+\providecommand{\bra}[1]{\mathinner{\langle{#1}|}}
+\providecommand{\braket}[2]{\mathinner{\langle{#1}|\,{#2}\rangle}}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\title{Quantum Interference in Quantum Computing:\\ A Mathematical Introduction}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+
+\emph{Quantum interference} is one of the most fundamental phenomena that distinguishes quantum
+computation from classical computation. It refers to the way probability amplitudes---complex
+numbers associated with quantum states---combine according to the rules of wave mechanics:
+they can \emph{constructively interfere} (reinforcing each other) or \emph{destructively interfere}
+(canceling each other out).
+
+In quantum algorithms, interference is carefully engineered through sequences of quantum gates
+to amplify the probability of correct answers while suppressing incorrect ones. This document
+presents a mathematical introduction to quantum interference using simple one- and two-qubit
+examples, and then connects these ideas to Grover's search algorithm.
+
+\section*{Classical vs.\ Quantum Probability}
+
+In classical probability theory, probabilities are non-negative real numbers that add linearly.
+If an event can occur via two mutually exclusive paths with probabilities $p_1$ and $p_2$, the
+total probability is
+\begin{equation}
+  P_{\text{total}} = p_1 + p_2.
+\end{equation}
+
+In quantum mechanics, each computational path is associated with a \emph{complex probability
+amplitude} $\alpha \in \mathbb{C}$. The probability of an outcome is given by the squared modulus
+of the \emph{sum} of amplitudes:
+\begin{equation}
+  P_{\text{quantum}} = |\alpha_1 + \alpha_2|^2.
+\end{equation}
+
+Because amplitudes are complex, they have both magnitude and phase. When two amplitudes are
+added, their phases determine whether they reinforce (constructive interference) or cancel
+(destructive interference). This is fundamentally different from classical probability addition.
+
+\section*{Mathematical Preliminaries}
+
+\subsection*{Qubit States and Superposition}
+
+A single qubit lives in a two-dimensional Hilbert space spanned by the computational basis states
+$\ket{0}$ and $\ket{1}$. A general qubit state is a \emph{superposition}:
+\begin{equation}
+  \ket{\psi} = \alpha\ket{0} + \beta\ket{1},
+\end{equation}
+where $\alpha, \beta \in \mathbb{C}$ satisfy the normalization condition
+\begin{equation}
+  |\alpha|^2 + |\beta|^2 = 1.
+\end{equation}
+
+Upon measurement in the computational basis, the qubit collapses to $\ket{0}$ with probability
+$|\alpha|^2$ and to $\ket{1}$ with probability $|\beta|^2$.
+
+\subsection*{The Hadamard Gate}
+
+The Hadamard gate $H$ is defined by
+\begin{equation}
+  H\ket{0} = \frac{1}{\sqrt{2}}\bigl(\ket{0} + \ket{1}\bigr) \equiv \ket{+},
+  \qquad
+  H\ket{1} = \frac{1}{\sqrt{2}}\bigl(\ket{0} - \ket{1}\bigr) \equiv \ket{-}.
+\end{equation}
+In matrix form,
+\begin{equation}
+  H = \frac{1}{\sqrt{2}}
+  \begin{pmatrix}
+    1 & 1 \\
+    1 & -1
+  \end{pmatrix},
+  \qquad H^2 = I.
+\end{equation}
+
+\section*{Example 1: Interference in the $H$--$H$ Circuit}
+
+Consider the circuit that applies two Hadamard gates in succession to a qubit initialized in
+$\ket{0}$.
+
+\subsection*{Step 1: First Hadamard creates superposition}
+
+From $\ket{0}$, the first Hadamard gate produces
+\begin{equation}
+  \ket{\psi_1} = H\ket{0} = \frac{1}{\sqrt{2}}\bigl(\ket{0} + \ket{1}\bigr) = \ket{+}.
+\end{equation}
+
+At this stage, the qubit is in an equal superposition of both computational basis states. If we
+measured now, we would obtain $\ket{0}$ or $\ket{1}$ each with probability $\frac{1}{2}$.
+
+\subsection*{Step 2: Second Hadamard causes interference}
+
+We now apply a second Hadamard:
+\begin{align}
+  \ket{\psi_2} &= H\ket{+} = H\left(\frac{1}{\sqrt{2}}\bigl(\ket{0} + \ket{1}\bigr)\right) \\
+  &= \frac{1}{\sqrt{2}}\bigl(H\ket{0} + H\ket{1}\bigr) \\
+  &= \frac{1}{\sqrt{2}}\left(\frac{1}{\sqrt{2}}\bigl(\ket{0} + \ket{1}\bigr)
+     + \frac{1}{\sqrt{2}}\bigl(\ket{0} - \ket{1}\bigr)\right) \\
+  &= \frac{1}{2}\Bigl[\bigl(\ket{0} + \ket{1}\bigr) + \bigl(\ket{0} - \ket{1}\bigr)\Bigr] \\
+  &= \frac{1}{2}\bigl(2\ket{0}\bigr) = \ket{0}.
+\end{align}
+
+Thus the final state is $\ket{0}$ with certainty. The amplitudes for $\ket{1}$ have interfered
+destructively.
+
+\subsection*{Path Interpretation}
+
+After the first Hadamard, the qubit is in
+\[
+  \frac{1}{\sqrt{2}}\ket{0} + \frac{1}{\sqrt{2}}\ket{1}.
+\]
+When the second Hadamard is applied, the contribution to $\ket{1}$ from the ``path via $\ket{0}$''
+is $+\frac{1}{2}$, while the contribution from the ``path via $\ket{1}$'' is $-\frac{1}{2}$. These
+cancel, giving zero total amplitude for $\ket{1}$. This is destructive interference.
+
+\section*{Example 2: Phase Flip and Interference Pattern}
+
+Consider the circuit $\ket{0} \xrightarrow{H} \xrightarrow{Z} \xrightarrow{H}$, where the
+Pauli-$Z$ gate is
+\begin{equation}
+  Z =
+  \begin{pmatrix}
+    1 & 0 \\
+    0 & -1
+  \end{pmatrix},
+  \qquad Z\ket{0} = \ket{0}, \quad Z\ket{1} = -\ket{1}.
+\end{equation}
+
+\subsection*{Step-by-step evolution}
+
+\textbf{First Hadamard:}
+\begin{equation}
+  \ket{\psi_1} = H\ket{0} = \frac{1}{\sqrt{2}}\bigl(\ket{0} + \ket{1}\bigr).
+\end{equation}
+
+\textbf{Phase flip via $Z$:}
+\begin{align}
+  \ket{\psi_2} &= Z\ket{\psi_1} = \frac{1}{\sqrt{2}}\bigl(Z\ket{0} + Z\ket{1}\bigr) \\
+  &= \frac{1}{\sqrt{2}}\bigl(\ket{0} - \ket{1}\bigr) = \ket{-}.
+\end{align}
+
+\textbf{Second Hadamard:}
+\begin{align}
+  \ket{\psi_3} &= H\ket{-} = H\left(\frac{\ket{0} - \ket{1}}{\sqrt{2}}\right) \\
+  &= \frac{1}{\sqrt{2}}\bigl(H\ket{0} - H\ket{1}\bigr) \\
+  &= \frac{1}{\sqrt{2}}\left(\frac{\ket{0} + \ket{1}}{\sqrt{2}}
+     - \frac{\ket{0} - \ket{1}}{\sqrt{2}}\right) \\
+  &= \frac{1}{2}\Bigl[(\ket{0} + \ket{1}) - (\ket{0} - \ket{1})\Bigr] \\
+  &= \frac{1}{2}(2\ket{1}) = \ket{1}.
+\end{align}
+
+The $Z$ gate changed the relative phase, thus flipping the interference pattern: now $\ket{1}$
+experiences constructive interference and $\ket{0}$ destructive interference.
+
+\section*{Example 3: Two-Qubit Interference (Deutsch--Jozsa with $n = 2$)}
+
+We now consider a simple two-qubit example that generalises the one-qubit interference picture
+and is closely related to the Deutsch--Jozsa algorithm.
+
+\subsection*{Setup}
+
+Consider two input qubits and one ancilla qubit, all initialised as
+\begin{equation}
+  \ket{\psi_0} = \ket{00}\ket{1}.
+\end{equation}
+We will:
+\begin{enumerate}
+  \item Apply Hadamards to all three qubits.
+  \item Apply an oracle $U_f$ that encodes a Boolean function $f : \{0,1\}^2 \to \{0,1\}$.
+  \item Apply Hadamards again to the two input qubits.
+  \item Measure the input register.
+\end{enumerate}
+
+The oracle is defined by
+\begin{equation}
+  U_f\ket{x}\ket{y} = \ket{x}\ket{y \oplus f(x)},
+\end{equation}
+where $x \in \{0,1\}^2$ and $\oplus$ is XOR.
+
+\subsection*{Step 1: Create uniform superposition}
+
+Applying $H^{\otimes 3}$ to $\ket{00}\ket{1}$ yields
+\begin{align}
+  \ket{\psi_1} &= (H^{\otimes 2}\ket{00}) \otimes (H\ket{1}) \\
+  &= \left(\frac{1}{2}\sum_{x \in \{0,1\}^2}\ket{x}\right)
+     \otimes \left(\frac{\ket{0} - \ket{1}}{\sqrt{2}}\right) \\
+  &= \frac{1}{2\sqrt{2}}\sum_{x \in \{0,1\}^2}\ket{x}\bigl(\ket{0} - \ket{1}\bigr).
+\end{align}
+
+Thus each input basis state $\ket{x}$ appears with equal amplitude, and the ancilla is in the
+$\ket{-}$ state.
+
+\subsection*{Step 2: Apply the oracle $U_f$}
+
+We act with $U_f$:
+\begin{align}
+  \ket{\psi_2} &= \frac{1}{2\sqrt{2}}\sum_{x \in \{0,1\}^2}
+     U_f\Bigl(\ket{x}\bigl(\ket{0} - \ket{1}\bigr)\Bigr) \\
+  &= \frac{1}{2\sqrt{2}}\sum_{x}
+     \left(\ket{x}\ket{0 \oplus f(x)} - \ket{x}\ket{1 \oplus f(x)}\right).
+\end{align}
+
+We use the fact that
+\[
+  \ket{0 \oplus f(x)} - \ket{1 \oplus f(x)} = (-1)^{f(x)}\bigl(\ket{0} - \ket{1}\bigr),
+\]
+so
+\begin{align}
+  \ket{\psi_2} &= \frac{1}{2\sqrt{2}}\sum_{x}(-1)^{f(x)}\ket{x}\bigl(\ket{0} - \ket{1}\bigr) \\
+  &= \left(\frac{1}{2}\sum_{x}(-1)^{f(x)}\ket{x}\right) \otimes \ket{-}.
+\end{align}
+
+The ancilla returns to $\ket{-}$ and all information about $f$ is now encoded in the phases
+$(-1)^{f(x)}$ of the input superposition. This is a phase kickback effect.
+
+\subsection*{Step 3: Final Hadamards and interference}
+
+We now apply $H^{\otimes 2}$ to the input qubits:
+\begin{equation}
+  \ket{\psi_3} = \left(H^{\otimes 2}\frac{1}{2}\sum_{x}(-1)^{f(x)}\ket{x}\right) \otimes \ket{-}.
+\end{equation}
+
+Using
+\[
+  H^{\otimes 2}\ket{x} = \frac{1}{2}\sum_{z \in \{0,1\}^2}(-1)^{x \cdot z}\ket{z},
+\]
+where $x \cdot z$ is the bitwise inner product modulo 2, we obtain
+\begin{equation}
+  \ket{\psi_3} = \frac{1}{4}\sum_{x,z}(-1)^{f(x)}(-1)^{x \cdot z}\ket{z} \otimes \ket{-}.
+\end{equation}
+
+The amplitude of each output basis state $\ket{z}$ is
+\[
+  \alpha_z = \frac{1}{4}\sum_{x}(-1)^{f(x) + x \cdot z}.
+\]
+
+\paragraph{Constant $f$.}
+If $f$ is constant (always $0$ or always $1$), the phase $(-1)^{f(x)}$ is the same for all $x$. In
+that case, for $z = 00$ every term in the sum has the same sign and adds constructively, while for
+$z \neq 00$ the terms cancel pairwise. Thus the input register ends up in $\ket{00}$ with
+certainty.
+
+\paragraph{Balanced $f$.}
+If $f$ is balanced (half of the inputs map to $0$ and half to $1$), the sum for $z = 00$ splits into
+two equal halves with opposite signs and cancels, so the amplitude of $\ket{00}$ is zero. The final
+state has no support on $\ket{00}$; interference has removed it completely.
+
+This two-qubit example shows how phase information introduced by the oracle is converted, via
+interference, into observable differences in measurement outcomes.
+
+\section*{Interference in Grover's Algorithm}
+
+We now briefly describe how interference appears in Grover's search algorithm through the
+\emph{diffusion operator}.
+
+\subsection*{Uniform superposition and marking}
+
+Consider an $n$-qubit register with computational basis $\{\ket{x}\}_{x \in \{0,1\}^n}$. Start from
+\begin{equation}
+  \ket{\psi_0} = \ket{0}^{\otimes n},
+\end{equation}
+then apply $H^{\otimes n}$ to obtain the uniform superposition
+\begin{equation}
+  \ket{s} = H^{\otimes n}\ket{0}^{\otimes n} = \frac{1}{\sqrt{N}}\sum_{x}\ket{x},
+  \qquad N = 2^n.
+\end{equation}
+
+Suppose one basis state $\ket{w}$ is ``marked''. The oracle $O$ acts as
+\begin{equation}
+  O\ket{x} =
+  \begin{cases}
+    -\ket{x} & \text{if } x = w, \\
+    \phantom{-}\ket{x} & \text{otherwise.}
+  \end{cases}
+\end{equation}
+That is, the oracle flips the phase of the marked state but leaves all other states unchanged.
+
+\subsection*{Diffusion operator as inversion about the average}
+
+Grover's diffusion operator $D$ is defined as
+\begin{equation}
+  D = 2\ket{s}\bra{s} - I.
+\end{equation}
+
+To see its action on a general state
+\[
+  \ket{\psi} = \sum_{x} a_x\ket{x},
+\]
+observe that
+\[
+  \braket{s}{\psi} = \frac{1}{\sqrt{N}}\sum_{x} a_x = \sqrt{N}\,\bar{a},
+\]
+where $\bar{a}$ is the average amplitude. Then
+\begin{align}
+  D\ket{\psi} &= \bigl(2\ket{s}\bra{s} - I\bigr)\ket{\psi} \\
+  &= 2\ket{s}\braket{s}{\psi} - \ket{\psi} \\
+  &= 2\ket{s}\bigl(\sqrt{N}\,\bar{a}\bigr) - \sum_{x} a_x\ket{x} \\
+  &= 2\bar{a}\sum_{x}\ket{x} - \sum_{x} a_x\ket{x} \\
+  &= \sum_{x}(2\bar{a} - a_x)\ket{x}.
+\end{align}
+Thus each amplitude $a_x$ is mapped to $2\bar{a} - a_x$: reflection about the mean.
+
+\subsection*{One Grover iteration as interference}
+
+A single Grover iteration applies $G = DO$ to the current state.
+
+\begin{itemize}
+  \item The oracle $O$ flips the sign of the marked amplitude $a_w$, leaving all others
+    unchanged. This is a phase flip, analogous to the $Z$ gate in the one-qubit example.
+  \item The diffusion operator $D$ reflects all amplitudes about their average, which now
+    differs from before because of the sign flip.
+\end{itemize}
+
+The combined effect is:
+\begin{itemize}
+  \item The marked state's amplitude is \emph{increased} in magnitude (constructive
+    interference).
+  \item The unmarked states' amplitudes are slightly \emph{decreased} (destructive interference
+    relative to the mean).
+\end{itemize}
+
+Repeating $G$ approximately $\frac{\pi}{4}\sqrt{N}$ times rotates the state vector in the
+two-dimensional subspace spanned by $\ket{w}$ and the uniform superposition of unmarked states,
+bringing it close to $\ket{w}$. Measurement then yields the marked element with high probability.
+The speedup arises entirely from carefully controlled interference between the amplitudes.
+
+\section*{Why Interference Matters}
+
+Quantum interference is what enables quantum computers to perform certain computations
+exponentially or quadratically faster than classical computers. Classical machines must evaluate
+each possibility separately and combine probabilities. Quantum computers evaluate many
+possibilities in superposition, then use interference to sculpt the probability landscape so that
+correct answers are amplified and incorrect answers are suppressed.
+
+Interference requires the quantum system to maintain coherence. External noise and uncontrolled
+interactions cause decoherence, which destroys the delicate interference patterns. Building
+scalable, fault-tolerant quantum computers therefore requires keeping coherence long enough and
+using error correction to protect the interference structure that algorithms rely on.
+
+\end{document}
