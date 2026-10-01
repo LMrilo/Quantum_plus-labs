@@ -4,7 +4,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{braket}
+\providecommand{\ket}[1]{|{#1}\rangle}
+\providecommand{\bra}[1]{\langle{#1}|}
+\providecommand{\braket}[2]{\langle{#1}|{#2}\rangle}
 \usepackage{geometry}
 \geometry{margin=2.5cm}
 
@@ -15,6 +17,11 @@
 \begin{document}
 
 \maketitle
+
+\noindent\textbf{Optional, advanced.} This note goes with Lab~3 and is not needed to complete the lab.
+It assumes the ket notation of the labs, the gates $H$, $X$ and CNOT, and the tensor product $\otimes$ of
+two one-qubit states or gates. In $\ket{ab}=\ket{a}\otimes\ket{b}$ the first symbol $a$ is the first qubit
+(here the control), as in the labs.
 
 \section*{Introduction}
 
@@ -62,7 +69,7 @@ The CNOT gate with the first qubit as control and the second as target acts as
   \mathrm{CNOT}\ket{11} = \ket{10}.
 \end{equation}
 
-\section*{Preparing the state \texorpdfstring{$\ket{+ -}$}{|+ -⟩}}
+\section*{Preparing the state $\ket{+ -}$}
 
 We start from the initial state \(\ket{00}\) and apply the gates indicated in the circuit.
 
@@ -77,19 +84,21 @@ On the first qubit we apply a Hadamard gate:
 
 \subsection*{Second qubit (target)}
 
-On the second qubit we first apply \(X\) and then \(H\):
+On the second qubit we first apply \(X\) and then \(H\), that is the one-qubit gate \(HX\)
+(\(X\) acts first):
 \begin{equation}
-  (I \otimes X)\ket{0}
+  X\ket{0}
   = \ket{1},\qquad
-  (I \otimes H X)\ket{0}
-  = H X \ket{0}
+  H X \ket{0}
   = H\ket{1}
   = \ket{-}.
 \end{equation}
 
-Overall, after the local gates we obtain the state
+Overall, the two-qubit gate \(H \otimes HX\) acts on each qubit separately, and after the local gates we obtain the state
 \begin{equation}
   \ket{\psi}
+  = (H \otimes HX)\ket{00}
+  = H\ket{0} \otimes HX\ket{0}
   = \ket{+}\ket{-}.
 \end{equation}
 

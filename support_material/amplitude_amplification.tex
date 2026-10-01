@@ -3,11 +3,13 @@
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{braket}
+\providecommand{\ket}[1]{|{#1}\rangle}
+\providecommand{\bra}[1]{\langle{#1}|}
+\providecommand{\braket}[2]{\langle{#1}|{#2}\rangle}
 \usepackage{geometry}
 \geometry{margin=2cm}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,quotes}
+\usetikzlibrary{arrows.meta}
 
 \title{Geometric Representation of Amplitude Amplification\\in Grover's Algorithm}
 \author{}
@@ -17,9 +19,14 @@
 
 \maketitle
 
+\noindent\textbf{Optional, advanced.} This note goes with Lab~3.5 (Grover's algorithm) and is not needed to complete the lab.
+It assumes the bra--ket notation of the labs: the inner product $\braket{a}{b}$ of two states, and the outer product
+$\ket{w}\bra{w}$, which acts on a state as $\ket{w}\bra{w}\,\ket{\psi} = \braket{w}{\psi}\,\ket{w}$.
+It also uses sines and cosines of an angle and the idea of reflecting a vector across a line in a plane.
+
 \section*{The Geometric Picture}
 
-Grover's algorithm operates in a two-dimensional subspace of the full $2^n$-dimensional Hilbert space. The key insight is that the algorithm's state vector always remains in the plane spanned by two orthogonal basis vectors:
+Grover's algorithm operates in a two-dimensional subspace of the full $N$-dimensional Hilbert space ($N=2^n$ for $n$ qubits). The key insight is that the algorithm's state vector always remains in the plane that contains two vectors:
 
 \begin{itemize}
   \item $\ket{s}$: the uniform superposition
@@ -29,11 +36,12 @@ Grover's algorithm operates in a two-dimensional subspace of the full $2^n$-dime
   \item $\ket{w}$: the target (marked) state.
 \end{itemize}
 
-Define the orthogonal complement
+These two vectors are \emph{not} orthogonal: $\braket{w}{s} = 1/\sqrt{N}$.
+Define instead the normalized sum of all the other basis states,
 \[
-\ket{s'} = \frac{1}{\sqrt{N-1}}\sum_{x\neq w}\ket{x}.
+\ket{s'} = \frac{1}{\sqrt{N-1}}\sum_{x\neq w}\ket{x},
 \]
-The full space is spanned by $\{\ket{w},\ket{s'}\}$, but we work in the $\{\ket{s},\ket{w}\}$ basis, which is \emph{not} orthogonal.
+which is orthogonal to $\ket{w}$. The pair $\{\ket{w},\ket{s'}\}$ is an orthonormal basis of the plane (not of the full space, which has $N$ dimensions). All the calculations below use this basis.
 
 \section*{Initial State and Angle $\theta$}
 
@@ -47,8 +55,8 @@ where
 \cos\theta = \sqrt{\frac{N-1}{N}},\qquad
 \theta = \arcsin\left(\frac{1}{\sqrt{N}}\right).
 \]
-
-For large $N$, $\theta\approx\frac{1}{\sqrt{N}}$ is small.
+So $\theta$ is the angle between $\ket{s}$ and the $\ket{s'}$ axis.
+For large $N$, $\theta\approx\frac{1}{\sqrt{N}}$ is small. For $N=8$, $\theta\approx 0.3614$~rad $\approx 20.7^\circ$.
 
 \section*{Grover Iteration as Reflections}
 
@@ -60,6 +68,7 @@ The oracle reflects about the hyperplane orthogonal to $\ket{w}$:
 \[
 O = I - 2\ket{w}\bra{w}.
 \]
+It flips the sign of the $\ket{w}$ component and leaves every state orthogonal to $\ket{w}$ unchanged.
 Geometrically, $O$ is a reflection across the line $\ket{s'}$ in our plane.
 
 \subsection*{2. Diffusion Reflection $D$}
@@ -71,7 +80,7 @@ D = 2\ket{s}\bra{s} - I.
 
 \subsection*{Composition: Rotation by $2\theta$}
 
-The product of two reflections is a rotation by twice the angle between their axes. Here, $DO$ rotates the state vector by angle $2\theta$ toward $\ket{w}$:
+The product of two reflections in a plane is a rotation by twice the angle between their axes. Here the two axes are $\ket{s'}$ (for $O$) and $\ket{s}$ (for $D$), at angle $\theta$, so $DO$ rotates the state vector by angle $2\theta$ toward $\ket{w}$:
 \[
 \ket{s} \xrightarrow{G} \ket{\psi_1} \xrightarrow{G} \ket{\psi_2} \xrightarrow{G} \cdots \xrightarrow{G} \ket{\psi_R} \approx \ket{w}.
 \]
@@ -83,56 +92,56 @@ After $R\approx\frac{\pi}{4}\sqrt{N}$ iterations, the state is nearly $\ket{w}$.
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[
-  scale=1.5,
+  scale=1.25,
   >=Stealth,
   every node/.style={font=\footnotesize},
-  axis/.style={very thick, ->, black},
-  vector/.style={thick, -Stealth, black},
-  reflect/.style={dashed, gray},
-  rotate/.style={blue, thick}
+  axis/.style={thick, ->, black},
+  vector/.style={thick, -Stealth}
 ]
+% Unit circle (quarter, plus the part below the s' axis)
+\draw[gray!40] (-15:3.5) arc[start angle=-15, end angle=95, radius=3.5];
 
-% Coordinate axes
-\draw[axis] (0,0) -- (0,3.5) node[above] {$\ket{w}$};
-\draw[axis] (0,0) -- (4.2,0) node[right] {$\ket{s'}$};
+% Orthonormal axes of the plane
+\draw[axis] (0,0) -- (4.3,0) node[right] {$\ket{s'}$};
+\draw[axis] (0,0) -- (0,4.2) node[above] {$\ket{w}$};
 
-% Initial state |s>
-\draw[vector, red] (0,0) -- (3.8,0.3) node[right] {$\ket{s}$};
-\node[red,below right,font=\scriptsize] at (2.2,0.15) {$\theta$};
+% Mirror line of D: the |s> direction, extended
+\draw[dashed, blue!60] (0,0) -- (12:4.6) node[right, blue!70] {mirror of $D$};
 
-% Target state |w>
-\draw[vector, green!70!black] (0,0) -- (0,3.2) node[above] {$\ket{w}$};
+% Initial state |s> at angle theta
+\draw[vector, red] (0,0) -- (12:3.5);
+\node[red, above] at (12:3.65) {$\ket{s}$};
+\draw[red] (0:1.3) arc[start angle=0, end angle=12, radius=1.3];
+\node[red] at (6:1.6) {$\theta$};
 
-% |s> axis (diffusion reflection line)
-\draw[dashed,blue] (0,0) -- (3.8,0.3) node[right] {$\ket{s}$};
+% After the oracle: |s> reflected across the |s'> axis, angle -theta
+\draw[vector, orange] (0,0) -- (-12:3.5);
+\node[orange, right] at (-12:3.55) {$O\ket{s}$};
+\draw[orange, densely dotted, -Stealth] (12:3.5) -- (-12:3.5);
+\node[orange, right] at (3.42,0.3) {$O$};
 
-% First oracle reflection (across |s'>)
-\draw[dashed,gray] (0,0) -- (4.2,0);
-\node[gray,above left,font=\tiny] at (2.1,0) {$O$};
+% After the diffusion: O|s> reflected across the |s> line, angle 3 theta
+\draw[vector, violet] (0,0) -- (36:3.5);
+\node[violet, above right] at (36:3.5) {$\ket{\psi_1}=DO\ket{s}$};
+\draw[violet, densely dotted, -Stealth] (-12:3.5) arc[start angle=-12, end angle=36, radius=3.5];
+\node[violet] at (24:3.9) {$D$};
 
-% State after oracle
-\draw[vector,orange] (3.8,0.3) -- (1.6,1.2) node[above right] {$\ket{\psi_1^-}$};
+% Rotation by 2 theta from |s> to |psi_1>
+\draw[blue, thick, -Stealth] (12:2.3) arc[start angle=12, end angle=36, radius=2.3];
+\node[blue] at (25:2.0) {$2\theta$};
 
-% Diffusion reflection line
-\draw[reflect] (0,0) -- (3.8,0.3);
-\node[blue,above left,font=\tiny] at (1.9,0.15) {$D$};
+% Next iterations (lighter)
+\draw[vector, violet!50] (0,0) -- (60:3.5);
+\node[violet!60, right, xshift=2pt] at (60:3.5) {$\ket{\psi_2}$};
+\draw[vector, violet!50] (0,0) -- (84:3.5);
+\node[violet!60, right, xshift=2pt] at (84:3.5) {$\ket{\psi_3}$: closest to $\ket{w}$ (optimal stop)};
+\draw[blue!50, thick, -Stealth] (36:2.3) arc[start angle=36, end angle=60, radius=2.3];
+\draw[blue!50, thick, -Stealth] (60:2.3) arc[start angle=60, end angle=84, radius=2.3];
 
-% State after diffusion (after 1 iteration)
-\draw[vector,violet] (0,0) -- (2.8,1.1) node[above right] {$\ket{\psi_1}$};
-\draw[rotate,double,blue] (3.8,0.3) to[bend left=20] (2.8,1.1)
-  node[midway,right,font=\tiny] {$2\theta$};
-
-% Second iteration (dashed for clarity)
-\draw[vector,orange,dashed,opacity=0.7] (2.8,1.1) -- (1.0,1.9);
-\draw[vector,violet,dashed,opacity=0.7] (0,0) -- (1.8,2.2);
-\draw[rotate,double,blue,dashed,opacity=0.7] (2.8,1.1) to[bend left=20] (1.8,2.2);
-
-% Optimal point
-\draw[fill=red,opacity=0.3] (0.2,3.1) circle (0.08);
-\node[red,above right,font=\scriptsize] at (0.3,3.1) {Optimal};
-
+% Closest approach to |w>
+\fill[red, opacity=0.3] (84:3.5) circle (0.1);
 \end{tikzpicture}
-\caption{Geometric picture of Grover's algorithm. Each iteration $G=DO$ rotates the state vector toward $\ket{w}$ by angle $2\theta$. The oracle $O$ reflects across $\ket{s'}$, while the diffusion operator $D$ reflects across $\ket{s}$. After $\sim\frac{\pi}{4}\sqrt{N}$ iterations, the state reaches the optimal point near $\ket{w}$.}
+\caption{Geometric picture of Grover's algorithm in the plane with orthonormal axes $\ket{s'}$ and $\ket{w}$; all states are drawn from the origin and have length 1. The oracle $O$ reflects $\ket{s}$ across the $\ket{s'}$ axis, to angle $-\theta$; the diffusion $D$ reflects the result across the $\ket{s}$ line, to angle $3\theta$. Each iteration $G=DO$ therefore rotates the state toward $\ket{w}$ by $2\theta$. \emph{Schematic}: the figure uses $\theta=12^\circ$ for readability, so the closest approach to $\ket{w}$ is after 3 iterations; for $N=8$, $\theta\approx 20.7^\circ$ and the best stop is after 2 iterations.}
 \label{fig:grover-geometry}
 \end{figure}
 
@@ -146,19 +155,18 @@ Start with $\ket{s} = \sin\theta\ket{w} + \cos\theta\ket{s'}$.
 \[
 O\ket{s}
 = \sin\theta\,O\ket{w} + \cos\theta\,O\ket{s'}
-= -\sin\theta\ket{w} + \cos\theta\ket{s'}
-= \sin\theta\,(-\ket{w}) + \cos\theta\ket{s'},
+= -\sin\theta\ket{w} + \cos\theta\ket{s'},
 \]
-which makes angle $\pi-\theta$ with $\ket{w}$.
+which is $\ket{s}$ reflected across the $\ket{s'}$ axis: it makes angle $-\theta$ with $\ket{s'}$, and angle $\frac{\pi}{2}+\theta$ with $\ket{w}$ (its overlap with $\ket{w}$ is $-\sin\theta = \cos(\frac{\pi}{2}+\theta)$).
 
 \textbf{Diffusion reflection:}
 Since $D$ reflects about $\ket{s}$,
 \[
-D\ket{\psi^-} = 2(\bra{s}\psi^-)\ket{s} - \ket{\psi^-},
+D\ket{\psi^-} = 2\braket{s}{\psi^-}\,\ket{s} - \ket{\psi^-},
 \]
 where $\ket{\psi^-} = O\ket{s}$. Compute
 \[
-\bra{s}\psi^- = \sin\theta(-\sin\theta) + \cos\theta(\cos\theta)
+\braket{s}{\psi^-} = \sin\theta(-\sin\theta) + \cos\theta(\cos\theta)
              = \cos(2\theta).
 \]
 Thus
@@ -167,7 +175,7 @@ D\ket{\psi^-}
 = 2\cos(2\theta)\ket{s} - \ket{\psi^-}.
 \]
 
-In the $\{\ket{w},\ket{s'}\}$ basis, this becomes
+In the $\{\ket{w},\ket{s'}\}$ basis, the $\ket{w}$ component is $2\cos(2\theta)\sin\theta + \sin\theta = \sin(3\theta)$ and the $\ket{s'}$ component is $2\cos(2\theta)\cos\theta - \cos\theta = \cos(3\theta)$ (using $2\cos2\theta\,\sin\theta = \sin3\theta - \sin\theta$ and $2\cos2\theta\,\cos\theta = \cos3\theta + \cos\theta$). So
 \[
 \ket{\psi_1} = \sin(3\theta)\ket{w} + \cos(3\theta)\ket{s'}.
 \]
@@ -184,15 +192,17 @@ The probability of measuring $\ket{w}$ is
 \[
 P_k = \sin^2\bigl((2k+1)\theta\bigr).
 \]
-The optimal number of iterations is
+$P_k$ reaches its first peak when the angle $(2k+1)\theta$ is closest to $\frac{\pi}{2}$, that is for $k$ close to $\frac{\pi}{4\theta}-\frac12$. The standard choice is
 \[
-k_{\text{opt}} = \left\lfloor\frac{\pi}{4\sqrt{N}}\right\rfloor,
+k_{\text{opt}} = \left\lfloor\frac{\pi}{4\theta}\right\rfloor \approx \frac{\pi}{4}\sqrt{N},
 \]
-which maximizes $P_k\approx 1$.
+for which $(2k_{\text{opt}}+1)\theta$ is within $\theta$ of $\frac{\pi}{2}$, so $P_{k_{\text{opt}}} \ge \cos^2\theta = 1-\frac{1}{N}$.
+For $N=8$: $\frac{\pi}{4\theta}\approx 2.17$, $k_{\text{opt}}=2$ and $P_2=\sin^2(5\theta)\approx 0.945$.
+More iterations do not help: the rotation continues past $\ket{w}$, and $P_3=\sin^2(7\theta)\approx 0.330$.
 
 \section*{Amplitude Amplification Generalization}
 
-The same geometric picture underlies \emph{amplitude amplification}, a generalization where the initial state $\ket{s}$ has arbitrary (small) overlap $\sin\theta$ with the ``good'' subspace $\mathcal{G}$ (not necessarily a single state). The same reflection operators amplify the projection onto $\mathcal{G}$ until it dominates.
+The same geometric picture underlies \emph{amplitude amplification}, a generalization where the initial state $\ket{s}$ has a small overlap with a ``good'' subspace $\mathcal{G}$ spanned by several basis states. Let $\Pi_{\mathcal{G}} = \sum_{x\in\mathcal{G}}\ket{x}\bra{x}$ be the projector onto $\mathcal{G}$, and $\sin\theta$ the length of $\Pi_{\mathcal{G}}\ket{s}$. The oracle becomes $O = I - 2\Pi_{\mathcal{G}}$ (it flips the sign of every good component), and $D = 2\ket{s}\bra{s}-I$ still reflects about the prepared state. The picture above then holds with $\ket{w}$ replaced by the normalized good part $\Pi_{\mathcal{G}}\ket{s}/\sin\theta$: each iteration rotates by $2\theta$, and the projection onto $\mathcal{G}$ grows until its first peak.
 
 This framework extends Grover's algorithm to quantum counting, collision finding, and many optimization problems.
 
@@ -202,8 +212,8 @@ This framework extends Grover's algorithm to quantum counting, collision finding
   \item Grover's algorithm is a \emph{rotation} in a 2D subspace by fixed angle $2\theta$ per iteration.
   \item The oracle $O$ ``marks'' the target by phase flip (reflection).
   \item The diffusion $D$ amplifies via inversion about the mean (second reflection).
-  \item Optimal iterations $\sim\frac{\pi}{4}\sqrt{N}$ yield $\sim 1-\mathcal{O}(1/N)$ success probability.
-  \item Quadratic speedup $O(\sqrt{N})$ vs.\ classical $O(N)$.
+  \item Optimal iterations $\sim\frac{\pi}{4}\sqrt{N}$ yield success probability at least $1-\frac{1}{N}$; stopping later lowers it again.
+  \item Quadratic speedup in the number of oracle queries for unstructured search: $O(\sqrt{N})$ vs.\ classical $O(N)$.
 \end{itemize}
 
 \end{document}
