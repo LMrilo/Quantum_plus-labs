@@ -18,6 +18,13 @@
 
 \maketitle
 
+\noindent\textbf{Optional, advanced.} This note goes with Labs~1--3 (its section on Grover's algorithm
+with Lab~3.5) and is not needed to complete any lab. It assumes the ket notation of the labs and the
+theory lessons QC03--QC05 (qubit states, the gates $H$ and $Z$, multi-qubit states and the tensor
+product $\otimes$), QC12 (oracles and queries) and QC13--QC14 (the Deutsch, Deutsch--Jozsa and Grover
+algorithms). The \emph{two-dimensional Hilbert space} of the next pages is simply the set of all
+combinations $\alpha\ket{0} + \beta\ket{1}$ with complex $\alpha$ and $\beta$, as in QC03.
+
 \section*{Introduction}
 
 \emph{Quantum interference} is one of the most fundamental phenomena that distinguishes quantum
@@ -41,11 +48,15 @@ total probability is
 \end{equation}
 
 In quantum mechanics, each computational path is associated with a \emph{complex probability
-amplitude} $\alpha \in \mathbb{C}$. The probability of an outcome is given by the squared modulus
-of the \emph{sum} of amplitudes:
+amplitude} $\alpha \in \mathbb{C}$. When two paths lead to the same outcome and nothing---no detector,
+no other qubit---records which path was taken (the two alternatives are \emph{coherent} and
+\emph{indistinguishable}), the probability of that outcome is given by the squared modulus of the
+\emph{sum} of amplitudes:
 \begin{equation}
   P_{\text{quantum}} = |\alpha_1 + \alpha_2|^2.
 \end{equation}
+If instead the path is recorded somewhere, the amplitudes do not add: the probability is
+${|\alpha_1|^2 + |\alpha_2|^2}$, the classical rule~(1) with $p_i = |\alpha_i|^2$.
 
 Because amplitudes are complex, they have both magnitude and phase. When two amplitudes are
 added, their phases determine whether they reinforce (constructive interference) or cancel
@@ -324,26 +335,33 @@ A single Grover iteration applies $G = DO$ to the current state.
     differs from before because of the sign flip.
 \end{itemize}
 
-The combined effect is:
+For $N \geq 4$, during the first iterations (up to about $\frac{\pi}{4}\sqrt{N}$ of them, see below), the
+combined effect is:
 \begin{itemize}
   \item The marked state's amplitude is \emph{increased} in magnitude (constructive
     interference).
-  \item The unmarked states' amplitudes are slightly \emph{decreased} (destructive interference
-    relative to the mean).
+  \item The unmarked states' amplitudes are \emph{decreased} (destructive interference relative to
+    the mean); the decrease is slight when $N$ is large.
 \end{itemize}
 
 Repeating $G$ approximately $\frac{\pi}{4}\sqrt{N}$ times rotates the state vector in the
 two-dimensional subspace spanned by $\ket{w}$ and the uniform superposition of unmarked states,
 bringing it close to $\ket{w}$. Measurement then yields the marked element with high probability.
+The gain does not continue: each iteration rotates the state by the same angle, so further iterations
+carry it past $\ket{w}$, the marked amplitude shrinks again and the success probability falls.
 The speedup arises entirely from carefully controlled interference between the amplitudes.
 
 \section*{Why Interference Matters}
 
 Quantum interference is what enables quantum computers to perform certain computations
-exponentially or quadratically faster than classical computers. Classical machines must evaluate
-each possibility separately and combine probabilities. Quantum computers evaluate many
-possibilities in superposition, then use interference to sculpt the probability landscape so that
-correct answers are amplified and incorrect answers are suppressed.
+exponentially or quadratically faster than classical computers. Consider again the search of the
+previous section, where the only access to the data is through the oracle $O$ and each use of $O$ is
+called a \emph{query} (QC12). A classical algorithm can inspect only one item per query, so it needs
+about $N/2$ queries on average; Grover's algorithm needs about $\frac{\pi}{4}\sqrt{N}$. A single quantum
+query acts on a superposition of all inputs (the \emph{quantum parallelism} of QC12), but measuring
+that superposition directly would return just one input at random. The advantage comes from
+interference, which sculpts the probability landscape before the measurement so that correct
+answers are amplified and incorrect answers are suppressed.
 
 Interference requires the quantum system to maintain coherence. External noise and uncontrolled
 interactions cause decoherence, which destroys the delicate interference patterns. Building
