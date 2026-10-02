@@ -181,8 +181,9 @@
         <div class="warning-box">
             <h5 class="mb-2"><i class="fa-solid fa-microchip text-warning"></i>
             &nbsp;The NISQ Constraint</h5>
-            <p class="mb-0">IBM's best quantum processors (QPUs, 2025) sustain coherent circuits
-            of roughly 100–300 two-qubit gates before noise dominates.
+            <p class="mb-0">Without error mitigation, today's best quantum processors (QPUs) keep a usable
+            signal for a few hundred two-qubit gates before noise dominates; with error mitigation, IBM has
+            run circuits of about 3,000 (2023) to 5,000 (2024) two-qubit gates.
             VQE and QAOA are designed around this limit: the quantum circuit
             is kept <em>shallow</em> while the classical optimizer does the
             heavy lifting of navigating the parameter space.</p>

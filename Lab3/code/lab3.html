@@ -336,8 +336,13 @@
                         </div>
                         <div class="qsphere-box">
                             <strong><i class="fa-solid fa-circle-nodes"></i> Q-Sphere view:</strong>
-                            The dot for $q_0$'s $|1\rangle$ state turns <span class="text-danger fw-bold">Red</span>
-                            (phase $\pi$). The target qubit stays $|-\rangle$ — unchanged. Only the control's phase changed.
+                            The Q-sphere shows one dot per basis state (four for two qubits, all the same size here),
+                            not one dot per qubit. Before the CNOT the two <span class="text-danger fw-bold">Red</span>
+                            dots (phase $\pi$) are the states with $q_1 = 1$: the minus sign of the target's $|-\rangle$.
+                            After the CNOT the red dots are the two states in which $q_0$ and $q_1$ differ: the state
+                            with $q_0 = 1, q_1 = 1$ turns blue and the state with $q_0 = 1, q_1 = 0$ turns red.
+                            Written as a product, the target is still $|-\rangle$; only the control changed,
+                            $|+\rangle \to |-\rangle$.
                         </div>
                     </div>
 

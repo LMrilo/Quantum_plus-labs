@@ -107,7 +107,7 @@ Normally, a CNOT flips the target. Here, the target $q_1$ remains strictly $|-\r
 
 \begin{composerbox}
 \textbf{Q-Sphere Visualization}\\
-Before the CNOT, the dots on the Q-Sphere for the control qubit are Blue (Positive phase). After the CNOT, the dot corresponding to the $|1\rangle$ component of the control qubit turns \textbf{Red} (Negative phase). The target qubit's probabilities and phases did not change at all. This Red dot is the core of quantum computation.
+The Q-Sphere shows one dot per basis state of the two qubits (four dots, all the same size here), not one dot per qubit. Before the CNOT, the two \textbf{Red} dots (phase $\pi$) are the states with $q_1 = 1$: the minus sign of the target's $|-\rangle$. After the CNOT, the red dots are the two states in which $q_0$ and $q_1$ differ: the state with $q_0 = 1,\ q_1 = 1$ turns Blue and the state with $q_0 = 1,\ q_1 = 0$ turns Red. Written as a product, the target is still $|-\rangle$ and only the control changed, from $|+\rangle$ to $|-\rangle$: this moved sign is the phase kickback.
 \end{composerbox}
 
 \newpage

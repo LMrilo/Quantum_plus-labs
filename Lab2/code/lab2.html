@@ -205,11 +205,14 @@
                 <div class="warning-box shadow-sm">
                     <h5 class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Important: Qiskit Bit
                         Ordering</h5>
-                    <p class="mb-2">Qiskit uses <strong>"Little Endian"</strong> ordering. This means the rightmost bit
-                        in a string represents qubit 0 ($q_0$).</p>
+                    <p class="mb-2">Qiskit prints measurement results as bit strings in <strong>"Little Endian"</strong>
+                        order: the rightmost bit is qubit 0 ($q_0$).</p>
                     <div class="text-center mb-2">
-                        <code>State |10⟩ &implies; q<sub>1</sub> = 1, q<sub>0</sub> = 0</code>
+                        <code>Result '10' &implies; q<sub>1</sub> = 1, q<sub>0</sub> = 0</code>
                     </div>
+                    <p class="mb-2">The kets on this page are written the other way round, $|q_0 q_1\rangle$ (first
+                        symbol = qubit 0): in the tables and derivations below, the ket $|10\rangle$ means $q_0 = 1$,
+                        $q_1 = 0$, which Qiskit prints as <code>'01'</code>.</p>
                     <p class="mb-0">Always pay attention to which qubit is the <em>Control</em> and which is the
                         <em>Target</em> when reading results!
                     </p>
@@ -380,8 +383,9 @@
                     computational space as $2^N$.
                     <ul>
                         <li>2 Qubits = 4 states (Simulatable by hand)</li>
-                        <li>53 Qubits &approx; 9 Petabytes (Limit of Classical Supercomputers)</li>
-                        <li>72+ Qubits (e.g., <strong>Google Willow</strong>) = Beyond classical simulation
+                        <li>53 Qubits: $2^{53} \approx 9\times10^{15}$ amplitudes &approx; 72 Petabytes at 8 bytes each (Limit of
+                            Classical Supercomputers)</li>
+                        <li>105 Qubits (e.g., <strong>Google Willow</strong>, December 2024) = Beyond classical simulation
                             capabilities.</li>
                     </ul>
                 </li>
@@ -405,8 +409,8 @@
                 <h4 class="mb-3">Ready to Code?</h4>
                 <p class="mb-4">
                     We will now write the Python code to generate these states.
-                    <br>Open the Jupyter Notebook to run the "Hello World" of quantum computing and test the fragility
-                    of multi-qubit systems.
+                    <br>Open the Jupyter Notebook to run the "Hello World" of quantum computing and scale it up
+                    to a 3-qubit GHZ state.
                 </p>
                 <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab2/lab2_entanglement.ipynb"
                     class="btn colab-btn btn-lg px-5 shadow"> <i class="fa-solid fa-terminal"></i> Launch
@@ -516,7 +520,7 @@ qc.measure([0,1,2],[0,1,2])</code></pre>
         <div class="card mb-3 border-secondary">
             <div class="card-header bg-secondary text-white">Question 3: The Fragility of Large Systems</div>
             <div class="card-body">
-                <p>Based on the concept of decoherence mentioned in Exercise 4, why is a 3-qubit GHZ state harder to
+                <p>Based on the concept of decoherence mentioned in Task 4, why is a 3-qubit GHZ state harder to
                     maintain than a single qubit?</p>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="q3" id="q3a" value="wrong">

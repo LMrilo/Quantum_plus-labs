@@ -79,8 +79,10 @@ In Lab 1, we manipulated individual qubits. In this laboratory, we explore syste
 
 \begin{warningbox}
 \textbf{Reading Order in Qiskit}\\
-Qiskit uses "Little Endian" ordering. This means the rightmost bit is qubit 0 ($q_0$).
-\[ \text{State } |10\rangle \implies q_1 = 1, \quad q_0 = 0 \]
+Qiskit prints measurement results as bit strings in ``Little Endian'' order: the rightmost bit is qubit 0 ($q_0$).
+\[ \text{Result } \texttt{10} \implies q_1 = 1, \quad q_0 = 0 \]
+The kets in this guide are written the other way round, $|q_0 q_1\rangle$ (first symbol = qubit 0): the ket
+$|10\rangle$ means $q_0 = 1$, $q_1 = 0$, which Qiskit prints as \texttt{01}.
 Always pay attention to which qubit is the \textit{Control} and which is the \textit{Target}.
 \end{warningbox}
 
@@ -154,7 +156,7 @@ As we will see in \textbf{Lesson QC14} (Algorithms), entanglement allows a quant
 \begin{itemize}
     \item \textbf{Shor's Algorithm:} Uses entanglement to crack RSA encryption exponentially faster than classical computers.
     \item \textbf{Grover's Algorithm:} Uses entanglement to search through unsorted databases with quadratic speedup.
-    \item \textit{Hardware Context:} Chips like \textbf{Google Willow} (2025) use 70+ entangled qubits to perform tasks impossible for classical supercomputers.
+    \item \textit{Hardware Context:} Chips like \textbf{Google Willow} (December 2024, 105 qubits) use entangled qubits to perform tasks impossible for classical supercomputers.
 \end{itemize}
 
 \vspace{0.2cm}
