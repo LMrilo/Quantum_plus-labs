@@ -169,6 +169,9 @@
     .supp-list a { color: var(--accent2); text-decoration: none; font-size: .93rem; font-weight: 600; }
     .supp-list a:hover { text-decoration: underline; }
     .supp-desc { display: block; font-size: .82rem; color: var(--muted); }
+    .supp-prereq { display: block; font-size: .8rem; color: var(--text); margin-top: .15rem; line-height: 1.4; }
+    .supp-prereq strong { color: var(--accent2); }
+    .supp-list a.supp-src { font-size: .78rem; font-weight: 500; }
     .supp-note {
       font-size: .72rem;
       color: var(--muted);
@@ -526,6 +529,8 @@
         <div>
           <a href="support_material/phase_kickback_proof.pdf">Phase Kickback: a Proof</a>
           <span class="supp-desc">Step-by-step proof of phase kickback for the CNOT gate (goes with Lab 3).</span>
+          <span class="supp-prereq"><strong>Prerequisites:</strong> Lab 3: the ket notation, the gates H, X and CNOT, and the tensor product ⊗.</span>
+          <a href="support_material/phase_kickback_proof.tex" class="supp-src"><i class="fa-solid fa-file-code"></i> LaTeX source (.tex)</a>
         </div>
         <span class="supp-note">Advanced</span>
       </li>
@@ -534,6 +539,8 @@
         <div>
           <a href="support_material/amplitude_amplification.pdf">Amplitude Amplification: the Geometric Picture</a>
           <span class="supp-desc">Grover&#x27;s algorithm as a rotation in a two-dimensional subspace (goes with Lab 3.5).</span>
+          <span class="supp-prereq"><strong>Prerequisites:</strong> Lab 3.5: bra–ket notation (inner and outer products), sines and cosines, reflecting a vector across a line.</span>
+          <a href="support_material/amplitude_amplification.tex" class="supp-src"><i class="fa-solid fa-file-code"></i> LaTeX source (.tex)</a>
         </div>
         <span class="supp-note">Advanced</span>
       </li>
@@ -541,7 +548,9 @@
         <i class="fa-solid fa-file-pdf"></i>
         <div>
           <a href="support_material/quantum_interference.pdf">Quantum Interference: a Mathematical Introduction</a>
-          <span class="supp-desc">How interference makes quantum algorithms work (goes with Labs 1-3).</span>
+          <span class="supp-desc">How interference makes quantum algorithms work (goes with Labs 1–3, with an extension to Lab 3.5).</span>
+          <span class="supp-prereq"><strong>Prerequisites:</strong> Labs 1–3 (Lab 3.5 for the section on Grover&#x27;s algorithm); theory lessons QC03–QC05 (qubits, gates, multi-qubit states), QC12 (oracles and queries) and QC13–QC14 (the Deutsch, Deutsch–Jozsa and Grover algorithms).</span>
+          <a href="support_material/quantum_interference.tex" class="supp-src"><i class="fa-solid fa-file-code"></i> LaTeX source (.tex)</a>
         </div>
         <span class="supp-note">Advanced</span>
       </li>
@@ -550,6 +559,7 @@
         <div>
           <a href="support_material/grover/grovers_algorithm.html">Grover Deep-Dive</a>
           <span class="supp-desc">Interactive, step-by-step view of amplitude amplification (goes with Lab 3.5).</span>
+          <span class="supp-prereq"><strong>Prerequisites:</strong> Labs 1–2 and Lab 3.5.</span>
         </div>
         <span class="supp-note">Advanced</span>
       </li>
@@ -569,7 +579,7 @@
 
 <footer>
   <div class="container">
-    <span class="hl">Quantum+ Labs</span> &middot; v3 &middot; 2026-09-30<br>
+    <span class="hl">Quantum+ Labs</span> &middot; v3.2 &middot; 2026-10-02<br>
     Lab pages and guides: <a href="https://github.com/LMrilo/Quantum_plus-labs">github.com/LMrilo/Quantum_plus-labs</a> &middot;
     Notebooks: <a href="https://github.com/LMrilo/quantum-labs-2026">github.com/LMrilo/quantum-labs-2026</a>
   </div>
