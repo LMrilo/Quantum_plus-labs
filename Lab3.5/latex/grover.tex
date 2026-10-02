@@ -64,7 +64,7 @@ In Lab 3, we used an Oracle to discover a global property of a function (Constan
 \vspace{0.3cm}
 \noindent \textbf{Prerequisites:}
 \begin{itemize}
-    \item Lesson QC14: \textit{Quantum Algorithms (Grover & Shor)}
+    \item Lesson QC14: \textit{Quantum Algorithms (Grover \& Shor)}
     \item Lab 3: \textit{Oracles and Phase Kickback}
 \end{itemize}
 
@@ -142,6 +142,8 @@ We will build the Oracle to mark $|11\rangle$. A gate that applies a phase only 
     \item \textbf{Look at the Probabilities bar chart.}
 \end{enumerate}
 \textbf{Expected Effect:} The bar chart will show exactly 100\% probability on the state $|11\rangle$. The algorithm successfully amplified the marked state and suppressed the others.
+
+\textbf{Note:} these five Diffuser steps give the inversion about the mean of Part A with an overall minus sign (a global phase $-1$): the circuit ends in $-|11\rangle$ instead of $|11\rangle$. A global phase changes no probability, so the bar chart is the same.
 \end{studentbox}
 
 \newpage

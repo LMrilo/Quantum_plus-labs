@@ -47,15 +47,23 @@
 
         /*
          * Signed bar chart: positive bars grow upward, negative bars grow downward
-         * from the shared baseline (border-bottom of .amp-chart-area).
+         * from the shared baseline (.amp-baseline, NEG_H above the bottom of .amp-chart-area).
+         * The state labels sit in a separate row below the chart, so they do not shift the bars.
          * POS_H = 180px, NEG_H = 60px — must match JS constants.
          */
         .amp-chart-area {
             display: flex; align-items: flex-end; justify-content: center; gap: 8px;
-            height: 242px;   /* POS_H (180) + baseline (2) + NEG_H (60) */
+            box-sizing: border-box;
+            height: 242px;          /* POS_H (180) + baseline (2) + NEG_H (60) */
+            padding-bottom: 60px;   /* NEG_H: the negative zone below the baseline */
             position: relative;
-            border-bottom: 2px solid #dee2e6;  /* the baseline */
         }
+        .amp-baseline {
+            position: absolute; left: 0; right: 0; bottom: 59px; height: 2px;
+            background: #dee2e6; pointer-events: none;
+        }
+        .amp-label-row { display: flex; justify-content: center; gap: 8px; margin-top: 4px; }
+        .amp-label-row .label-wrap { height: auto; justify-content: flex-start; }
 
         .mean-line {
             position: absolute; left: 0; right: 0; height: 2px;
@@ -151,7 +159,7 @@
         <div class="math-box shadow-sm">
             <h5 class="mb-3 text-danger"></i> 1. State Vector Evolution</h5>
 
-            <p><strong>Step 1 — Initialization.</strong> Three Hadamard gates create a uniform superposition of all $N = 2^n$ basis states:</p>
+            <p><strong>Step 1 — Initialization.</strong> $n$ Hadamard gates, one per qubit, create a uniform superposition of all $N = 2^n$ basis states:</p>
             <div class="bg-white p-2 text-center rounded border mb-3">
                 $$ |\psi_0\rangle = |s\rangle = \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} |x\rangle $$
             </div>
@@ -216,7 +224,7 @@
         <div class="task-box">
             <div class="task-header bg-light">Interactive Simulator — Search for $|111\rangle$ in 3 Qubits ($N = 8$)</div>
             <div class="task-body">
-                <p class="mb-4">Use the buttons to step through the algorithm. The bar chart uses a <strong>signed representation</strong>: bars above the baseline are positive, below are negative. The yellow line shows the current mean $\mu$ — the geometric pivot of the diffuser's inversion.</p>
+                <p class="mb-4">Use the buttons to step through the algorithm. The bar chart uses a <strong>signed representation</strong>: bars above the baseline are positive, below are negative. Bars below the baseline are cut off at $-0.33$ (the bottom of the chart): the target's $-0.35$ after the first Oracle and $-0.88$ after the second are drawn shorter than they are. The yellow line shows the current mean $\mu$ — the geometric pivot of the diffuser's inversion.</p>
                 
                 <div class="text-center mb-4">
                     <div class="btn-group" role="group">
@@ -239,6 +247,7 @@
                             <div class="amp-chart-area" id="amp-bars">
                                 <div class="mean-line" id="mean-line"></div>
                             </div>
+                            <div class="amp-label-row" id="amp-labels"></div>
                             <div class="amp-legend">
                                 <span><span class="legend-dot" style="background:#198754"></span>Target $|111\rangle$ (+)</span>
                                 <span><span class="legend-dot" style="background:#0d6efd"></span>Other states (+)</span>
@@ -286,6 +295,7 @@
                                     <li>Repeat the CCZ logic (<span class="badge gate-h">H</span>–<span class="badge gate-ccx">CCX</span>–<span class="badge gate-h">H</span> on $q_2$).</li>
                                     <li>Re-apply <span class="badge gate-x">X</span> then <span class="badge gate-h">H</span> to all qubits.</li>
                                 </ul>
+                                <p class="small mt-2 mb-0">These layers implement $-U_s = I - 2|s\rangle\langle s|$: the Diffuser of Part A with an overall minus sign (a global phase $-1$), so each pass through these layers multiplies the whole state by an extra $-1$ (with the two iterations of this circuit the two signs cancel). A global phase changes no probability, so every measurement result is the same.</p>
                             </li>
                             <li>Repeat steps 2–3 for the second Grover iteration ($k^* = 2$ for $N = 8$).</li>
                         </ol>
@@ -395,7 +405,7 @@
         <div class="task-box">
             <div class="task-header d-flex justify-content-between align-items-center">
                 <span>Exercise 2: Python Implementation</span>
-                <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3.5/lab3_5_grover.ipynb" class="btn btn-sm colab-btn"><i class="fa-solid fa-terminal"></i> Launch Colab Notebook</a>
+                <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3.5/lab3_5_grover.ipynb" target="_blank" rel="noopener" class="btn btn-sm colab-btn"><i class="fa-solid fa-terminal"></i> Launch Colab Notebook</a>
             </div>
             <div class="task-body">
                 <p>This Qiskit implementation dynamically computes the exact optimal iteration count $k^*$ for any $n$-qubit search space.</p>
@@ -429,7 +439,7 @@ def create_grover_circuit(num_qubits: int, iterations: int) -> QuantumCircuit:
         qc.h(num_qubits - 1)
         qc.barrier()
 
-        # ── 3. Diffuser  U_s = 2|s><s| - I  ─────────────────────────────────
+        # ── 3. Diffuser: implements -U_s = I - 2|s><s| (U_s up to a global phase)
         qc.h(range(num_qubits))
         qc.x(range(num_qubits))
 
@@ -633,12 +643,14 @@ if __name__ == "__main__":
     function renderBars(step) {
         const { amps } = getState(step);
         const container = document.getElementById('amp-bars');
-        container.innerHTML = '<div class="mean-line" id="mean-line"></div>';
+        container.innerHTML = '<div class="amp-baseline"></div><div class="mean-line" id="mean-line"></div>';
+        const labelRow = document.getElementById('amp-labels');
+        labelRow.innerHTML = '';
 
         // Mean line — uses same POS_H constant as bars
         const mean   = amps.reduce((s, a) => s + a, 0) / N;
         const meanPx = Math.min(POS_H, Math.max(-NEG_H, (mean / MAX_AMP) * POS_H));
-        document.getElementById('mean-line').style.bottom = meanPx + 'px';
+        document.getElementById('mean-line').style.bottom = (NEG_H + meanPx) + 'px';   // from the bottom of the negative zone
 
         for (let i = 0; i < N; i++) {
             const amp   = amps[i];
@@ -676,8 +688,12 @@ if __name__ == "__main__":
             val.style.color = isNeg ? '#dc3545' : (i === TARGET ? '#198754' : '#666');
             val.innerHTML = `${amp.toFixed(3)}<br><span style="font-size:0.55rem;color:#888;">(${pct}%)</span>`;
 
-            wrap.append(barPos, barNeg, lbl, val);
+            wrap.append(barPos, barNeg);
             container.appendChild(wrap);
+            const lblWrap = document.createElement('div');
+            lblWrap.className = 'bar-wrap label-wrap';
+            lblWrap.append(lbl, val);
+            labelRow.appendChild(lblWrap);
         }
     }
 
@@ -712,7 +728,7 @@ if __name__ == "__main__":
          flipping the sign of $|111\\rangle$'s amplitude to $-0.354$ (shown below the baseline in red).
          All measurement probabilities are <em>unchanged</em> — the oracle encodes information in phase only.
          The overall mean $\\mu$ drops from $+0.354$ to
-         $\\mu = (7 \\times 0.354 + (-0.354))/8 \\approx +0.266$,
+         $\\mu = (7 \\times 0.354 + (-0.354))/8 \\approx +0.265$,
          setting the pivot for the next diffuser step.`,
 
         // step 2 — after diffuser iteration 1
@@ -734,7 +750,7 @@ if __name__ == "__main__":
         // step 4 — after diffuser iteration 2
         `<strong>5. Diffuser — Iteration 2</strong> &mdash;
          The second inversion about the mean concentrates almost all probability on $|111\\rangle$.
-         The state vector has now rotated by $5\\theta \\approx 103.4°$ from the $|s'\\rangle$ axis —
+         The state vector has now rotated by $5\\theta \\approx 103.5°$ from the $|s'\\rangle$ axis —
          nearly aligned with $|\\omega\\rangle$.
          <strong class="text-success">
              $P(|111\\rangle) = \\sin^2(5\\theta) \\approx 94.5\\%$

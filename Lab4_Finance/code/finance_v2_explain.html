@@ -396,7 +396,7 @@
     <div class="task-box">
         <div class="task-header d-flex justify-content-between align-items-center">
             <span>Exercises 1–3: QUBO, QAOA, Frontier Analysis</span>
-            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab4_finance/lab4_finance.ipynb"
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab4_finance/lab4_finance.ipynb" target="_blank" rel="noopener"
                class="btn btn-sm colab-btn">
                 <i class="fa-solid fa-terminal"></i> Open Colab Notebook
             </a>
@@ -791,9 +791,9 @@ const QAOA_INFO = [
      <span class="d-block mt-1" style="font-size:.87rem;color:#444">
      <strong>Why does the cost layer use phases?</strong>
      Quantum mechanics encodes information in both amplitude and phase.
-     The cost layer applies a rotation proportional to the QUBO cost of each
-     bit string: cheap portfolios (AAPL+MSFT) get a small phase rotation;
-     expensive ones (JPM+XOM) get a large one. At this stage <em>all
+     The cost layer gives each bit string a phase proportional to its QUBO
+     cost, so portfolios with different costs get different phases (only the
+     differences matter: a phase shared by all bit strings is invisible). At this stage <em>all
      portfolios are still equally measurable</em> — the phase differences
      are invisible to measurement. They become visible only after the mixer
      converts them into amplitude differences.</span>`,

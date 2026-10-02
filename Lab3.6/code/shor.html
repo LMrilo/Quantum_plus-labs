@@ -224,7 +224,7 @@
     <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">
         <i class="fa-solid fa-wave-square"></i> Part C: QPE Step-by-Step Simulator
     </h2>
-    <p>The counting register uses $n=4$ qubits ($N=16$ states). Step through the
+    <p>The counting register uses $n=4$ qubits ($2^n = 16$ states). Step through the
     algorithm and watch the probability distribution transform.</p>
 
     <div class="task-box">
@@ -465,7 +465,7 @@
     <div class="task-box">
         <div class="task-header d-flex justify-content-between align-items-center">
             <span>Exercise 2: Full Shor Simulation ($N=15$, $a=7$)</span>
-            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3.6/lab3_6_shor.ipynb"
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3.6/lab3_6_shor.ipynb" target="_blank" rel="noopener"
                class="btn btn-sm colab-btn">
                 <i class="fa-solid fa-terminal"></i> Open Colab Notebook
             </a>
@@ -703,9 +703,9 @@ function renderPeriod(selectedA) {
                The sequence: ${orbit.slice(0,r).join(', ')}, ${orbit.slice(0,r).join(', ')}, … `;
     if (ok) {
         msg += `&nbsp;<strong style="color:#1b5e20">✓ r is even and a^(r/2) ≠ −1:</strong>
-                $\\gcd(${selectedA}^{${r/2}}-1,\\,15) = \\gcd(${half-1},\\,15) = ${p}$
+                $\\gcd(${selectedA}^{${r/2}}-1,\\,15) = \\gcd(${selectedA ** (r/2) - 1},\\,15) = ${p}$
                 &nbsp;and&nbsp;
-                $\\gcd(${selectedA}^{${r/2}}+1,\\,15) = \\gcd(${half+1},\\,15) = ${q}$.`;
+                $\\gcd(${selectedA}^{${r/2}}+1,\\,15) = \\gcd(${selectedA ** (r/2) + 1},\\,15) = ${q}$.`;
     } else {
         msg += `&nbsp;<em style="color:#b71c1c">r is odd or a^(r/2) ≡ −1 (mod 15) — need to retry with different a.</em>`;
     }
@@ -882,7 +882,7 @@ function renderCF(selectedY) {
 
     // Try multiples if needed
     let rFinal = rHat, worksActual = works;
-    if (!works) {
+    if (!works && rHat > 1) {
         for (let m = 2; m <= 8; m++) {
             if (modpow(7, rHat * m, N) === 1) {
                 rFinal = rHat * m; worksActual = true; break;
@@ -924,8 +924,8 @@ function renderCF(selectedY) {
         {
             title: 'Factor Extraction',
             content: worksActual && rFinal % 2 === 0 && half !== N - 1
-                ? `$\\gcd(7^{${rFinal/2}} - 1,\\,15) = \\gcd(${half-1},\\,15) = ${pFactor}$ &nbsp;|&nbsp;
-                   $\\gcd(7^{${rFinal/2}} + 1,\\,15) = \\gcd(${half+1},\\,15) = ${qFactor}$.`
+                ? `$\\gcd(7^{${rFinal/2}} - 1,\\,15) = \\gcd(${7 ** (rFinal/2) - 1},\\,15) = ${pFactor}$ &nbsp;|&nbsp;
+                   $\\gcd(7^{${rFinal/2}} + 1,\\,15) = \\gcd(${7 ** (rFinal/2) + 1},\\,15) = ${qFactor}$.`
                 : `Conditions not met for $r = ${rFinal}$ (r must be even and
                    $a^{r/2} \\neq -1$). Retry with a different $y$.`
         }

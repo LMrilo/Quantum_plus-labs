@@ -428,13 +428,16 @@
             <div class="deepdive-box">
                 <strong><i class="fa-solid fa-industry me-1"></i>The fringe as a measuring
                 instrument.</strong> $\varphi$ is optical path-length difference in disguise. Any physical
-                quantity that stretches one arm — rotation in a <strong>fiber-optic gyroscope</strong>
+                quantity that changes the optical path difference between the two beams — rotation in a
+                <strong>fiber-optic gyroscope</strong>
                 (the navigation-grade rotation sensors in aircraft), strain, temperature, or a passing
                 gravitational wave in the kilometer-scale <strong>LIGO-class interferometers</strong> —
                 shifts the fringe. Near the steepest point of the cosine, reading $P(D1)$ to precision
                 $\delta P$ reads the phase to $\delta\varphi \approx 2\,\delta P$: counting photons
-                <em>is</em> the measurement. That is interferometric sensing, and it is this exact
-                circuit.
+                <em>is</em> the measurement. That is interferometric sensing: the gyroscope (a Sagnac loop: two beams
+                travel round the same fiber coil in opposite directions) and LIGO (a Michelson
+                interferometer: each beam goes down one arm and is reflected back by a mirror) use
+                other geometries than this Mach–Zehnder circuit, but the same principle.
             </div>
 
             <h4 class="mt-4 mb-3">Which-path marking: complementarity, quantified</h4>
@@ -658,10 +661,13 @@
                 distribution protocol of Lab 6) uses precisely these components: its four signal
                 states <em>are</em> $|H\rangle, |V\rangle, |{+}\rangle, |{-}\rangle$; Alice's
                 transmitter is a polarization preparer, Bob's receiver is a basis-switched analyzer —
-                a rotation plus a polarizing beam splitter, Procedure 2 in glass. Metropolitan QKD fiber
-                networks (deployed in Europe and Asia, and the building block of the planned EuroQCI
-                infrastructure) run this lab's Part C optics at telecom scale: every "secure key bit"
-                started life as a photon meeting a polarization analyzer.
+                a rotation plus a polarizing beam splitter, Procedure 2 in glass. Polarization encoding
+                is the usual choice on free-space and satellite links (the Chinese satellite
+                <strong>Micius</strong> distributed keys this way) and is used in some fiber systems.
+                Many metropolitan QKD fiber networks (deployed in Europe and Asia, and the building block
+                of the planned EuroQCI infrastructure) encode the same BB84 states in the phase or the
+                arrival time of the photon instead, because a fiber slowly scrambles polarization: the
+                components change, the protocol and this lab's measurement logic do not.
             </div>
 
             <div class="deepdive-box">
@@ -1080,7 +1086,7 @@
     <div class="task-box">
         <div class="task-header d-flex justify-content-between align-items-center">
             <span>Dual-rail circuits, which-path CNOT, Malus sweeps, entangled pairs</span>
-            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab7/lab7_optics.ipynb"
+            <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab7/lab7_optics.ipynb" target="_blank" rel="noopener"
                class="btn btn-sm colab-btn">
                 <i class="fa-solid fa-terminal me-1"></i>Open Colab Notebook
             </a>

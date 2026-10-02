@@ -801,7 +801,7 @@
                             No Qiskit or programming experience is assumed: the notebook opens with a one-screen
                             reading guide.
                         </p>
-                        <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab5/lab5_quantum_measurements.ipynb"
+                        <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab5/lab5_quantum_measurements.ipynb" target="_blank" rel="noopener"
                            class="btn btn-sm colab-btn">
                             <i class="fa-solid fa-terminal"></i> Open Colab Notebook
                         </a>
@@ -966,14 +966,14 @@
         }
         scene.add(axLine([0,-1.5,0], [0,1.5,0], 0x3b82f6)); scene.add(axCone([0,1,0],  0x3b82f6));
         scene.add(axLine([-1.5,0,0], [1.5,0,0], 0xf87171)); scene.add(axCone([1,0,0],  0xf87171));
-        scene.add(axLine([0,0,-1.5], [0,0,1.5], 0x4ade80)); scene.add(axCone([0,0,1],  0x4ade80));
+        scene.add(axLine([0,0,-1.5], [0,0,1.5], 0x4ade80)); scene.add(axCone([0,0,-1], 0x4ade80));
         var CARDINALS = [
             { id:'cs-k0',  tv:[0,1,0],   color:0x60a5fa },
             { id:'cs-k1',  tv:[0,-1,0],  color:0xf87171 },
             { id:'cs-kp',  tv:[1,0,0],   color:0x4ade80 },
             { id:'cs-km',  tv:[-1,0,0],  color:0xfacc15 },
-            { id:'cs-ki',  tv:[0,0,1],   color:0xc084fc },
-            { id:'cs-kni', tv:[0,0,-1],  color:0x67e8f9 },
+            { id:'cs-ki',  tv:[0,0,-1],  color:0xc084fc },
+            { id:'cs-kni', tv:[0,0,1],   color:0x67e8f9 },
         ];
         CARDINALS.forEach(function(c) {
             var dot = new THREE.Mesh(new THREE.SphereGeometry(0.046, 8, 8), new THREE.MeshBasicMaterial({ color: c.color }));
@@ -988,7 +988,7 @@
             return new THREE.Vector3(
                 Math.sin(th) * Math.cos(ph),
                 Math.cos(th),
-                Math.sin(th) * Math.sin(ph)
+                -Math.sin(th) * Math.sin(ph)   // Bloch y -> three.js -z keeps the axes right-handed
             );
         }
         function bornProbs(th, ph, basis) {
@@ -1081,15 +1081,15 @@
             { id:'sim-lbl-z',  pos:new THREE.Vector3(0,  1.78, 0)  },
             { id:'sim-lbl-nz', pos:new THREE.Vector3(0, -1.78, 0)  },
             { id:'sim-lbl-x',  pos:new THREE.Vector3(1.78, 0, 0)   },
-            { id:'sim-lbl-y',  pos:new THREE.Vector3(0, 0, 1.78)   },
+            { id:'sim-lbl-y',  pos:new THREE.Vector3(0, 0, -1.78)  },
         ];
         var CARD_LBL_POS = [
             { id:'cs-k0',  pos:new THREE.Vector3( 0.15, 1.25, 0)   },
             { id:'cs-k1',  pos:new THREE.Vector3( 0.15,-1.25, 0)   },
             { id:'cs-kp',  pos:new THREE.Vector3( 1.28, 0.08, 0)   },
             { id:'cs-km',  pos:new THREE.Vector3(-1.28, 0.08, 0)   },
-            { id:'cs-ki',  pos:new THREE.Vector3( 0,    0.08, 1.28) },
-            { id:'cs-kni', pos:new THREE.Vector3( 0,    0.08,-1.28) },
+            { id:'cs-ki',  pos:new THREE.Vector3( 0,    0.08,-1.28) },
+            { id:'cs-kni', pos:new THREE.Vector3( 0,    0.08, 1.28) },
         ];
         function posLabel(el, pos3) {
             var v = pos3.clone().project(camera);

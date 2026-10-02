@@ -90,7 +90,7 @@
 % ══════════════════════════════════════════════════════════════════════════════
 
 In Lab 3 and Lab 3.5 we learned to exploit quantum interference for global
-function evaluation (Deutsch–Jozsa) and unstructured search (Grover).
+function evaluation (Deutsch's algorithm, with its Deutsch–Jozsa extension) and unstructured search (Grover).
 In this laboratory we tackle the problem that gave quantum computing much of
 its public profile: \textbf{integer factorisation}. Shor's Algorithm (1994)
 factors an $n$-bit integer $N$ in time $\mathcal{O}(n^3)$, while the best
@@ -117,7 +117,7 @@ security of every RSA-encrypted message on the internet today.
 
 \begin{warningbox}
 \textbf{The Exponential Speedup — What Is Really at Stake}\\[4pt]
-RSA-2048 (used for most HTTPS traffic today) relies on the fact that
+RSA-2048 (still widely used to secure HTTPS connections) relies on the fact that
 factoring a 2048-bit number is computationally infeasible classically.
 The GNFS would take roughly $10^{30}$--$10^{35}$ operations (estimates vary): even at
 $10^{18}$ operations per second, an exascale supercomputer, that is between tens of
@@ -166,8 +166,9 @@ Equivalently, $r$ is the period of the function $f(x) = a^x \bmod N$.
     (this is the quantum step).
 
     \item \textbf{Extract the factors:} If $r$ is even and
-    $a^{r/2} \not\equiv -1 \Mod{N}$, then by Euler's theorem and the
-    factorisation of $x^2 - 1 = (x-1)(x+1)$:
+    $a^{r/2} \not\equiv -1 \Mod{N}$, then $N$ divides
+    $a^r - 1 = (a^{r/2}-1)(a^{r/2}+1)$ but divides neither factor ($r$ is the
+    smallest exponent with $a^r \equiv 1$, and $a^{r/2} \not\equiv -1$), so
     \[
         p = \gcd\!\left(a^{r/2} - 1,\; N\right), \qquad
         q = \gcd\!\left(a^{r/2} + 1,\; N\right)
@@ -290,8 +291,10 @@ spacing of the peaks.}
 The algorithm uses two quantum registers:
 \begin{itemize}
     \item \textbf{Counting register} ($n$ qubits): stores the superposition
-    of exponents $x \in \{0, \ldots, 2^n - 1\}$. We need $2^n \geq N^2$;
-    for $N=15$ we use $n=4$ ($2^4 = 16$).
+    of exponents $x \in \{0, \ldots, 2^n - 1\}$. In general we need $2^n \geq N^2$
+    (for $N=15$: $n = 8$). This lab uses $n=4$ ($2^4 = 16$), a declared
+    simplification: it works for $N = 15$ because every period here (2 or 4)
+    divides 16 exactly.
     \item \textbf{Work register} ($m$ qubits, $m = \lceil\log_2 N\rceil$):
     stores $f(x) = a^x \bmod N$. For $N=15$, $m=4$ qubits.
 \end{itemize}
@@ -333,8 +336,9 @@ The counting register collapses to the uniform periodic superposition:
     \ket{\psi_3} = \frac{1}{2}\bigl(\ket{0}+\ket{4}+\ket{8}+\ket{12}\bigr)_C
     \otimes \ket{1}_W.
 \]
-Note: in the actual circuit the work register is traced out implicitly by the QFT;
-explicit measurement is not required.
+Note: in the actual circuit the work register is never measured: measuring only the
+counting register at the end gives the same outcome statistics, so this measurement only
+simplifies the algebra; the circuit does not need it.
 
 \textbf{Step 4 — Inverse QFT.}
 As computed in Part B, the IQFT concentrates probability at
@@ -369,7 +373,7 @@ The denominator $q$ is the period estimate $\hat{r}$.
     $7^{\hat{r}} \bmod 15$ & Result \\ \hline
     0  & $0$    & $0/1$  & 1 & 7 & Retry (trivial) \\
     4  & $1/4$  & $1/4$  & \crd{4} & 1 & $\checkmark$ \\
-    8  & $1/2$  & $1/2$  & 2 & 4 & Retry, try $2r$ \\
+    8  & $1/2$  & $1/2$  & 2 & 4 & Try $2\hat{r} = 4$: $\checkmark$ \\
     12 & $3/4$  & $3/4$  & \crd{4} & 1 & $\checkmark$ \\
     \hline
 \end{tabular}
@@ -401,7 +405,7 @@ etc.
 \end{enumerate}
 \textbf{Expected:} All four states $\ket{00}, \ket{01}, \ket{10}, \ket{11}$
 with equal probability $25\%$. Now \textbf{change the initial state to} $\ket{01}$
-(add an $X$ gate on $q_1$ before step 1) and verify the phases rotate as predicted.
+(add an $X$ gate on $q_1$ before step 2) and verify the phases rotate as predicted.
 \end{studentbox}
 
 \subsection{Exercise 2: Period Detection (Conceptual Composer Exercise)}

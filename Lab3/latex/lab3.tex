@@ -194,12 +194,12 @@ def run_deutsch_algorithm() -> dict:
 counts = run_deutsch_algorithm()
 print(f"Algorithm Output: {counts}")
 \end{lstlisting}
-\textbf{Analysis:} Because the oracle we built is balanced, the output will be exactly `{'1': 1000}`. If you replaced the Oracle block with an empty space (Identity gate), it would act as $f(x) = 0$ (Constant), and the output would be `{'0': 1000}`.
+\textbf{Analysis:} Because the oracle we built is balanced, the output will be exactly \verb|{'1': 1000}|. If you replaced the Oracle block with an empty space (Identity gate), it would act as $f(x) = 0$ (Constant), and the output would be \verb|{'0': 1000}|.
 \end{tcolorbox}
 
 \begin{deepdivebox}
 \textbf{Beyond Deutsch: Why does this matter? (Lesson QC14)}\\
-Deutsch's algorithm has no direct commercial application. However, it proves that quantum interference can solve a problem in $\mathcal{O}(1)$ steps instead of $\mathcal{O}(N)$.
+Deutsch's algorithm has no direct commercial application. However, it proves that quantum interference can answer a global question about a function with fewer queries than any classical method: 1 query instead of 2.
 \begin{itemize}
     \item \textbf{Deutsch-Jozsa:} Expands this to $N$ bits. A classical computer needs $2^{N-1} + 1$ queries in the worst case. The quantum computer still needs exactly \textbf{1 query}. This represents an exponential speedup.
     \item \textbf{Grover \& Shor:} The logic of Oracles and Phase Kickback is the exact same engine used by Grover's algorithm to search databases and Shor's algorithm to break RSA encryption.

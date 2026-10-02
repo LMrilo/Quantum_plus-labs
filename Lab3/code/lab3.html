@@ -351,7 +351,8 @@
                         <img src="kickback_circuit.png" alt="Phase Kickback Circuit" class="visual-img border-primary">
                         <p class="small text-muted mt-3 text-start">
                             <em>Notice how the target must be meticulously prepared in the $|-\rangle$ state for the
-                                kickback to occur.</em>
+                                kickback to occur. The figure also shows the final H on $q_0$ that completes
+                                Deutsch's algorithm (Part B); Exercise 1 stops after the CNOT.</em>
                         </p>
                     </div>
                 </div>
@@ -455,7 +456,7 @@
             <div class="task-box">
                 <div class="task-header d-flex justify-content-between align-items-center">
                     <span>Exercise 3: Coding Deutsch's Algorithm in Qiskit</span>
-                    <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3/lab3_deutsch.ipynb" class="btn btn-sm colab-btn"><i class="fa-solid fa-terminal"></i> Launch Colab
+                    <a href="https://colab.research.google.com/github/LMrilo/quantum-labs-2026/blob/main/lab3/lab3_deutsch.ipynb" target="_blank" rel="noopener" class="btn btn-sm colab-btn"><i class="fa-solid fa-terminal"></i> Launch Colab
                         Notebook</a>
                 </div>
                 <div class="task-body">
@@ -510,8 +511,8 @@ print(f"Algorithm Output: {job.result().get_counts()}")</code></pre>
                 <p>You are right. Deutsch's algorithm has <strong>no direct commercial application</strong>.
                     However, it is
                     the theoretical foundation of everything that follows. It proves that quantum interference can
-                    change
-                    the algorithmic scaling of a problem from $\mathcal{O}(N)$ to $\mathcal{O}(1)$.</p>
+                    answer a global question about a function with fewer queries than any classical method:
+                    1 query instead of 2.</p>
                 <ul class="mb-0">
                     <li class="mb-3"><strong>The Deutsch-Jozsa Extension:</strong> Expands this exact logic to
                         functions
