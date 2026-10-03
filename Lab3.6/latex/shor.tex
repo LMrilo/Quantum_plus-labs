@@ -135,8 +135,8 @@ any power of the number of bits $n$; Shor's grows only like $n^3$.
 
 RSA encryption is built on a simple asymmetry: \textbf{multiplying} two large
 primes $p$ and $q$ to produce $N = p\cdot q$ is trivially fast, but
-\textbf{factoring} $N$ back into $p$ and $q$ is (classically) exponentially
-hard. The security of the system relies entirely on this asymmetry.
+\textbf{factoring} $N$ back into $p$ and $q$ is (classically) very hard: the
+best known method needs a time that grows faster than any power of the number of bits. The security of the system relies entirely on this asymmetry.
 
 \subsection{Reduction: Factoring $\Rightarrow$ Order Finding}
 
@@ -236,7 +236,7 @@ The circuit for $n=3$ qubits is shown below:
     \lstick{$q_1$} & \qw & \ctrl{-1} & \qw &
     \gate{H} & \gate{R_2} & \qw & \qw & \qw \\
     \lstick{$q_2$} & \qw & \qw & \ctrl{-2} &
-    \ctrl{-1} & \qw & \gate{H} & \targX{} & \qw
+    \qw & \ctrl{-1} & \gate{H} & \targX{} & \qw
 \end{quantikz}
 \]
 The figure uses the textbook ordering (top wire = most significant bit). The code in Part E uses
@@ -396,24 +396,24 @@ etc.
 \begin{studentbox}
 \textbf{Circuit Instructions:}
 \begin{enumerate}
-    \item Start with both qubits in $\ket{0}$.
+    \item Start with both qubits in $\ket{0}$. A new Composer circuit has four qubits: in the OpenQASM editor change \texttt{qubit[4] q;} to \texttt{qubit[2] q;} and \texttt{bit[4] c;} to \texttt{bit[2] c;} (or use \textit{Edit $\rightarrow$ Manage registers}). With four qubits every label has four digits (\texttt{0000}, \texttt{0001}, \ldots).
     \item Apply $H$ to $q_0$ (MSB).
     \item Apply $S$ (= $R_2 = P(\pi/2)$) to $q_0$, controlled on $q_1$.
     \item Apply $H$ to $q_1$.
     \item Apply \texttt{SWAP} between $q_0$ and $q_1$ (bit-reversal).
-    \item \textbf{Add a measurement} and observe the statevector on the Q-Sphere.
+    \item Do \textbf{not} add a measurement, and look at the Q-Sphere. Once a circuit contains a measurement, the Composer's live views show a single simulated run (one dot, one bar at 100\%). Tick \textit{Phase angle} under the Q-Sphere to read the phases.
 \end{enumerate}
 \textbf{Expected:} All four states $\ket{00}, \ket{01}, \ket{10}, \ket{11}$
 with equal probability $25\%$. Now \textbf{change the initial state to} $\ket{01}$
 (add an $X$ gate on $q_1$ before step 2) and verify the phases rotate as predicted.
 \end{studentbox}
 
-\subsection{Exercise 2: Period Detection (Conceptual Composer Exercise)}
+\subsection{Composer Activity: Period Detection (Conceptual)}
 
 \begin{studentbox}
 \textbf{Observe the Oracle Effect:}
 \begin{enumerate}
-    \item Put 4 qubits in uniform superposition ($H$ on all).
+    \item Set the register back to four qubits (\texttt{qubit[4] q;} and \texttt{bit[4] c;}, the default of a new circuit) and put them in uniform superposition ($H$ on all).
     \item Inspect the Q-Sphere — all $16$ states equally bright.
     \item Now apply a phase oracle: apply $Z$ to $q_0$
     (MSB) only. This flips the sign of every state with $q_0 = 1$
@@ -432,7 +432,7 @@ across all $n$ qubits simultaneously, but for the \emph{period-$r$ subspace}.
 \section{Part E: Coding Shor's Algorithm (Qiskit)}
 % ══════════════════════════════════════════════════════════════════════════════
 
-\subsection{Exercise 3: Python Implementation}
+\subsection{Exercise 2: Python Implementation}
 
 The full implementation searches for the period of $f(x) = 7^x \bmod 15$.
 The circuit uses 4 counting qubits and a 4-qubit work register that starts at the number 1. Counting qubit $j$ multiplies the work register by $7^{2^j} \bmod 15$: by 7 for $j=0$ and by 4 for $j=1$. Qubits $j=2,3$ need no gate at all, because $7^4 \equiv 7^8 \equiv 1 \pmod{15}$. Each multiplication modulo 15 is built from swaps and bit flips: doubling a 4-bit number modulo 15 simply moves every bit one place up, with the top bit wrapping around to the bottom.

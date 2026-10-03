@@ -95,6 +95,7 @@ Always pay attention to which qubit is the \textit{Control} and which is the \te
 \textbf{Context:} Lesson \textbf{QC05} introduces the CNOT gate. It acts on two qubits: a \textit{Control} and a \textit{Target}. It flips the Target qubit ONLY IF the Control qubit is in state $|1\rangle$.
 
 \begin{studentbox}
+\textbf{Setup:} A new Composer circuit has four qubits. Reduce it to two: in the OpenQASM editor change \texttt{qubit[4] q;} to \texttt{qubit[2] q;} and \texttt{bit[4] c;} to \texttt{bit[2] c;} (or use \textit{Edit $\rightarrow$ Manage registers}). With four qubits every label has four digits (\texttt{11} is shown as \texttt{0011}).\\
 \textbf{Action:}
 \begin{enumerate}
     \item Use an \texttt{X} gate on $q_0$ (Control) to set it to $|1\rangle$. Leave $q_1$ (Target) at $|0\rangle$.
@@ -161,11 +162,11 @@ As we will see in \textbf{Lesson QC14} (Algorithms), entanglement allows a quant
 
 \vspace{0.2cm}
 \textbf{2. Unhackable Security (Quantum Internet)}\\
-Entanglement is the basis of \textbf{Quantum Key Distribution (QKD)}.
+Entanglement is one route to \textbf{Quantum Key Distribution (QKD)}: entanglement-based protocols use shared pairs, while the first QKD protocol, BB84 (1984), sends single photons and needs no entanglement (Lab 6).
 \begin{itemize}
     \item If two parties share entangled photons, any attempt by a hacker to "eavesdrop" (measure the line) destroys the entanglement instantly.
-    \item This collapse reveals the intruder immediately, guaranteeing physical security.
-    \item \textit{Hardware Context:} Companies like \textbf{IonQ} and \textbf{Quantinuum} are building the nodes for these quantum networks.
+    \item The disturbance shows up as errors: when the two parties measure in randomly chosen bases (as real protocols do, Lab 6), an intercepted round they keep gives a wrong bit in one case out of four, so by comparing a random sample of their bits the two parties detect the intruder with a probability that approaches 1 as the sample grows.
+    \item \textit{Hardware Context:} Companies such as \textbf{IonQ} are building the nodes for these quantum networks.
 \end{itemize}
 \end{deepdivebox}
 

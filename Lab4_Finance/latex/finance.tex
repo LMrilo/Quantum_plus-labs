@@ -101,7 +101,7 @@ the optional boxes point out the connections.
 The investment choice is written as a Quadratic Unconstrained Binary
 Optimization (QUBO) problem, rewritten as an operator on qubits (an Ising
 Hamiltonian), and searched with a short quantum circuit, the Quantum
-Approximate Optimization Algorithm (QAOA). The novelty is threefold: (i) the QUBO is derived from real financial data,
+Approximate Optimization Algorithm (QAOA). The novelty is threefold: (i) the QUBO is built from (stylised) asset data,
 (ii) interpreting the output requires both a technical and a business lens,
 and (iii) the problem has a natural classical solution that allows direct
 benchmarking.
@@ -192,22 +192,23 @@ The continuous relaxation (equation~\eqref{eq:mv-cont}) gives the
 require.
 
 \noindent\textbf{Efficient frontier.} A portfolio is \emph{efficient} if no
-other portfolio offers a higher expected return for the same or lower risk.
+other portfolio offers at least the same expected return for less risk, or a
+higher expected return for no more risk.
 The efficient ones, drawn in the risk--return plane, form the
 \emph{efficient frontier}; every other point is \emph{dominated}. Among our
 six 2-asset portfolios (equal weights), four are efficient (MSFT + JPM,
 AAPL + JPM, AAPL + XOM, AAPL + MSFT); MSFT + XOM and JPM + XOM are
 dominated. Moving $\lambda$ walks the optimum along this frontier.
 
-\subsection{Asset Universe: AAPL, MSFT, JPM, XOM (2020--2024)}
+\subsection{Asset Universe: AAPL, MSFT, JPM, XOM}
 
 We work with the four assets in Table~\ref{tab:assets}. The covariance
-matrix $\Sigma$ and expected returns $\boldsymbol\mu$ are computed from
-daily closing prices over 2020--2024 (annualised).
+matrix $\Sigma$ and expected returns $\boldsymbol\mu$ are stylised teaching
+values (annualised, rounded), not an estimate from a specific price history.
 
 \begin{table}[H]
 \centering
-\caption{Asset data used in this laboratory (annualised, 2020--2024).}
+\caption{Asset data used in this laboratory (annualised, stylised teaching values).}
 \label{tab:assets}
 \begin{tabular}{clccc}
     \toprule
@@ -221,7 +222,7 @@ daily closing prices over 2020--2024 (annualised).
 \end{tabular}
 \end{table}
 
-\noindent The annualised covariance matrix (approximate):
+\noindent The annualised covariance matrix (stylised):
 \begin{equation}
     \Sigma = \begin{pmatrix}
         \cgr{0.0841} & 0.0588 & 0.0313 & 0.0203 \\
@@ -255,7 +256,10 @@ penalty added to the objective:
 
 where $\lambda_\text{pen}$ must be large enough that any infeasible
 solution (wrong number of assets) is always worse than any feasible one.
-A safe choice is $\lambda_\text{pen} > \max_{x,\text{feasible}} |C(x)|$.
+Since every infeasible $x$ pays a penalty of at least $\lambda_\text{pen}$, a sufficient
+choice is $\lambda_\text{pen} > \max_{x\ \text{feasible}} C(x) - \min_{x\ \text{infeasible}} C(x)$;
+with $C(x) = \lambda\, x^T\Sigma x - \boldsymbol\mu^T x$ the cost term; for our data this bound is about
+$0.23$ at $\lambda = 1$ and at most $0.83$ for $\lambda \le 5$, so $\lambda_\text{pen} = 3$ is ample.
 
 Expanding and collecting, equation~\eqref{eq:qubo-full} takes the
 standard QUBO form.
@@ -629,7 +633,7 @@ The full implementation is in the companion notebook. Three exercises
 are provided:
 
 \begin{enumerate}
-    \item \textbf{QUBO Construction:} Build $Q$ from real asset data,
+    \item \textbf{QUBO Construction:} Build $Q$ from the asset data,
           enumerate all $\binom{4}{2}$ portfolios classically, identify
           the optimum.
     \item \textbf{QAOA Optimisation:} Run QAOA with $p \in \{1,2\}$,

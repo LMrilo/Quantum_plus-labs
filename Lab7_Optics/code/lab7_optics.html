@@ -1447,7 +1447,7 @@ const RACK_DEFAULT = [[1, 0], [0, 45], [1, 90], [0, 0]];
 
 function $id(x) { return document.getElementById(x); }
 
-function currentSeed() { return parseInt($id('sim-seed').value) || 42; }
+function currentSeed() { const v = parseInt($id('sim-seed').value); return Number.isFinite(v) ? v : 42; }
 function currentPhi() { return parseInt($id('phi-slider').value) * D2R; }
 function currentS() { return parseInt($id('s-slider').value) / 100; }
 function currentAlpha() { return (parseFloat($id('alpha-deg').value) || 0) * D2R; }

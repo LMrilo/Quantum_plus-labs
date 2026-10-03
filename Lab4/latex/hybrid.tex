@@ -244,18 +244,19 @@ $V(\theta) = \cdots G(\theta) \cdots$ to state $\rho$) is:
 \begin{mathbox}[Parameter-Shift Rule — Full Derivation]
 \textbf{Step 1: Expand $G(\theta)$.}
 Using $\cos(\theta/2) = \frac{e^{i\theta/2} + e^{-i\theta/2}}{2}$ and
-$\sin(\theta/2) = \frac{e^{i\theta/2} - e^{-i\theta/2}}{2i}$, and
-denoting the context of the circuit (all gates before and after $G$)
-as a fixed superoperator $\mathcal{L}$, we can write:
+$\sin(\theta/2) = \frac{e^{i\theta/2} - e^{-i\theta/2}}{2i}$, we can write:
 \begin{equation}
-    f(\theta) = \mathrm{Tr}\!\left[\tilde{O}(\theta)\right]
-    = a + b\cos\theta + c\sin\theta
+    f(\theta) = a + b\cos\theta + c\sin\theta
 \end{equation}
 where $a, b, c \in \mathbb{R}$ depend on $O$, $\rho$ and the rest of
-the circuit, but \emph{not} on $\theta$. This is proved by expanding:
+the circuit, but \emph{not} on $\theta$. To prove it, write
+$V(\theta) = W\,G(\theta)\,U$, with $U$ the gates before $G$ and $W$ the gates after it.
+Then $f(\theta) = \mathrm{Tr}[\tilde O\,G(\theta)\tilde\rho\,G^\dagger(\theta)]$ with
+$\tilde\rho = U\rho U^\dagger$ and $\tilde O = W^\dagger O W$, neither of which depends on $\theta$.
+Expanding:
 
 \begin{align}
-V(\theta)\rho V^\dagger(\theta) &=
+G(\theta)\tilde\rho\,G^\dagger(\theta) &=
     \Bigl(\cos\tfrac{\theta}{2}\,I - i\sin\tfrac{\theta}{2}\,P\Bigr)\,
     \tilde{\rho}\,
     \Bigl(\cos\tfrac{\theta}{2}\,I + i\sin\tfrac{\theta}{2}\,P\Bigr) \notag\\
@@ -263,8 +264,7 @@ V(\theta)\rho V^\dagger(\theta) &=
    + \sin^2\!\tfrac{\theta}{2}\,P\tilde{\rho}P
    + i\sin\tfrac{\theta}{2}\cos\tfrac{\theta}{2}\,[\tilde{\rho},P], \notag
 \end{align}
-where $\tilde\rho$ absorbs all gates not containing $\theta$. Applying
-$\mathrm{Tr}[O\,\cdot\,]$ and using $\cos^2 = (1+\cos\theta)/2$,
+Applying $\mathrm{Tr}[\tilde O\,\cdot\,]$ (below we write $O$ for $\tilde O$) and using $\cos^2 = (1+\cos\theta)/2$,
 $\sin^2 = (1-\cos\theta)/2$, $\sin(\theta/2)\cos(\theta/2) = \sin\theta/2$:
 \begin{align}
 f(\theta) &= \frac{1+\cos\theta}{2}\,\mathrm{Tr}[O\tilde\rho]
@@ -604,8 +604,13 @@ $-\sin(0.5)\approx-0.479$; any difference in your measured values comes only fro
 \begin{enumerate}
     \item Build the ansatz $\mathrm{CX}_{01}(R_y(\theta_0)\otimes R_y(\theta_1))$.
     \item Fix $\theta_1 = \pi$. Sweep $\theta_0 \in \{0, \pi/4, \pi/2, 3\pi/4, \pi\}$.
-    \item For each value, add $Z_0Z_1$ and $Z_0$ measurement and record
-          $C(\theta_0, \pi)$ from the Probabilities panel.
+    \item For each value, read the four probabilities from the Probabilities panel and compute
+          $C(\theta_0, \pi) = \sum_{q_1q_0} p_{q_1q_0}\,(z_0z_1 + 0.5\,z_0)$, with $z = +1$ for a bit 0 and
+          $z = -1$ for a bit 1. The Composer, like Qiskit, writes $q_0$ as the rightmost bit: the bar
+          \texttt{01} is $q_0 = 1$, $q_1 = 0$, the ket $\ket{10}$ of this guide. Use a two-qubit register
+          (in the OpenQASM editor change \texttt{qubit[4] q;} to \texttt{qubit[2] q;} and \texttt{bit[4] c;} to \texttt{bit[2] c;}),
+          and do \textbf{not} add measurements: once a circuit contains one, the panel shows a single
+          simulated run (100\% on one bar).
     \item Plot by hand: along this line $C = -1 + \tfrac{1}{2}\cos\theta_0$, so you
           should see $C$ decrease monotonically from $-0.5$ (at $\theta_0=0$) to
           $-1.5$ (at $\theta_0=\pi$), the global minimum.
@@ -626,7 +631,7 @@ Three exercises are provided:
     \item \textbf{VQE on Ising:} use Qiskit's \texttt{Estimator} primitive
           with COBYLA to minimise $C(\theta_0, \theta_1)$.
     \item \textbf{QAOA MaxCut:} sweep $p \in \{1,2,3\}$ and compare
-          approximation ratios and convergence speed.
+          the approximation ratios.
 \end{enumerate}
 
 \begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,
@@ -674,9 +679,9 @@ This is a \textbf{QUBO} (Quadratic Unconstrained Binary Optimization) and
 maps to a Hamiltonian via $Z_i = 1 - 2x_i$:
 \[
     H_{\text{portfolio}} = \sum_{i,j} Q_{ij}\,\frac{(I-Z_i)(I-Z_j)}{4}
-    + \lambda\!\left(\sum_i \frac{I-Z_i}{2} - K\right)^{\!2}.
+    + \lambda_\text{pen}\!\left(\sum_i \frac{I-Z_i}{2} - K\right)^{\!2}.
 \]
-The second term is a \emph{penalty} enforcing the budget constraint.
+The second term is a \emph{penalty}, with weight $\lambda_\text{pen}$, enforcing the budget constraint.
 QAOA is then applied to $H_{\text{portfolio}}$ using \emph{exactly the
 same circuit structure} built in this lab, but with this financial
 Hamiltonian as $H_C$.
@@ -740,8 +745,9 @@ Q1: B (the trigonometric form $a + b\cos\theta + c\sin\theta$ is
     of this form, making the two-point shift exact, not approximate);
 Q2: B (more qubits make barren plateaus \emph{worse}, not better);
 Q3: B (the mixer drives transitions, analogous to kinetic energy in
-    the adiabatic picture — without it the circuit is stuck in the
-    product state and cannot explore the solution space);
+    the adiabatic picture — without it the cost layers only add phases,
+    so every bit string stays equally likely and the circuit cannot move
+    probability toward good solutions);
 Q4: B (the standard ZZ-rotation decomposition:
     $e^{-i\gamma Z_i Z_j} = \mathrm{CNOT}_{ij}
     \cdot(I\otimes e^{-i\gamma Z_j})\cdot \mathrm{CNOT}_{ij}$,

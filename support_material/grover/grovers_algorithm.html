@@ -179,7 +179,7 @@
 
   /* AMPLITUDE BARS */
   .amp-container {
-    height: 320px;
+    min-height: 320px;
     display:flex;
     flex-direction:column;
     justify-content:space-between;
@@ -281,10 +281,10 @@
 
   .equations {
     display:grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 24px 32px;
   }
-  @media (max-width:600px) { .equations { grid-template-columns:1fr; } }
+  @media (max-width:600px) { .equations { grid-template-columns:minmax(0, 1fr); } }
 
   .eq-block {
     padding: 16px;
@@ -366,8 +366,8 @@
 
   <div class="info-box intro-box" id="intro">
     <span class="highlight-text">Optional, advanced.</span> A supplementary deep-dive on
-    <a href="../../Lab3.5/code/grover.html">Lab 3.5 (Grover's Algorithm)</a>. It assumes what Lab 3.5 assumes
-    (Labs 1–2: qubits and kets, the Hadamard gate H, amplitudes and measurement probabilities) and Lab 3.5 itself.
+    <a href="../../Lab3.5/code/grover.html">Lab 3.5 (Grover's Algorithm)</a>. It assumes Lab 3.5 and what Lab 3.5
+    assumes (Labs 1–3: qubits and kets, the Hadamard gate H, amplitudes and measurement probabilities, oracles).
     The algebra behind the picture is in the note
     <a href="../amplitude_amplification.pdf">Amplitude Amplification: the Geometric Picture</a>.
     <br><span class="highlight-text">Setup:</span> n = 3 qubits, N = 2<sup>n</sup> = 8 basis states |000⟩ … |111⟩.
@@ -412,6 +412,7 @@
           <span><span class="legend-dot" style="background:var(--accent1)"></span>Other states</span>
           <span><span class="legend-dot" style="background:var(--accent3)"></span>Mean amplitude ⟨a⟩ (dashed, same scale)</span>
           <span><span class="legend-dot" style="background:var(--dim)"></span>Grey line = 0: bars below it are negative</span>
+          <span><span class="legend-dot" style="background:var(--accent3)"></span>Orange bar = negative amplitude</span>
         </div>
       </div>
     </div>
@@ -563,7 +564,7 @@ function drawGeo(step) {
   ctx.fillStyle = '#4a607a';
   ctx.font = '11px JetBrains Mono';
   ctx.fillText('|s\'⟩', cx + R * 1.1 + 4, cy + 4);
-  ctx.fillText('|ω⟩', cx - 12, cy - R * 1.1 - 6);
+  ctx.fillText('|ω⟩', cx + 8, cy - R * 1.1 - 2);
 
   const theta = THETA;
 
@@ -579,7 +580,7 @@ function drawGeo(step) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#334466';
   ctx.font = '11px JetBrains Mono';
-  ctx.fillText('|s⟩', cx + sx * R + 6, cy - sy * R + 12);
+  ctx.fillText('|s⟩', cx + sx * R + 6, cy - sy * R + 18);
 
   // Current state at angle φ from the |s'⟩ axis (positive = toward |ω⟩)
   const phi = afterOracle ? -(2 * k + 1) * theta : (2 * k + 1) * theta;

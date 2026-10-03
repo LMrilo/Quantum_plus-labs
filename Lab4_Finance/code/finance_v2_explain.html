@@ -100,11 +100,11 @@
 
         /* ── QAOA bar chart ───────────────────────────────────────────────── */
         .qaoa-bar-area { display:flex; align-items:flex-end;
-            justify-content:center; gap:2px; height:160px;
+            justify-content:center; gap:2px; height:190px; min-width:440px;
             position:relative; border-bottom:2px solid #dee2e6; padding-top:8px; }
         .qaoa-bar-wrap { display:flex; flex-direction:column; align-items:center;
             flex:1; min-width:0; max-width:26px; height:100%; justify-content:flex-end; }
-        .qaoa-bar { width:100%; border-radius:3px 3px 0 0; min-height:2px;
+        .qaoa-bar { width:100%; border-radius:3px 3px 0 0; min-height:2px; flex-shrink:0;
             transition:height .7s cubic-bezier(.4,0,.2,1), background .5s; }
         .qaoa-lbl { font-size:.5rem; color:#888; margin-top:3px;
             text-align:center; font-family:monospace; }
@@ -131,7 +131,7 @@
         </h1>
         <p class="lead mt-2 text-white-50">
             Finance &amp; Industry Applications — QUBO (Quadratic Unconstrained Binary Optimization),
-            QAOA (Quantum Approximate Optimization Algorithm), and Real Asset Data
+            QAOA (Quantum Approximate Optimization Algorithm), and Stylised Asset Data
         </p>
         <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
             <span class="hero-badge"><i class="fa-regular fa-clock"></i> 75 min</span>
@@ -189,7 +189,8 @@
         <strong>Symbols and finance terms used on this page</strong>
         <ul class="mt-2 mb-0">
             <li><strong>The four assets</strong>: AAPL (Apple), MSFT (Microsoft), JPM (JPMorgan Chase),
-            XOM (ExxonMobil). All figures are annualised, estimated from 2020–2024 prices.</li>
+            XOM (ExxonMobil). All figures are annualised teaching values, rounded and simplified (in the
+            range of large US stocks, not an estimate from a specific price history).</li>
             <li><strong>$x_i \in \{0,1\}$ (decision)</strong>: $x_i = 1$ means asset $i$ is in the portfolio.
             A portfolio is a 4-bit string $x$. <em>Declared simplification:</em> each chosen asset receives
             the same amount of money; choosing weights (the full Markowitz problem) is not modelled.</li>
@@ -275,8 +276,8 @@
     growth-oriented and defensive portfolios.</p>
 
     <p><strong>Efficient frontier.</strong> A portfolio is <em>efficient</em> if
-    no other portfolio offers a higher expected return for the same or lower
-    risk. The efficient ones, drawn in the risk–return plane, form the
+    no other portfolio offers at least the same expected return for less risk, or a
+    higher expected return for no more risk. The efficient ones, drawn in the risk–return plane, form the
     <em>efficient frontier</em>; every other point is <em>dominated</em>. Here
     four of the six pairs are efficient (MSFT+JPM, AAPL+JPM, AAPL+XOM,
     AAPL+MSFT). MSFT+XOM and JPM+XOM are dominated. Moving $\lambda$ walks the
@@ -340,7 +341,7 @@
                     </div>
 
                     <div style="background:#fafafa;padding:14px;border-radius:8px;
-                         border:1px solid #eee;">
+                         border:1px solid #eee;overflow-x:auto;">
                         <div class="qaoa-bar-area" id="qaoa-bars"></div>
                         <div class="text-center mt-2" style="font-size:.7rem;color:#888;">
                             Bit string $|q_0 q_1 q_2 q_3\rangle$ (lab order, big-endian, convention A1): $q_0$ = AAPL, $q_1$ = MSFT, $q_2$ = JPM, $q_3$ = XOM
@@ -406,7 +407,7 @@
 <pre><code>import numpy as np, math, itertools
 from qiskit.quantum_info import SparsePauliOp
 
-# ── Real asset data (AAPL, MSFT, JPM, XOM — annualised 2020-2024) ──────────
+# ── Asset data (AAPL, MSFT, JPM, XOM — stylised annualised values) ────────
 MU    = np.array([0.340, 0.270, 0.150, 0.220])
 SIGMA = np.array([
     [0.0841, 0.0588, 0.0313, 0.0203],
@@ -663,6 +664,7 @@ function drawFrontier(lam) {
     // Find optimal
     const sorted = [...stats].sort((a,b)=>a.cost-b.cost);
     const optIdx = sorted[0].idx;
+    const rankOf = new Map(sorted.map((s,k) => [s.idx, k+1]));   // number in the dot = legend rank
 
     // Dashed line: the efficient frontier (non-dominated portfolios, by risk)
     const onFrontier = new Set(frontierPortfolios());
@@ -691,12 +693,18 @@ function drawFrontier(lam) {
         } else {
             ctx.fillStyle='white';
             ctx.font='bold 9px Arial';
-            ctx.fillText(i+1, x-3, y+3);
+            ctx.fillText(rankOf.get(i), x-3, y+3);
         }
         // Label
         ctx.fillStyle=PORT_COLORS[i]; ctx.font='bold 10px Arial';
         const offX = s.risk > (riskMin+riskMax)/2 ? -2 : 4;
-        ctx.fillText(s.name.replace('+',' + '), x+12, y+4);
+        const label = s.name.replace('+',' + ');
+        const lw = ctx.measureText(label).width;
+        const blocked = stats.some((o,j) => j!==i && Math.abs(toY(o.ret)-y) < 12 &&
+                                   toX(o.risk) > x && toX(o.risk) - 9 < x + 12 + lw);
+        ctx.textAlign = blocked ? 'right' : 'left';
+        ctx.fillText(label, blocked ? x-12 : x+12, y+4);
+        ctx.textAlign = 'left';
     });
 
     // Axis ticks

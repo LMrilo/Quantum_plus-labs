@@ -103,13 +103,13 @@
         /* ── QAOA bar chart ───────────────────────────────────────────────── */
         .qaoa-bar-area {
             display:flex; align-items:flex-end; justify-content:center;
-            gap:2px; height:160px; position:relative;
+            gap:2px; height:190px; position:relative;
             border-bottom:2px solid #dee2e6; padding-top:8px;
         }
         .qaoa-bar-wrap { display:flex; flex-direction:column;
-            align-items:center; flex:1; min-width:0;
+            align-items:center; flex:1; min-width:20px;
             max-width:28px; height:100%; justify-content:flex-end; }
-        .qaoa-bar { width:100%; border-radius:3px 3px 0 0; min-height:2px;
+        .qaoa-bar { width:100%; border-radius:3px 3px 0 0; min-height:2px; flex-shrink:0;
             transition:height .6s cubic-bezier(.4,0,.2,1), background .4s; }
         .qaoa-bar-lbl { font-size:.5rem; color:#888; margin-top:3px;
             text-align:center; font-family:monospace; }
@@ -272,8 +272,10 @@
     </div>
 
     <p class="small">This holds when $\theta$ enters a single gate. If one angle drives
-    several gates (as $\gamma$ does in Part C), apply the rule to each gate and add the
-    results.</p>
+    several gates (as $\gamma$ does in Part C), apply the rule to each gate in turn, shifting
+    only that gate's own angle by $\pm\pi/2$, and add the results; if a gate's angle is a
+    multiple of the parameter, multiply its term by that factor (each gate of Part C has angle
+    $2\gamma$, so the sum is doubled).</p>
 
     <div class="task-box">
         <div class="task-header">
@@ -440,7 +442,8 @@
         they differ (cut). So $\frac{I-Z_iZ_j}{2}$ equals 1 for a cut edge and 0 otherwise — exactly what we want.</p>
         <p>The <strong>mixer Hamiltonian</strong> $H_B = \sum_i X_i$ creates transitions between bit strings.
         The $X$ gate flips $|0\rangle \leftrightarrow |1\rangle$, so $e^{-i\beta H_B}$ allows the optimizer
-        to explore different node assignments — without it, the algorithm would stay stuck in its initial state.</p>
+        to explore different node assignments — without it, the cost layers would only change phases: every
+        bit string would stay equally likely (1/16) and no choice of angles could improve the cut.</p>
     </div>
 
     <p><strong>The QAOA recipe</strong> (Quantum Approximate Optimization Algorithm).
@@ -530,7 +533,7 @@
                     <h6 class="text-center text-muted fw-bold mb-2">
                         Measurement Probability Distribution (16 states)
                     </h6>
-                    <div style="background:#fafafa;padding:14px;
+                    <div style="background:#fafafa;padding:14px;overflow-x:auto;
                         border-radius:8px;border:1px solid #eee;">
                         <div class="qaoa-bar-area" id="qaoa-bars"></div>
                         <div class="text-center mt-2"
@@ -607,8 +610,9 @@
             <li>The classical optimizer is unchanged; only $H_C$ is different.
                 COBYLA (used in Part E) is gradient-free: it only compares cost values.
                 A gradient-based optimizer would take its slopes from the parameter-shift
-                rule of Part A. Because each $\gamma_k$ drives one gate per edge, the rule
-                is applied to every such gate and the results added.</li>
+                rule of Part A. Because each $\gamma_k$ drives one gate per edge, with angle
+                $2\gamma_k$, the rule is applied to every such gate (shifting that gate's angle by
+                $\pm\pi/2$), the results are added and the sum is doubled.</li>
         </ul>
     </div>
 
@@ -896,7 +900,7 @@ function drawLandscape() {
     lCtx.font='11px Arial';
     lCtx.fillText('π', lW/2-4, lH-6);
     lCtx.fillText('2π', lW-20, lH-6);
-    lCtx.fillText('θ₀→', lW-38, lH-6);
+    lCtx.fillText('θ₀→', lW-48, lH-6);
 
     // Draw optimizer path
     if(optimPath.length >= 2) {
@@ -949,8 +953,11 @@ function runOptimizer(startTh0, startTh1) {
     function animate() {
         if(frame >= allSteps.length) {
             const finalCost = costVQE(th0,th1);
+            const gF0 = (costVQE(th0+Math.PI/2,th1) - costVQE(th0-Math.PI/2,th1)) / 2,
+                  gF1 = (costVQE(th0,th1+Math.PI/2) - costVQE(th0,th1-Math.PI/2)) / 2;
             const info = document.getElementById('vqe-info');
-            info.innerHTML = `<strong>Converged!</strong><br>
+            info.innerHTML = `<strong>${Math.hypot(gF0, gF1) < 0.05 ? 'Converged!'
+                : 'Stopped after ' + steps + ' steps (not converged yet: start further from the edge)'}</strong><br>
                 $\\theta_0^* \\approx ${th0.toFixed(3)}$ rad,
                 $\\theta_1^* \\approx ${th1.toFixed(3)}$ rad<br>
                 $C^* = ${finalCost.toFixed(4)}$ &nbsp;
@@ -965,8 +972,8 @@ function runOptimizer(startTh0, startTh1) {
         const cv = costVQE(ct0,ct1);
         document.getElementById('vqe-info').innerHTML =
             `Step ${frame}/${steps}<br>
-             $\\theta_0 = ${ct0.toFixed(3)}$, $\\theta_1 = ${ct1.toFixed(3)}$<br>
-             $C = ${cv.toFixed(4)}$`;
+             θ<sub>0</sub> = ${ct0.toFixed(3)}, θ<sub>1</sub> = ${ct1.toFixed(3)}<br>
+             C = ${cv.toFixed(4)}`;
         frame += 2;
         animHandle = setTimeout(animate, 25);
     }

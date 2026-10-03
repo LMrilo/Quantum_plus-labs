@@ -208,7 +208,7 @@
                     <p class="mb-2">Qiskit prints measurement results as bit strings in <strong>"Little Endian"</strong>
                         order: the rightmost bit is qubit 0 ($q_0$).</p>
                     <div class="text-center mb-2">
-                        <code>Result '10' &implies; q<sub>1</sub> = 1, q<sub>0</sub> = 0</code>
+                        <code>Result '10' &rArr; q<sub>1</sub> = 1, q<sub>0</sub> = 0</code>
                     </div>
                     <p class="mb-2">The kets on this page are written the other way round, $|q_0 q_1\rangle$ (first
                         symbol = qubit 0): in the tables and derivations below, the ket $|10\rangle$ means $q_0 = 1$,
@@ -256,6 +256,11 @@
 
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
                         <ol>
+                            <li>Set the circuit to <strong>two qubits</strong>. A new Composer circuit has four
+                                (q[0] to q[3]): in the OpenQASM editor change <code>qubit[4] q;</code> to
+                                <code>qubit[2] q;</code> and <code>bit[4] c;</code> to <code>bit[2] c;</code>, or use
+                                Edit &rarr; Manage registers. With four qubits every label has four digits
+                                (<code>11</code> is shown as <code>0011</code>).</li>
                             <li>Use an <strong>X gate</strong> on $q_0$ (Control) to set it to $|1\rangle$. Leave $q_1$
                                 (Target) at $|0\rangle$.</li>
                             <li>Drag a <strong>CNOT gate</strong> (symbol &oplus; connected to a dot) into the circuit.
@@ -563,7 +568,7 @@ qc.measure([0,1,2],[0,1,2])</code></pre>
                 feedback.innerHTML = "<strong>Correct!</strong> <i class='fa-solid fa-check'></i>";
 
                 if (questionName === 'q1') feedback.innerHTML += " The target flips only if the control is 1.";
-                if (questionName === 'q2') feedback.innerHTML += " Entanglement guarantees perfect correlation upon measurement.";
+                if (questionName === 'q2') feedback.innerHTML += " In this Bell state the two qubits always give the same result: measuring the first fixes the second.";
                 if (questionName === 'q3') feedback.innerHTML += " Environmental noise (decoherence) scales with the size of the system.";
 
                 feedback.className = "feedback correct d-block";

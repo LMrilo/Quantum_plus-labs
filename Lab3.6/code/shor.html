@@ -394,6 +394,11 @@
 
                     <h6 class="mt-4 text-primary">Instructions</h6>
                     <ol>
+                        <li class="mb-2">Set the circuit to <strong>two qubits</strong>. A new Composer circuit
+                            has four (q[0] to q[3]): in the OpenQASM editor change <code>qubit[4] q;</code> to
+                            <code>qubit[2] q;</code> and <code>bit[4] c;</code> to <code>bit[2] c;</code>, or use
+                            Edit &rarr; Manage registers. Do not add a measurement: with one, the Composer's
+                            live views show a single simulated run.</li>
                         <li class="mb-2">Apply <span class="badge gate-h">H</span>
                             to $q_0$.</li>
                         <li class="mb-2">Apply <span class="badge gate-s">S</span>
@@ -441,11 +446,6 @@
                         <text x="65"  y="15" font-size="8" fill="#888" text-anchor="middle">c-S</text>
                         <text x="99"  y="15" font-size="8" fill="#888" text-anchor="middle">H</text>
                         <text x="145" y="15" font-size="8" fill="#888" text-anchor="middle">SWAP</text>
-                        <!-- measure -->
-                        <rect x="175" y="24" width="20" height="22" rx="2" fill="#e3f2fd" stroke="#1976d2"/>
-                        <text x="185" y="39" text-anchor="middle" font-size="9" fill="#1976d2">M</text>
-                        <rect x="175" y="69" width="20" height="22" rx="2" fill="#e3f2fd" stroke="#1976d2"/>
-                        <text x="185" y="84" text-anchor="middle" font-size="9" fill="#1976d2">M</text>
                     </svg>
                     <div class="text-center mt-2" style="font-size:.75rem; color:#888;">
                         The figure uses the textbook ordering (top wire = most significant bit).
@@ -825,7 +825,7 @@ function renderQPEBars(step) {
 
         const pctLbl = document.createElement('div');
         pctLbl.className = 'qpe-bar-pct';
-        pctLbl.textContent = pct > 0 ? (pct*100).toFixed(0)+'%' : '';
+        pctLbl.textContent = pct > 0 ? (pct*100).toFixed(0)+'%' : '\u00a0';   // keeps the label height: one baseline
 
         wrap.append(bar, lbl, pctLbl);
         container.appendChild(wrap);

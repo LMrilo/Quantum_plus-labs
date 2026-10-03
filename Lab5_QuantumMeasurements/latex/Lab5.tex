@@ -304,7 +304,9 @@ as a measurement device and causes state collapse.
 polarization $\leftrightarrow \ket{+} = (\ket{0} + \ket{1})/\sqrt 2$. Linear polarization at
 angle $\alpha$ (from the horizontal) is
 $\ket{\alpha} = \cos\alpha\,\ket{0} + \sin\alpha\,\ket{1}$. On the Bloch sphere it sits at
-$\theta = 2\alpha$, $\varphi = 0$: turning the polarization by $90^\circ$ (horizontal to
+$\theta = 2\alpha$, $\varphi = 0$ for $0^\circ \le \alpha \le 90^\circ$ (for $90^\circ < \alpha < 180^\circ$ at
+$\theta = 360^\circ - 2\alpha$, $\varphi = 180^\circ$: the anti-diagonal $135^\circ$ is $\ket{-}$ up to a
+sign, at $-X$): turning the polarization by $90^\circ$ (horizontal to
 vertical) moves the point by $180^\circ$ (north to south pole).
 
 A polarizer oriented at angle $\alpha$ measures in the basis
@@ -487,7 +489,7 @@ measurement, over many runs (the middle outcome is random)?
           Information}, Cambridge University Press, 2010, \S 2.2.3 (the measurement
           postulate) and \S 1.2 (the Bloch sphere).
     \item Barnett, S. M., \textit{Quantum Information}, Oxford University Press, 2009,
-          \S 1.4 (single-qubit measurements).
+          \S 2.4 (qubits) and \S 4.1 (ideal von Neumann measurements).
     \item Preskill, J., \textit{Lecture Notes on Quantum Information}, Ch.~2
           (foundations).
     \item Online: Qiskit documentation (\url{https://qiskit.org/documentation/}) --- statevector

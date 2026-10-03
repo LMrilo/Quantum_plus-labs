@@ -568,7 +568,9 @@
                     <br>Diagonal ($45°$) polarization $\leftrightarrow |{+}\rangle = \frac{|0\rangle+|1\rangle}{\sqrt{2}}$.
                     <br>Linear polarization at angle $\alpha$ (from the horizontal) is
                     $|\alpha\rangle = \cos\alpha\,|0\rangle + \sin\alpha\,|1\rangle$. On the Bloch sphere it sits at
-                    $\theta = 2\alpha$, $\varphi = 0$: turning the polarization by $90°$ (horizontal to vertical) moves the
+                    $\theta = 2\alpha$, $\varphi = 0$ for $0° \le \alpha \le 90°$ (for $90° < \alpha < 180°$ at
+                    $\theta = 360° - 2\alpha$, $\varphi = 180°$: the anti-diagonal $135°$ is $|{-}\rangle$ up to a sign,
+                    at $-X$): turning the polarization by $90°$ (horizontal to vertical) moves the
                     point by $180°$ (north to south pole).
                     <br>A polarizer oriented at angle $\alpha$ measures in the basis
                     $\{|\alpha\rangle, |\alpha+90°\rangle\}$ by <em>Procedure 1</em>: a photon that passes is left
@@ -726,8 +728,8 @@
             <div class="flex-grow-1">
                 <div class="sim-title">PhET — Stern-Gerlach Experiment</div>
                 <div class="sim-desc">
-                    University of Colorado Boulder. Simulate electrons through sequential Stern-Gerlach
-                    apparatuses oriented along arbitrary axes. Observe beam splitting and spin-state collapse.
+                    University of Colorado Boulder. Fire atoms through one to three Stern-Gerlach magnets
+                    set at adjustable angles. Observe beam splitting and spin-state collapse.
                 </div>
                 <div class="mt-1"><span class="sim-tag me-1">Activity 4 — optional (legacy Flash)</span></div>
             </div>
@@ -773,7 +775,7 @@
                         <h6 class="card-title text-primary"><i class="fa-solid fa-book-open me-1"></i>Textbooks</h6>
                         <ul class="small text-secondary mb-0">
                             <li>Nielsen &amp; Chuang, <em>Quantum Computation and Quantum Information</em>, §2.2.3 (Measurement postulate), §1.2 (Bloch sphere)</li>
-                            <li>Barnett, <em>Quantum Information</em>, §1.4 (Single-qubit measurements)</li>
+                            <li>Barnett, <em>Quantum Information</em>, §2.4 (Qubits), §4.1 (Ideal von Neumann measurements)</li>
                             <li>Preskill, <em>Lecture Notes on Quantum Information</em>, Ch. 2 (Foundations)</li>
                         </ul>
                     </div>
@@ -914,7 +916,7 @@
         renderer.setClearColor(0x0f0230, 1);
         container.appendChild(renderer.domElement);
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 50);
+        const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 50);
         camera.position.set(2.9, 1.8, 2.9);
         camera.lookAt(0, 0, 0);
         const controls = new THREE.OrbitControls(camera, renderer.domElement);

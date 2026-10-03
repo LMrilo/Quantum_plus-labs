@@ -98,6 +98,10 @@
 
         .bar-label    { font-size: 0.68rem; color: #495057; margin-top: 6px; text-align: center; font-family: monospace; }
         .amp-val-label { font-size: 0.68rem; text-align: center; font-family: monospace; margin-top: 2px; }
+        @media (max-width: 575.98px) {
+            .amp-chart-area, .amp-label-row { gap: 3px; }
+            .amp-label-row .bar-label, .amp-label-row .amp-val-label { writing-mode: vertical-rl; transform: rotate(180deg); margin: 4px auto 0; line-height: 1; }
+        }
 
         .amp-legend { display: flex; gap: 15px; margin-top: 15px; font-size: 0.8rem; color: #6c757d; justify-content: center; flex-wrap: wrap; }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
@@ -237,11 +241,11 @@
                 </div>
 
                 <div class="row g-4 mb-2">
-                    <div class="col-md-6">
+                    <div class="col-lg-6">
                         <h6 class="text-center text-muted fw-bold mb-2">Geometric View (2D Subspace)</h6>
                         <canvas id="geo" width="500" height="320"></canvas>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-lg-6">
                         <h6 class="text-center text-muted fw-bold mb-2">Probability Amplitudes (signed)</h6>
                         <div class="amp-container shadow-sm">
                             <div class="amp-chart-area" id="amp-bars">
@@ -283,6 +287,10 @@
                         
                         <h5 class="mt-4"><i class="fa-solid fa-list-ol text-primary"></i> Instructions</h5>
                         <ol class="mb-4">
+                            <li class="mb-2">Set the circuit to <strong>three qubits</strong>. A new Composer circuit has four
+                                (q[0] to q[3]): in the OpenQASM editor change <code>qubit[4] q;</code> to
+                                <code>qubit[3] q;</code> and <code>bit[4] c;</code> to <code>bit[3] c;</code>, or use
+                                Edit &rarr; Manage registers. With four qubits every label has four digits.</li>
                             <li class="mb-2">Apply <span class="badge gate-h">H</span> to $q_0, q_1, q_2$ to create a uniform superposition.</li>
                             <li class="mb-2"><strong>Oracle block:</strong>
                                 <span class="badge gate-h">H</span> on $q_2$
@@ -324,7 +332,7 @@
 
                             <!-- separator -->
                             <line x1="52" y1="15" x2="52" y2="175" stroke="#dee2e6" stroke-width="1" stroke-dasharray="4,3"/>
-                            <text x="56" y="13" font-size="9" fill="#6c757d">INIT</text>
+                            <text x="33" y="13" font-size="9" fill="#6c757d" text-anchor="middle">INIT</text>
 
                             <!-- ORACLE: H q2, CCX, H q2 -->
                             <rect x="58" y="138" width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
@@ -343,7 +351,7 @@
 
                             <!-- separator -->
                             <line x1="150" y1="15" x2="150" y2="175" stroke="#dee2e6" stroke-width="1" stroke-dasharray="4,3"/>
-                            <text x="153" y="13" font-size="9" fill="#6c757d">ORACLE</text>
+                            <text x="100" y="13" font-size="9" fill="#6c757d" text-anchor="middle">ORACLE</text>
 
                             <!-- DIFFUSER: H+X on all -->
                             <rect x="156" y="28"  width="22" height="22" rx="3" fill="#7057ff" stroke="#5236ff"/>
@@ -388,8 +396,7 @@
                             <text x="335" y="153" text-anchor="middle" font-size="10" fill="white" font-family="monospace">H</text>
 
                             <!-- separator + label -->
-                            <line x1="152" y1="15" x2="152" y2="175" stroke="#dee2e6" stroke-width="1" stroke-dasharray="4,3"/>
-                            <text x="200" y="178" font-size="9" fill="#6c757d" text-anchor="middle">DIFFUSER</text>
+                            <text x="251" y="13" font-size="9" fill="#6c757d" text-anchor="middle">DIFFUSER</text>
                         </svg>
                         <p class="text-muted mt-3" style="font-size:0.8rem;">Repeat the Oracle + Diffuser block $k^* = 2$ times.</p>
                     </div>
@@ -481,7 +488,7 @@ def run_simulation() -> None:
     print("-" * 55)
     for state, counts in sorted(result.items(), key=lambda x: x[1], reverse=True):
         probability = counts / 2000 * 100
-        print(f"  |{state}>  {counts:4d} shots  ({probability:5.1f}%)")
+        print(f"  |{state[::-1]}>  {counts:4d} shots  ({probability:5.1f}%)")   # Qiskit keys read q2 q1 q0; reversed to |q0 q1 q2>
 
 
 if __name__ == "__main__":
@@ -569,7 +576,7 @@ if __name__ == "__main__":
 
         // ── Axis labels ──────────────────────────────────────────────────────
         ctx.fillStyle = '#666'; ctx.font = '12px Arial';
-        ctx.fillText('|ω⟩ Target',  cx + R + 8, cy + 4);
+        ctx.fillText('|ω⟩ Target', Math.min(cx + R + 8, W - ctx.measureText('|ω⟩ Target').width - 2), cy - 6);
         ctx.fillText("|s'⟩ Others", cx - 30,    cy - R - 10);
 
         const theta = Math.asin(1 / Math.sqrt(N));
@@ -582,7 +589,7 @@ if __name__ == "__main__":
         ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1.2; ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = '#999';
-        ctx.fillText('|s⟩', cx + Math.sin(theta) * R + 6, cy - Math.cos(theta) * R - 4);
+        if (step !== 0) ctx.fillText('|s⟩', cx + Math.sin(theta) * R + 6, cy - Math.cos(theta) * R - 4);
 
         // ── Arc showing current rotation angle ───────────────────────────────
         const phi = afterOracle ? -(2 * k + 1) * theta : (2 * k + 1) * theta;
@@ -626,7 +633,7 @@ if __name__ == "__main__":
         ctx.fillStyle = color; ctx.font = 'bold 12px Arial';
         const labelOffset = 10;
         ctx.fillText(
-            afterOracle ? 'U\u03C9|\u03C8\u27E9' : `|\u03C8${k}\u27E9`,
+            afterOracle ? 'U\u03C9|\u03C8\u27E9' : (step === 0 ? '|\u03C80\u27E9 = |s\u27E9' : `|\u03C8${k}\u27E9`),
             ex + labelOffset, ey - 6
         );
 

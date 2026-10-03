@@ -381,9 +381,10 @@ $Z$ is the orientation flip ($Z\ket{\pm} = \ket{\mp}$; invisible on monochrome t
 $Y$ does both at once ($Y = iXZ$, phase discarded), and $H$ is the two bridges
 $W \leftrightarrow R$, $B \leftrightarrow L$. Every one of these cards is its own
 inverse: $X^2 = Y^2 = Z^2 = H^2 = I$, so any card played twice on the same tile is a
-round trip --- the rulebook's own unitarity note, made tactile. Playing $H$ twice on a
-bianconera therefore returns the bianconera; playing $Z$ between the two $H$'s returns
-the \emph{opposite} colour --- phase, converted twice.
+round trip --- the rulebook's own unitarity note, made tactile. Playing $H$ twice on any
+tile therefore returns it; on a monochrome tile, playing $Z$ between the two $H$'s returns
+the \emph{opposite} colour ($HZH = X$) --- phase, converted twice. (On a bianconera the same
+three cards leave the tile as it was.)
 \end{deepdivebox}
 
 \begin{connectionbox}
@@ -399,8 +400,8 @@ orientation of a bianconera is a phase, and $H$ is the device that reads it.
 In preset \textbf{+C$_X$}, play the $C_X$ card with a bianconera as control and a
 monochrome tile as target (the game asks you to declare which is which). The two cells
 become a pair of triangles --- one state on two cells. Run the sweep, and watch the pair
-counter in the session tally over several games: \textbf{100\% agreement}, while each
-member's own colour tally sits at 50/50. Entangle cells 1 and 9 --- opposite corners ---
+counter in the session tally over several games: \textbf{100\% agreement}, while the dice
+panel shows WW and BB about equally often --- each member alone is still a coin toss. Entangle cells 1 and 9 --- opposite corners ---
 and check that distance changes nothing.
 \end{playbox}
 
@@ -473,8 +474,8 @@ $P(\text{same colour} \mid \Phi^+) = |\braket{00}{\Phi^+}|^2 + |\braket{11}{\Phi
 = \tfrac12 + \tfrac12 = 1$: agreement $1.000$, and the mixed outcomes have probability
 exactly $0$ --- bands that simply do not exist on the printed row (1--50 $\to WW$,
 51--100 $\to BB$, nothing else). At the board (preset +C$_X$): entangle two cells,
-measure many games, and watch the pair counter pin agreement at 100\% while each
-member's own tally sits at 50/50.
+measure many games, and watch the pair counter pin agreement at 100\% while the dice
+panel shows WW and BB about equally often.
 \end{numberbox}
 
 \begin{deepdivebox}
@@ -547,9 +548,11 @@ $\sqrt{3}$ in it?
 
 The rulebook never writes the pink square's matrix --- it only prints its measurement
 table: a decorated white tile measures white 25\%, decorated black 75\%, decorated
-bianconere 93\% and 7\%. Those four rows pin the gate up to one choice: a mirror-type gate,
+bianconere 93\% and 7\%. Among real gates, those four rows pin the gate up to one choice: a
+mirror-type gate,
 $\left(\begin{smallmatrix} 1/2 & \sqrt{3}/2 \\ \sqrt{3}/2 & -1/2 \end{smallmatrix}\right)$,
-reproduces the same four rows. This guide uses the rotation (deviation~\ref{dev:pink}). Take the square to be
+reproduces the same four rows. (A complex phase on the gate's $\ket{1}$ output is fixed by no
+printed row: the colour measurement cannot see it, because the square always acts last.) This guide uses the rotation (deviation~\ref{dev:pink}). Take the square to be
 a canonical (real) rotation by an angle $\theta$,
 
 \begin{equation}
@@ -847,7 +850,7 @@ a product operation acts as
 \textbf{Step 2 --- the two rows that are right.} $U U^{T} = I$ for any rotation, so
 $(U \otimes U)\ket{\Phi^+} = \ket{\Phi^+}$ exactly (Lab 7's ``rotate both together''
 invariance). And $U\,(ZX)\,U^{T} = ZX$ for every rotation, because $ZX$ is itself the
-rotation by $90^\circ$ and rotations commute --- so the singlet $\ket{\Psi^-}$ is
+rotation by $-90^\circ$ (equation~\eqref{eq:rot}) and rotations commute --- so the singlet $\ket{\Psi^-}$ is
 invariant too. Rows 1 and 4 of the printed table are exactly right.
 
 \medskip
@@ -1005,14 +1008,14 @@ opens with a one-screen reading guide):\\[4pt]
 \begin{enumerate}
     \item Entangle two far-apart cells with $C_X$ (bianconera control, monochrome
           target). Over several games, verify that the pair counter reads 100\%
-          agreement while each member's own tally stays near 50/50.
+          agreement while the dice panel shows WW and BB about equally often.
     \item Using the recipe of equation~\eqref{eq:bellrecipe}, prepare each of the four
           Bell pairs from tiles and check, with the probability preview, which two give
           $WW/BB$ and which two give $WB/BW$. Why is the sign of the pair invisible to
           the colour measurement?
     \item Play $C_X$ again on the pair you made. What comes back, and who chooses where?
           Starting from a white and a black tile, prepare the $\Psi^-$ pair using only
-          cards --- one solution uses two cards.
+          cards --- the shortest solutions use three cards.
 \end{enumerate}
 \end{studentbox}
 

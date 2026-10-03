@@ -111,10 +111,10 @@ single photons, and whether one photon can interfere with itself.
 
 \begin{devbox}{Safety first}
 The room is dark during measurements. The 405\,nm pump laser is class 3B: \textbf{only the
-staff switch it on} (key, interlock). While it is on (Parts B--D) you follow the i-LAMP
+staff switch it on} (key, interlock; manual Ch.~1, Ch.~14). While it is on (Parts B--D) you follow the i-LAMP
 eyewear and conduct rules of the laser safety officer; the manual is explicit: ``Always wear
 laser safety glasses when working with the pump laser!'' (manual \S7.6.4). You use the
-635\,nm alignment laser and the software (manual Ch.~1, Ch.~14).
+635\,nm alignment laser and the software.
 \end{devbox}
 
 \begin{labelbox}{Words you need}
@@ -231,10 +231,11 @@ $g^{(2)}_{\mathrm{acc}} = 0.0193$, that is $\approx 520$ chance triples in 20\,s
 consistent with chance coincidences alone: no sign of the photon splitting.} A shorter window or weaker pump lowers it (eq.~110).
 \end{devbox}
 
-% DEV-10.3: idealized model; efficiency cancels, dark counts and stray light = accidentals
+% DEV-10.3: idealized model; efficiency cancels except the herald's in g2_GRA; dark counts and stray light = accidentals
 \begin{devbox}{The bench is not the model: real detectors}
-Our model is idealized. Detector efficiency multiplies the top and the bottom of every
-$g^{(2)}$ alike and cancels; dark counts and stray light enter only as accidentals.
+Our model is idealized. Detector efficiency cancels in every $g^{(2)}$, except that of the
+herald T in $\gtwo{GRA}$: a T that misses photons raises its small two-pair term by up to a
+factor 2 (it stays far below 1). Dark counts and stray light enter only as accidentals.
 \end{devbox}
 
 % =====================================================================
@@ -271,7 +272,7 @@ the fringes are built photon by photon.
 \textbf{Polarization} is the direction in which the light's field oscillates; a
 \textbf{polarizer} passes one direction; a \textbf{half-wave plate} mirrors the direction
 about its axis. The pair photons are vertically polarized.
-\textbf{E, quantum eraser} (manual \S9.8): a half-wave plate at $22.5^\circ$ between the
+\textbf{E, quantum eraser} (manual \S7.7, \S9.8): a half-wave plate at $22.5^\circ$ between the
 two beam splitters makes the polarization diagonal. Arm polarizers crossed at $0^\circ$ and
 $90^\circ$ mark the path: no fringes, $P_d = \tfrac14$ flat. A polarizer at $\pm45^\circ$
 before the detector erases the mark and the fringes return,
@@ -313,7 +314,7 @@ photons.
 \end{industrybox}
 
 {\footnotesize\textbf{References.} Thorlabs, \textit{EDU-QOP1(/M) Quantum Optics Kit User
-Guide}, Rev.~D (2025-10-25): Ch.~1, 2, 14; \S4.2.2, \S7.6.4, \S9.1--9.8, \S11.7, \S11.9,
+Guide}, Rev.~D (2025-10-25): Ch.~1, 2, 14; \S4.2.2, \S7.6.4, \S7.7, \S9.1--9.8, \S11.7, \S11.9,
 \S12.2.1. Course document QC10, \textit{Light}. R.~Hanbury Brown, R.~Q.~Twiss,
 \textit{Nature} \textbf{177}, 27 (1956). P.~Grangier, G.~Roger, A.~Aspect,
 \textit{Europhys.\ Lett.} \textbf{1}, 173 (1986). J.~F.~Clauser, M.~A.~Horne, A.~Shimony,

@@ -469,7 +469,8 @@
                     probability exactly $0$ — bands that simply do not exist on the printed row.</div>
                 <div class="mt-1"><span class="t-step">Play it.</span>Below (preset +C<sub>X</sub>, the
                     default): entangle two cells, measure many games, and watch the pair counter pin
-                    agreement at 100% while each member's own tally sits at 50/50.</div>
+                    agreement at 100% while the dice panel shows the pair coming up WW and BB about
+                    equally often, so each member alone is still a coin toss.</div>
             </div>
         </div>
     </div>
@@ -489,8 +490,10 @@
             <p class="text-secondary lh-lg">
                 The rulebook never writes the pink square's matrix — it only prints its measurement table:
                 a decorated white tile measures white 25%, decorated black 75%, decorated bianconere 93%
-                and 7%. Those four rows pin the gate up to one choice: a mirror-type gate,
+                and 7%. Among real gates, those four rows pin the gate up to one choice: a mirror-type gate,
                 $\begin{pmatrix} 1/2 & \sqrt{3}/2 \\ \sqrt{3}/2 & -1/2 \end{pmatrix}$, reproduces the same four rows.
+                (A complex phase on the gate's $|1\rangle$ output is fixed by no printed row: the colour
+                measurement cannot see it, because the square always acts last.)
                 This page uses the rotation (see <a href="#deviations">deviation 6</a>). A canonical rotation by angle $\theta$
                 sends $|0\rangle$ to $\cos\theta\,|0\rangle + \dots$, so $\cos^2\theta = \tfrac14$ forces
                 $\theta = 60°$; matching the 93 to the <em>right</em>-oriented bianconera fixes the sense:
@@ -1013,8 +1016,8 @@
                 <div class="task-body">
                     <ul class="mb-0 lh-lg" style="font-size:.95rem;">
                         <li><strong>P1.</strong> Starting from a white and a black tile, prepare the
-                            $\Psi^-$ pair using only cards. (One solution uses two cards; check yourself
-                            with the probability preview.)</li>
+                            $\Psi^-$ pair using only cards. (The shortest solutions use three cards; check
+                            yourself with the probability preview.)</li>
                         <li><strong>P2.</strong> Make the erratum visible: in preset +U+C<sub>X</sub>,
                             build a $\Phi^-$ pair, decorate both members with pink squares, and measure
                             many times. Compare your tallies with the printed row shown in the erratum
@@ -1075,8 +1078,9 @@
         <strong>Lab 8 — QTris</strong>
     </p>
     <p class="mb-1 text-muted" style="font-size:.85rem;">
-        QTris original game © 2024 AH Quantum Lab / NQSTI — A. Hamma; I. De Simone, M. Nazzaro,
-        M. Viscardi. This page is an independent educational adaptation with declared deviations.
+        QTris original game (2024) by Alioscia Hamma, with I. De Simone, M. Nazzaro and M. Viscardi;
+        produced by AH Quantum Lab and Communikart; online edition by NQSTI. This page is an independent
+        educational adaptation with declared deviations.
     </p>
     <p class="mb-0 text-muted">Quantum Computing Foundation — Lab Module 8</p>
 </footer>
@@ -2343,7 +2347,7 @@ function onCellClick(cell) {
 }
 function afterPlay(result, prevSeat) {
     const g = ui.game;
-    if (!result.ok) { renderAll('Rejected: ' + result.note); ui.selectedCard = null; return; }
+    if (!result.ok) { ui.selectedCard = null; ui.cxControl = null; renderAll('Rejected: ' + result.note + ' — choose a card again.'); return; }
     ui.selectedCard = null;
     let extra = result.note ? '<i class="fa-solid fa-ghost me-1"></i>' + result.note + '.' : null;
     if (g.phase === 'measure') {
@@ -2385,7 +2389,9 @@ function renderRollDetailInto(el, d) {
         html += '<div><span class="die-face">' + (d.tens === 0 ? '00' : d.tens * 10) + '</span>' +
                 '<span class="die-face">' + d.units + '</span> read as <strong>' + d.roll +
                 '</strong> (00 + 0 reads 100)</div>' +
-                bandStripHtml(d.bands, d.outcomeNames, d.outcome, 100) +
+                bandStripHtml(d.bands,
+                              d.mirrored ? MIRROR_OUTCOME.map(function (j) { return d.outcomeNames[j]; }) : d.outcomeNames,
+                              d.mirrored ? MIRROR_OUTCOME[d.outcome] : d.outcome, 100) +
                 '<div>→ <strong>' + d.outcomeNames[d.outcome] + '</strong></div>';
     }
     html += '<div class="prov mt-1">' + d.prov + '</div>';

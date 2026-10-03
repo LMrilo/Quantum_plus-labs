@@ -209,6 +209,13 @@
         code {
             font-family: 'Courier New', Courier, monospace;
         }
+
+        mjx-container[jax="CHTML"][display="true"] {
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
+            padding: 2px 0;
+        }
     </style>
 </head>
 
@@ -367,7 +374,7 @@
                 <div class="task-header bg-light">Exercise 2: Finding the Function Type</div>
                 <div class="task-body">
                     <p class="lead">
-                        <strong>The Problem:</strong> We are given an unknown function $f(x) \in \{0,1\} \to
+                        <strong>The Problem:</strong> We are given an unknown function $f: \{0,1\} \to
                         \{0,1\}$.
                     </p>
                     <p>This function belongs to one of two rigid categories:</p>
@@ -656,6 +663,7 @@ print(f"Algorithm Output: {job.result().get_counts()}")</code></pre>
                 feedback.innerHTML = "<strong>Incorrect.</strong> <i class='fa-solid fa-xmark ms-2'></i><br><small>Please review the theoretical sections above before trying again.</small>";
                 feedback.className = "feedback wrong d-block";
             }
+            if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([feedback]);
         }
     </script>
 </body>

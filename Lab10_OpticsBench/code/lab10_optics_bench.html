@@ -356,12 +356,11 @@
                 <ul class="safety-list lh-lg mb-0">
                     <li>The room is <strong>dark</strong> during measurements.</li>
                     <li>The 405&nbsp;nm pump laser is class 3B: <strong>only the staff switch it on</strong> (key,
-                        interlock).</li>
+                        interlock; manual Ch.&nbsp;1, Ch.&nbsp;14).</li>
                     <li>While it is on (Parts B–D) you follow the <strong>i-LAMP eyewear and conduct rules of the
                         laser safety officer</strong>. The manual is explicit: “Always wear laser safety glasses
                         when working with the pump laser!” (manual §7.6.4).</li>
-                    <li>You use the 635&nbsp;nm alignment laser and the software (manual Ch.&nbsp;1,
-                        Ch.&nbsp;14).</li>
+                    <li>You use the 635&nbsp;nm alignment laser and the software.</li>
                 </ul>
             </div>
         </div>
@@ -469,8 +468,8 @@
                     </div>
                     <p class="fair-note mt-2 mb-0">The windows come from this page's own seeded random-number
                         generator (seed 1010): Reset, a new source or a new mean starts it again, so the same
-                        clicks give the same numbers. It is not the generator of the notebook, so its numbers differ
-                        from the notebook's.</p>
+                        clicks give the same numbers. The notebook has no such simulation: it analyzes the manual's
+                        example tables, your worksheet and a Michelson scan.</p>
 
                     <div class="window-strip" aria-live="polite">
                         <span id="last-text">No window yet: press a button.</span>
@@ -518,6 +517,7 @@
                     <div class="chart-legend">
                         <span><i class="swatch-dot" aria-hidden="true"></i>$g^{(2)}$ after each press, $\pm\sigma$</span>
                         <span><i class="swatch-ring" aria-hidden="true"></i>fewer than 10 coincidences: no error bar</span>
+                        <span><span aria-hidden="true" style="color:#0d9488">&#9650;</span>above the top of the axis (off scale)</span>
                         <span><i class="swatch-line" aria-hidden="true"></i><span id="legend-ref">ideal value</span></span>
                         <span id="legend-bound" hidden><i class="swatch-bound" aria-hidden="true"></i>classical bound 1</span>
                     </div>
@@ -1003,6 +1003,10 @@ function heraldedG2(m, etaT, eta) {
             + '" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="6 4"/>';
         points.forEach(function (p) {
             const xx = x(p.windows).toFixed(1), yy = y(p.est.g2).toFixed(1);
+            if (p.est.g2 > yTop) {   // off scale: an arrow in the margin above the top edge, no dot on the edge
+                s += '<path d="M' + xx + ' ' + (mt - 12) + ' l-4 7 h8 z" fill="#0d9488"/>';
+                return;
+            }
             if (p.est.sigma === null) {   // fewer than 10 coincidences: no error bar
                 s += '<circle cx="' + xx + '" cy="' + yy + '" r="3.5" fill="#fff" stroke="#0d9488" stroke-width="1.5"/>';
                 return;

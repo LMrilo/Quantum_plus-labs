@@ -286,6 +286,12 @@
 
                         <h5><i class="fa-solid fa-list-ol"></i> Instructions:</h5>
                         <ol>
+                            <li>Set the circuit to <strong>one qubit</strong>. A new Composer circuit has four
+                                (q[0] to q[3]): in the OpenQASM editor change <code>qubit[4] q;</code> to
+                                <code>qubit[1] q;</code> and <code>bit[4] c;</code> to <code>bit[1] c;</code>, or use
+                                Edit &rarr; Manage registers. With four qubits, $q_0 = 1$ is labelled
+                                <code>0001</code> and drawn one latitude below the North Pole, not at the South
+                                Pole.</li>
                             <li>Verify the qubit line $q_0$ is empty (State $|0\rangle$).</li>
                             <li>Drag the <strong>X Gate</strong> onto the line.</li>
                             <li><strong>Check Probability:</strong> The blue bar jumps to 100% on "1".</li>
@@ -309,8 +315,7 @@
 
                     <div class="col-md-4 visual-col">
                         <h6 class="text-muted mb-3">Theoretical Bloch Sphere</h6>
-                        <img src="bloch_0_to_1.png" alt="Bloch Sphere State 1" class="bloch-img"
-                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Bloch_sphere_ket_1.svg/300px-Bloch_sphere_ket_1.svg.png'">
+                        <img src="bloch_0_to_1.png" alt="Bloch Sphere State 1" class="bloch-img">
                         <p class="small text-muted mt-2">Vector points DOWN ($|1\rangle$).</p>
                     </div>
                 </div>
@@ -362,8 +367,7 @@
 
                     <div class="col-md-4 visual-col">
                         <h6 class="text-muted mb-3">Theoretical Bloch Sphere</h6>
-                        <img src="bloch_superposition.png" alt="Bloch Sphere Superposition" class="bloch-img"
-                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bloch_sphere_ket_plus.svg/300px-Bloch_sphere_ket_plus.svg.png'">
+                        <img src="bloch_superposition.png" alt="Bloch Sphere Superposition" class="bloch-img">
                         <p class="small text-muted mt-2">Vector points to X-Axis ($|+\rangle$).</p>
                     </div>
                 </div>
@@ -406,8 +410,9 @@
                             <li>Keep the H gate. Place a <strong>Z Gate</strong> immediately after it.</li>
                             <li><strong>Check Probability:</strong> Notice it is STILL 50/50. The "shadow" hasn't
                                 changed.</li>
-                            <li><strong>Look at the Q-Sphere:</strong> This is the only place you can see the change.
-                            </li>
+                            <li><strong>Look at the Q-Sphere:</strong> the change shows in the colours of the dots
+                                (the phase disk at the end of the $q_0$ wire turns as well); the probability chart
+                                cannot show it.</li>
                         </ol>
 
                         <div class="qsphere-box">
@@ -426,8 +431,7 @@
 
                     <div class="col-md-4 visual-col">
                         <h6 class="text-muted mb-3">Theoretical Bloch Sphere</h6>
-                        <img src="bloch_phase_flip.png" alt="Bloch Sphere Phase Flip" class="bloch-img"
-                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Bloch_sphere_ket_minus.svg/300px-Bloch_sphere_ket_minus.svg.png'">
+                        <img src="bloch_phase_flip.png" alt="Bloch Sphere Phase Flip" class="bloch-img">
                         <p class="small text-muted mt-2">Vector points to NEGATIVE X-Axis ($|-\rangle$).</p>
                     </div>
                 </div>

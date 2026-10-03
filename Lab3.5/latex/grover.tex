@@ -91,7 +91,7 @@ Grover's Algorithm always follows the same logical loop:
     \item \textbf{Initialize:} Create an equal superposition of all possible answers.
     \item \textbf{The Oracle:} Flip the phase (make it negative) \textit{only} for the correct answer.
     \item \textbf{The Diffuser:} Perform an "Inversion about the Mean" to shrink the wrong answers and amplify the correct one.
-    \item \textbf{Repeat:} Steps 2 and 3 are repeated $\approx \sqrt{N}$ times.
+    \item \textbf{Repeat:} Steps 2 and 3 are repeated about $\frac{\pi}{4}\sqrt{N}$ times (exactly once for $N=4$).
 \end{enumerate}
 
 \begin{mathbox}
@@ -127,6 +127,7 @@ We will search a database of $N=4$ items (using 2 qubits). The winning item is $
 We will build the Oracle to mark $|11\rangle$. A gate that applies a phase only when both qubits are 1 is the \textbf{Controlled-Z (CZ) gate}.
 
 \begin{studentbox}
+\textbf{Setup:} A new Composer circuit has four qubits. Reduce it to two: in the OpenQASM editor change \texttt{qubit[4] q;} to \texttt{qubit[2] q;} and \texttt{bit[4] c;} to \texttt{bit[2] c;} (or use \textit{Edit $\rightarrow$ Manage registers}). With four qubits $|11\rangle$ is shown as \texttt{0011}.\\
 \textbf{Action:}
 \begin{enumerate}
     \item Put $q_0$ and $q_1$ in superposition using \texttt{H} gates.

@@ -785,7 +785,8 @@
                 <li>Every measurement <em>probability</em> in Eve's apparatus is identical in the two
                     strategies. What, physically, is different about what Bob receives?</li>
                 <li>Alice's Z-rounds and X-rounds contribute differently ($\tfrac14$ vs $\tfrac12$).
-                    Which rounds in the Step-by-Step log show it?</li>
+                    Use the Born table (Part 2) to explain why. (The Step-by-Step mode always runs the
+                    correct intercept-resend, so its log cannot show this split.)</li>
             </ul>
         </div>
     </div>
@@ -1021,7 +1022,7 @@ function stepEveConfig() {
 }
 
 function resetStep() {
-    const seed = parseInt(document.getElementById('step-seed').value) || 42;
+    const seed = (s => Number.isFinite(s) ? s : 42)(parseInt(document.getElementById('step-seed').value));
     stepState = {
         rng: mulberry32(seed), round: 0, sifted: 0, errors: 0,
         aliceKey: [], bobKey: [], log: []
@@ -1181,7 +1182,7 @@ function chartFrame(w, h, padL, padB, yMax, yLabel, xLabel) {
 
 function runBatchUI() {
     const n = parseInt(document.getElementById('b-n').value);
-    const seed = parseInt(document.getElementById('b-seed').value) || 42;
+    const seed = (s => Number.isFinite(s) ? s : 42)(parseInt(document.getElementById('b-seed').value));
     const eve = batchEveConfig();
     const res = runBatch(n, seed, eve);
     syncBatchTheory();
@@ -1213,7 +1214,7 @@ function runBatchUI() {
 }
 
 function runSweep() {
-    const seed = parseInt(document.getElementById('b-seed').value) || 42;
+    const seed = (s => Number.isFinite(s) ? s : 42)(parseInt(document.getElementById('b-seed').value));
     const strategy = document.getElementById('b-strategy').value;
     const effStrategy = strategy === 'off' ? 'ir' : strategy;   // sweeping p with Eve off is empty
     if (strategy === 'off') {
@@ -1246,7 +1247,7 @@ function runSweep() {
 }
 
 function runDetection() {
-    const seed = parseInt(document.getElementById('b-seed').value) || 42;
+    const seed = (s => Number.isFinite(s) ? s : 42)(parseInt(document.getElementById('b-seed').value));
     const k = parseInt(document.getElementById('d-k').value);
     let eve = batchEveConfig();
     if (!eve) {   // detection with Eve off is trivially 0 — switch her on

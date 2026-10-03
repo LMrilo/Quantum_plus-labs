@@ -82,9 +82,10 @@ computational hardness.
 
 This laboratory develops the BB84 protocol completely: the four signal states, the
 exact measurement statistics, sifting, the quantum bit error rate (QBER) with and
-without an eavesdropper, and the probability of catching her. Every number derived
-here is verified live in the lab's interactive simulator and rebuilt with real
-quantum circuits in the companion Qiskit notebook.
+without an eavesdropper, and the probability of catching her. The key numbers derived
+here (sifted fraction, QBER with and without Eve, detection probability) are verified
+live in the lab's interactive simulator and rebuilt with real quantum circuits in the
+companion Qiskit notebook.
 
 \vspace{0.3cm}
 \noindent\textbf{Prerequisites:}
@@ -486,7 +487,8 @@ forgets to re-encode with $U_\gamma^\dagger$). Run $N = 5000$.
           the two strategies. What, physically, is different about what Bob
           receives?
     \item Alice's $Z$-rounds and $X$-rounds contribute differently ($\tfrac{1}{4}$
-          vs $\tfrac{1}{2}$). Which rounds in the Step-by-Step log show it?
+          vs $\tfrac{1}{2}$). Use Table~\ref{tab:born} to explain why. (The Step-by-Step
+          mode always runs the correct intercept-resend, so its log cannot show this split.)
 \end{enumerate}
 \end{studentbox}
 
@@ -505,7 +507,7 @@ probability.
 \end{enumerate}
 \end{studentbox}
 
-\subsection{Activity 5: The Protocol in Qiskit}
+\subsection{The Protocol in Qiskit}
 
 The companion notebook implements the four BB84 states and the basis-selective
 measurement as two short routines, then scales them to the full protocol with
@@ -546,7 +548,7 @@ big-endian (qubit 0 leftmost). In this lab every quantum register holds a
 is essential.
 \end{warningbox}
 
-\subsection{Activity 6: Quick Check}
+\subsection{Activity 5: Quick Check}
 
 \begin{reflectionbox}
 \textbf{Question 1:} Alice sends $\ket{+}$ and Bob measures in the $Z$-basis. What
