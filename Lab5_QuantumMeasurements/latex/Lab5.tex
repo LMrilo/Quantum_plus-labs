@@ -350,7 +350,9 @@ along different axes map to qubit states and Bloch sphere positions.
 
 \medskip
 \textbf{Theory --- spin and the Bloch sphere.} An electron's spin is a two-level quantum
-system --- exactly like a qubit. Spin-up along $Z$ corresponds to $\ket{0}$ (north pole),
+system --- exactly like a qubit. (Stern and Gerlach's 1922 experiment used silver atoms,
+whose spin is that of their single outer electron; that is why the instructions below speak
+of atoms.) Spin-up along $Z$ corresponds to $\ket{0}$ (north pole),
 spin-down to $\ket{1}$ (south pole). Spin-up along $X$ corresponds to $\ket{+}$ (equator,
 $+X$); spin-up along $Y$ to $\ket{+i}$ ($+Y$). A Stern--Gerlach apparatus oriented along
 an axis splits a beam into two outputs (spin-up and spin-down for that axis), each with
@@ -370,7 +372,9 @@ a legacy Flash simulation) shows the same experiment with beams.
           $\ket{0}$ before each): always spin-up. A second $Z$ apparatus confirms the first.
     \item Click $\ket{0}$ and measure in the \textbf{$X$-basis} instead, ten times (click
           $\ket{0}$ before each): about half $\ket{+}$, half $\ket{-}$. Why? Because
-          $\ket{0} = (\ket{+} + \ket{-})/\sqrt 2$.
+          $\ket{0} = (\ket{+} + \ket{-})/\sqrt 2$ (check: $\ket{+} + \ket{-} = \tfrac{2}{\sqrt 2}\,\ket{0}
+          = \sqrt 2\,\ket{0}$): each of the two terms has amplitude $1/\sqrt 2$, so each outcome
+          has probability $\tfrac12$.
     \item Now take an atom that came out $\ket{+}$ and measure it in the \textbf{$Z$-basis}
           (a third apparatus). Repeat the whole sequence a few times (click $\ket{0}$,
           measure in $X$ until the outcome is $\ket{+}$, then measure in $Z$): $\ket{0}$ and

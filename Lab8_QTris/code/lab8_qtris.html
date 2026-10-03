@@ -173,10 +173,14 @@
                 see the erratum panel), the physics wins, openly.
             </p>
             <p class="text-secondary lh-lg">
-                You will play first and formalize second. The tally counters, the printed dice tables, and
+                You will play first and formalize second. The game has its own section,
+                <a href="#simulator">The Game</a>, after Part 5: open it, play a round, and come back.
+                Each Part below has a <em>Play it</em> step that sends you back to the board or to
+                its <em>Sandbox</em> tab. The tally counters, the printed dice tables, and
                 an optional exact mode are all part of the instrument: the game is not an analogy for
                 quantum mechanics — it <em>is</em> a quantum system you operate by hand, the same physics
-                that runs Stern-Gerlach spin measurements and commercial quantum random-number generators.
+                that runs Stern-Gerlach spin measurements (the 1922 experiment that sorts atoms by their spin
+                with a non-uniform magnetic field; Part 5 returns to it) and commercial quantum random-number generators.
             </p>
             <div class="formula-box text-secondary lh-lg">
                 <strong>What this lab uses.</strong> Four ideas from the Fundamental Concepts of Quantum Technologies course carry this page: a
@@ -205,7 +209,9 @@
                     $|W\rangle = |0\rangle$, $|B\rangle = |1\rangle$, $|R\rangle = |+\rangle$,
                     $|L\rangle = |-\rangle$; cards as unitaries; dice as the Born rule.</li>
                 <li>Predict measurement statistics for single tiles and entangled pairs, decorated or not,
-                    and confirm them against both the printed d100 tables and the exact probabilities.</li>
+                    and confirm them against both the printed d100 tables (d100: two ten-sided dice,
+                    d10, read as tens and units, with 00 and 0 read as 100, give a number from 1 to 100) and the
+                    exact probabilities.</li>
                 <li>Explain how one rotation, $R(-60°)$, produces the game's 25, 75, 93 and 7 — including where the $\sqrt{3}$
                     comes from — and which choice the printed rows leave open (deviation 6).</li>
                 <li>Distinguish Procedure 1 and Procedure 2 for a rotated-basis measurement: identical
@@ -373,7 +379,10 @@
                 <div><span class="t-step">Number.</span>$1.000$ — not $0.500$.</div>
                 <div class="mt-1"><span class="t-step">Play it.</span>In the game below: play $H$ on a
                     bianconera, then measure. The rulebook itself recommends this tactic — it is how you
-                    build a guaranteed tris piece out of chance.</div>
+                    build a guaranteed tris piece out of chance. Quicker, in the game's <em>Sandbox</em> tab:
+                    reset the tile to R and play $H$; the info line now reads $P(W) = 1.000000$, a certain white
+                    (with $Z$ instead of $H$ it reads $0.500000$). Press <em>Measure color</em> to see the
+                    white.</div>
             </div>
             <h5 class="mt-4 mb-2">The single-cell cards at a glance</h5>
             <p class="text-secondary lh-lg">$X$, $Z$ and $H$ are the gates of the theory pill QC04 — Single-qubit
@@ -562,7 +571,8 @@
                 <strong>Procedure 1</strong> projects directly onto the orientation states — the
                 post-measurement state is an oriented bianconera tile. <strong>Procedure 2</strong> is the
                 rulebook's own construction: apply $H$ (the canonical rotation for this basis), measure
-                <em>color</em>, and relabel the outcomes — the post-measurement state is a monochrome tile.
+                <em>color</em>, and relabel the outcomes (white → $+$, black → $-$) — the post-measurement state is a
+                monochrome tile.
                 Identical statistics, different post-states; the overlap between the two post-states is
                 $|\langle + | 0\rangle|^2 = \tfrac12$.
             </p>
@@ -571,7 +581,8 @@
                 other. Starting from a white tile, the chain orientation → color → orientation gives 50/50
                 at every step. Nobody repainted the tile — the color question simply has no answer while the
                 orientation is definite, and vice versa. This is Stern-Gerlach physics: replace color/
-                orientation with spin-$z$/spin-$x$ and the sandbox is the sequential Stern-Gerlach
+                orientation with spin-$z$/spin-$x$ (the spin measured along two perpendicular directions) and the
+                sandbox is the sequential Stern-Gerlach
                 experiment that today's spin-qubit hardware reads out one electron at a time.
             </p>
             <div class="triple-box">
@@ -844,7 +855,15 @@
                     cancelled. For $\Phi^+$ and $\Psi^-$ this is exact physics: those two states are
                     invariant when both members rotate together. But if the $\Phi^+$ row <em>and</em> the
                     $\Phi^-$ row were both right as printed, the pink square would have to leave definite
-                    colors definite — flatly contradicting its own 25/75 row. No assignment of any rotation
+                    colors definite — flatly contradicting its own 25/75 row. The step: the state of two white
+                    tiles is the equal superposition of the two $\Phi$ pairs,
+                    $|00\rangle = \tfrac{1}{\sqrt2}\big(|\Phi^+\rangle + |\Phi^-\rangle\big)$. If two pink squares
+                    left both $\Phi^+$ and $\Phi^-$ without mixed outcomes, they would leave two white tiles
+                    without mixed outcomes too, because the squares act on each term of a superposition
+                    separately: the amplitude of a mixed outcome would be a sum of two zeros. Yet a pink square
+                    on each of two white tiles gives $WB$ with probability $\tfrac14 \cdot \tfrac34 = \tfrac{3}{16}$,
+                    straight from the 25/75 row. <em>(Optional, for readers comfortable with matrices:)</em> No
+                    assignment of any rotation
                     (indeed any unitary) to the square can make the printed table true; the obstruction is
                     numeric and large: the relevant interference term is
                     $\left|\,(U Z U^{T})_{01}\right|^2 = \sin^2 120° = \tfrac34$

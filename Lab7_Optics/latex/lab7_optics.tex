@@ -152,7 +152,8 @@ but you do not need them):
           which-path complementarity ($\mathcal{V} = s$), and the quantitative gap
           between quantum and classical-wave predictions.
     \item \textbf{Discuss the role of optical platforms in quantum communication and
-          computation} --- polarization-encoded and entanglement-based QKD,
+          computation} --- polarization-encoded and entanglement-based quantum key
+          distribution (QKD),
           interferometric sensing, and dual-rail photonic quantum computing.
 \end{enumerate}
 
@@ -269,6 +270,16 @@ $P = \tfrac12, \tfrac12$ and $P_{\text{coinc}} = 0$. In \textbf{Preset A}: after
 \textbf{5\,000 / 5\,000} (the detector cards show the theory value 0.5000), while the
 coincidence counter reads \textbf{0 --- exactly, after every single photon}. Fire
 another 10\,000 and check that the zero is not luck.
+
+\smallskip
+\textbf{How close is ``within statistical noise''?} Each photon independently reaches
+detector B with probability $\tfrac12$, so the fraction of $n$ photons that reaches B
+scatters around $\tfrac12$ by about $\sqrt{1/(4n)}$. This typical size of the scatter is
+called one \emph{standard deviation}: $0.05$ for $n = 100$, $0.016$ for $n = 1\,000$ and
+$0.005$ for $n = 10\,000$ (about $\pm 50$ around $5\,000$). For an outcome of probability
+$p$ it is $\sqrt{p(1-p)/n}$. A correct result lands within three standard deviations of
+the prediction about 99.7\% of the time. The coincidence zero is different: no amount of noise
+can move it.
 \end{numberbox}
 
 \begin{warningbox}
@@ -291,7 +302,7 @@ photonic quantum computing. \textbf{Quandela} builds the single-photon sources (
 processors around exactly this $\{\ket{A}, \ket{B}\}$ qubit; \textbf{ORCA Computing}
 builds photonic quantum processors on the same principle that beam-splitter networks
 perform unitary computation on light. The linear-optical quantum computing
-literature (the KLM protocol) showed that such networks plus detection are universal.
+literature (the Knill--Laflamme--Milburn, or KLM, protocol of 2001) showed that such networks plus detection are universal.
 When you fire photons at the bench, you are operating the elementary cell of those
 machines.
 \end{industrybox}
@@ -701,7 +712,9 @@ outcome ``+'' means the photon exited the $\ket{\theta_{\text{analyzer}}}$ port,
               P({+}{-}) = P({-}{+}) = \frac{\sin^2\Delta}{2}.
               \label{eq:jointprobs}
           \end{equation}
-          At matched angles ($\Delta = 0$): agreement with certainty. At
+          At matched angles ($\Delta = 0$): agreement with certainty. And
+          $P({+}{+}) + P({+}{-}) = \tfrac12$ for every $\Delta$: the perfect coin of the first
+          item. At
           $\alpha = 0^\circ$, $\beta = 22.5^\circ$, for instance:
           $P({+}{+}) = P({-}{-}) = (1 + \cos 45^\circ)/4 \approx 0.4268$ and
           $P({+}{-}) = P({-}{+}) = (1 - \cos 45^\circ)/4 \approx 0.0732$ --- the
@@ -738,7 +751,8 @@ In \textbf{Preset D}, set $\alpha = 0^\circ$, $\beta = 22.5^\circ$, fire 10\,000
 pairs, and read the measured $E$ against the theory overlay. Then set the dials equal
 ($\Delta = 0$) and confirm \textbf{100\% agreement} --- against the classical-wave
 overlay's \textbf{75\%} --- while each side's own counter stays at 50/50. At
-$\Delta = 45^\circ$, $E = 0$: the two analyzers have become mutually unbiased ---
+$\Delta = 45^\circ$, $E = 0$: the two analyzers have become mutually unbiased (a photon
+leaving either port of one analyzer would split 50/50 at the other) ---
 Lab 6's key concept reappearing as zero correlation.
 \end{numberbox}
 
