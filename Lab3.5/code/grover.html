@@ -161,7 +161,7 @@
         <p>Grover's algorithm alternates between two operators: the Oracle $U_\omega$ and the Diffuser $U_s$. Let's formalize the state vector evolution for a general search space of $N$ elements.</p>
 
         <div class="math-box shadow-sm">
-            <h5 class="mb-3 text-danger"></i> 1. State Vector Evolution</h5>
+            <h5 class="mb-3 text-danger">1. State Vector Evolution</h5>
 
             <p><strong>Step 1 — Initialization.</strong> $n$ Hadamard gates, one per qubit, create a uniform superposition of all $N = 2^n$ basis states:</p>
             <div class="bg-white p-2 text-center rounded border mb-3">
@@ -205,7 +205,7 @@
                 $$ \alpha_\omega^{(k)} = \sin\!\bigl((2k+1)\theta\bigr), \qquad \alpha_x^{(k)} = \frac{\cos\!\bigl((2k+1)\theta\bigr)}{\sqrt{N-1}} \quad (x \neq \omega) $$
             </div>
 
-            <h5 class="mt-5 mb-3 text-danger"></i> 2. Optimal Iteration Count</h5>
+            <h5 class="mt-5 mb-3 text-danger">2. Optimal Iteration Count</h5>
             <p>We maximise $P(\omega) = \sin^2\!\bigl((2k+1)\theta\bigr)$ by setting $(2k+1)\theta = \frac{\pi}{2}$, giving the exact formula:</p>
             <div class="bg-white p-2 text-center rounded border mb-3">
                 $$ k^* = \operatorname{round}\!\left(\frac{\pi}{4\theta} - \frac{1}{2}\right) $$
@@ -223,7 +223,7 @@
         <!-- ═══════════════════════════════════════════════════════════════════
              PART B: INTERACTIVE SIMULATOR
         ════════════════════════════════════════════════════════════════════ -->
-        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary"></i> Part B: Interactive Amplitude Amplification</h2>
+        <h2 class="border-bottom pb-2 mb-4 mt-5 text-primary">Part B: Interactive Amplitude Amplification</h2>
 
         <div class="task-box">
             <div class="task-header bg-light">Interactive Simulator — Search for $|111\rangle$ in 3 Qubits ($N = 8$)</div>

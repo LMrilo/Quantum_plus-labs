@@ -501,13 +501,15 @@ that happens here is what Part D reports.
 
 \subsection{QAOA Circuit Structure ($p=1$)}
 
-The $p=1$ QAOA circuit alternates one cost unitary and one mixer:
+The $p=1$ QAOA circuit starts with a Hadamard layer ($\mathrm{H}^{\otimes 4}$: the Hadamard gate
+$\mathrm{H}$ on every qubit, not the Hamiltonian $H_\text{portfolio}$), then alternates one cost unitary
+and one mixer:
 
 \begin{equation}
     \ket{\gamma,\beta} =
     e^{-i\beta\sum_i X_i}\,
     e^{-i\gamma H_\text{portfolio}}\,
-    H^{\otimes 4}\ket{0000}.
+    \mathrm{H}^{\otimes 4}\ket{0000}.
 \end{equation}
 
 Per cost layer: one CNOT--$R_z$--CNOT block for each of the
